@@ -51,6 +51,10 @@ jobs:
       - name: Installer smoke test
         run: |
           export FAKE="$RUNNER_TEMP/fakehome"
+          # Pin XDG_CONFIG_HOME so install.sh and the assertions below agree on
+          # the OpenCode dir. GitHub runners set XDG_CONFIG_HOME=/home/runner/.config,
+          # which otherwise steers install away from $FAKE/.config.
+          export XDG_CONFIG_HOME="$FAKE/.config"
           mkdir -p "$FAKE/.claude" "$FAKE/.codex" "$FAKE/.config/opencode"
           HOME="$FAKE" ARCDLC_NO_PLUGIN_CLI=1 ./install.sh --bindir "$FAKE/bin"
           test -f "$FAKE/.claude/skills/arcdlc/.claude-plugin/plugin.json"

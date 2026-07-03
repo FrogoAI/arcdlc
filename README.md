@@ -1,33 +1,124 @@
-# ArcDLC
+<p align="center">
+  <a href="https://github.com/FrogoAI/arcdlc">
+    <img src="assets/arcdlc_bg.svg" alt="ArcDLC — the agent-native Architecture Development Life Cycle" width="100%">
+  </a>
+</p>
 
-[![CI](https://github.com/FrogoAI/arcdlc/actions/workflows/ci.yml/badge.svg)](https://github.com/FrogoAI/arcdlc/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+<p align="center">
+  <a href="https://github.com/FrogoAI/arcdlc/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/FrogoAI/arcdlc/actions/workflows/ci.yml/badge.svg" /></a>
+  <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" /></a>
+  <img alt="Zero dependencies" src="https://img.shields.io/badge/arctool-zero%20deps-0aa?style=flat-square" />
+  <img alt="Agents" src="https://img.shields.io/badge/agents-Claude%20Code%20·%20Codex%20·%20OpenCode-818CF8?style=flat-square" />
+</p>
 
-**ArcDLC** (Architecture Development Life Cycle) is an open, agent-native delivery workflow:
-a skill bundle for AI coding agents (Claude Code, Codex, OpenCode) that takes an initiative from
-architecture interview to audited, task-by-task implementation — plus `arctool`, an optional
-zero-dependency Go CLI that drives the executable plan mechanically.
+<p align="center">
+  <b>ArcDLC</b> — the open, agent-native <b>Architecture Development Life Cycle</b>.<br>
+  Take an initiative from a grilled architecture interview to audited, task-by-task implementation.
+</p>
 
-ArcDLC is a universal delivery tool: it builds **applications** and authors **policies**, and both
-feed the same executable plan queue (`docs/aics/plan.md`) — architecture is decomposed into it,
-audit findings are filed into it, and `/arcdlc:execute` works it off task by task.
+Our philosophy:
 
-- **Application track:** `/arcdlc:aic` → `/arcdlc:plan` → `/arcdlc:execute` → `/arcdlc:archive`
-- **Governance track:** `/arcdlc:policy` → `/arcdlc:examinate docs/policies/<name>.md` → `/arcdlc:execute`
+```
+→ architecture-first, not prompt-first
+→ deterministic plans, not vibes
+→ audited every step, not assumed done
+→ brownfield audits and greenfield builds — one workflow
+→ agent-native across Claude Code, Codex, and OpenCode
+```
 
-In the governance track the policy itself is just rules — nothing gets "planned". `/arcdlc:examinate`
-audits the codebase against those rules and files each violation as a `TODO` task directly into
-`docs/aics/plan.md`; `/arcdlc:execute` then closes those gaps. If the audit finds nothing (or the
-policy has no code impact), the track ends with the policy document.
+> [!TIP]
+> **Two tracks, one queue.** ArcDLC builds **applications** and enforces **governance policies**
+> through the same executable plan. Architecture is decomposed into `docs/aics/plan.md`, audit
+> findings are filed into it, and `/arcdlc:execute` works it off — one task, one commit, at a time.
 
-## Quick Install
+## See it in action
+
+```text
+You: /arcdlc:aic
+AI:  Before I write anything, let's pin down the architecture.
+     (grilled interview — boundaries, constraints, trade-offs)
+     ✓ docs/aics/aic.md   — the architecture document
+     ✓ docs/adrs/         — the decisions, captured as ADRs
+     ✓ CONTEXT.md         — the shared brief for every agent
+
+You: /arcdlc:plan
+AI:  Decomposing the architecture into an executable queue...
+     ✓ docs/aics/plan.md  — 12 tasks, each with testable Acceptance criteria
+
+You: /arcdlc:execute
+AI:  Working the queue, one commit per task...
+     ✓ AIC-1  Add health endpoint        TODO → DONE
+     ✓ AIC-2  Wire structured logging     TODO → DONE
+     ✓ AIC-3  Enforce request timeouts    TODO → DONE
+     Tests green. Lint clean.
+
+You: /arcdlc:archive
+AI:  Moved 12 DONE blocks to docs/aics/plan-archive.md.
+     Plan compacted. Ready for the next initiative.
+```
+
+## Why ArcDLC?
+
+AI coding agents are fast but forgetful: architecture decisions live in chat history, plans drift,
+and "done" is a vibe. ArcDLC wraps a **deterministic lifecycle** around your agent — from a grilled
+architecture interview to an audited, task-by-task implementation — so complex systems get built the
+way they were designed.
+
+- **Design before you build** — a mandatory grilled interview produces the architecture document
+  (AIC, arc42, TOGAF, C4, or ADRs) *before* any code is written.
+- **Plans you can trust** — every task carries testable `Acceptance` criteria; the optional
+  `arctool` CLI validates the contract and flips task status atomically. No hand-edited status lines.
+- **Audit what already exists** — `/arcdlc:examinate` measures real code against a named architecture
+  or policy (MDCA, DDD, SOLID, Twelve-Factor, …) and files each gap as a tracked task.
+- **Bring your own agent** — one install-agnostic bundle for Claude Code, Codex, and OpenCode.
+
+## Why teams adopt ArcDLC
+
+Solo, ArcDLC keeps you and your agent honest: initiatives start from an architecture interview, not
+a vague prompt, and land as audited commits. On a team, the same workflow scales to **governance** —
+policies become auditable rules, and every violation becomes a task the whole team's agents work off
+the shared plan queue.
+
+- **Architecture that survives the agent** — decisions captured as documents and ADRs, not lost in a
+  chat transcript.
+- **Compliance as a loop, not a wiki** — audit the codebase against a design or policy; gaps become
+  `TODO` plan tasks that `/arcdlc:execute` closes.
+- **One queue for everything** — features and policy fixes flow through the same `docs/aics/plan.md`,
+  driven deterministically by `arctool`.
+
+## How we compare
+
+**vs. unstructured AI coding** — Prompts in chat, no memory of decisions, "done" left unverified.
+ArcDLC captures architecture as documents and enforces testable acceptance before anything is marked
+done.
+
+**vs. spec-only workflows** — Specs describe *what* to build. ArcDLC governs the whole *architecture
+development life cycle* — decision, decomposition, execution, audit, and archival — and drives it
+with a deterministic, zero-dependency CLI.
+
+**vs. heavyweight EA tooling** (TOGAF suites, enterprise modeling) — Powerful but disconnected from
+the code and the agent. ArcDLC speaks the same formats (TOGAF, arc42, C4, ADR) yet lives in your repo
+and actually executes the plan.
+
+## Quick Start
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/FrogoAI/arcdlc/main/install.sh | bash
 ```
 
 Installs the skills into every agent it detects (Claude Code, Codex, OpenCode) and the `arctool`
-binary for linux/darwin × amd64/arm64. Details and manual alternatives: [Installation](#installation).
+binary for linux/darwin × amd64/arm64. Then, in your project:
+
+```
+/arcdlc:aic          # grilled interview → architecture document
+/arcdlc:plan         # decompose it → docs/aics/plan.md task queue
+/arcdlc:execute      # implement every task, one commit each
+/arcdlc:archive      # compact the plan, preserving history
+```
+
+Details and manual alternatives: [Installation](#installation).
+
+---
 
 ## Commands
 
@@ -41,6 +132,17 @@ binary for linux/darwin × amd64/arm64. Details and manual alternatives: [Instal
 | `/arcdlc:archive` | Move `DONE` task blocks into `docs/aics/plan-archive.md`, keeping the plan small. | compacted plan + archive |
 | `source-map` skill | Routing table into the bundled architecture & engineering reference library (AIC, arc42, TOGAF, C4, ADR, DDD, SOLID, MDCA, Go guides, Twelve-Factor, …). | reference guidance |
 
+ArcDLC is a universal delivery tool: it builds **applications** and authors **policies**, and both
+feed the same executable plan queue (`docs/aics/plan.md`).
+
+- **Application track:** `/arcdlc:aic` → `/arcdlc:plan` → `/arcdlc:execute` → `/arcdlc:archive`
+- **Governance track:** `/arcdlc:policy` → `/arcdlc:examinate docs/policies/<name>.md` → `/arcdlc:execute`
+
+In the governance track the policy itself is just rules — nothing gets "planned". `/arcdlc:examinate`
+audits the codebase against those rules and files each violation as a `TODO` task directly into
+`docs/aics/plan.md`; `/arcdlc:execute` then closes those gaps. If the audit finds nothing (or the
+policy has no code impact), the track ends with the policy document.
+
 Every plan task carries testable `Acceptance` criteria; `/arcdlc:execute` must demonstrate them
 before a task may be marked `DONE`. The full contract lives in
 [`skills/plan/references/plan-format.md`](skills/plan/references/plan-format.md).
@@ -50,6 +152,7 @@ before a task may be marked `DONE`. The full contract lives in
 ```
 arcdlc/
 ├── .claude-plugin/          # plugin.json + marketplace.json (Claude Code plugin metadata)
+├── assets/                  # README banner (arcdlc_bg.svg)
 ├── skills/                  # one skill per directory (SKILL.md each)
 │   ├── source-map/          # reference library (SKILL.md + source/)
 │   ├── aic/  policy/  plan/  examinate/  execute/  archive/
