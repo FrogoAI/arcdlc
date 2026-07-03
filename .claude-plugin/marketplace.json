@@ -1,0 +1,14 @@
+{
+  "name": "arcdlc",
+  "owner": {
+    "name": "FrogoAI",
+    "url": "https://github.com/FrogoAI"
+  },
+  "plugins": [
+    {
+      "name": "arcdlc",
+      "source": "./",
+      "description": "ArcDLC — Architecture Development Life Cycle: engineering reference library and /arcdlc:* delivery-workflow commands (aic, policy, plan, examinate, execute, archive)."
+    }
+  ]
+}

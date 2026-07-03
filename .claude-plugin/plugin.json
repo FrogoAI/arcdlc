@@ -1,0 +1,12 @@
+{
+  "name": "arcdlc",
+  "description": "ArcDLC — Architecture Development Life Cycle: engineering reference library (source-map) and universal delivery workflow for applications and policies: grilled AIC, grilled policy authoring, executable acceptance-enforced plan, compliance examination, per-task execution, plan archiving.",
+  "version": "0.1.0",
+  "author": {
+    "name": "FrogoAI"
+  },
+  "homepage": "https://github.com/FrogoAI/arcdlc",
+  "repository": "https://github.com/FrogoAI/arcdlc",
+  "license": "MIT",
+  "keywords": ["architecture", "aic", "arc42", "adr", "delivery", "plan", "workflow", "governance"]
+}
