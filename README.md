@@ -28,7 +28,7 @@ Our philosophy:
 
 > [!TIP]
 > **Two tracks, one queue.** ArcDLC builds **applications** and enforces **governance policies**
-> through the same executable plan. Architecture is decomposed into `docs/aics/plan.md`, audit
+> through the same executable plan. Architecture is decomposed into `docs/aics/<slug>/plan.md`, audit
 > findings are filed into it, and `/arcdlc:execute` works it off — one task, one commit, at a time.
 
 ## See it in action
@@ -37,23 +37,24 @@ Our philosophy:
 You: /arcdlc:aic
 AI:  Before I write anything, let's pin down the architecture.
      (grilled interview — boundaries, constraints, trade-offs)
-     ✓ docs/aics/aic.md   — the architecture document
-     ✓ docs/adrs/         — the decisions, captured as ADRs
-     ✓ CONTEXT.md         — the shared brief for every agent
+     → "Checkout Redesign" → create docs/aics/checkout-redesign/ ? ✓
+     ✓ docs/aics/checkout-redesign/aic.md   — the architecture document
+     ✓ docs/adr/                            — the decisions, captured as ADRs
+     ✓ CONTEXT.md                           — the shared brief for every agent
 
 You: /arcdlc:plan
 AI:  Decomposing the architecture into an executable queue...
-     ✓ docs/aics/plan.md  — 12 tasks, each with testable Acceptance criteria
+     ✓ docs/aics/checkout-redesign/plan.md  — 12 tasks, each with testable Acceptance criteria
 
 You: /arcdlc:execute
-AI:  Working the queue, one commit per task...
+AI:  Working docs/aics/checkout-redesign/ (auto-detected), one commit per task...
      ✓ AIC-1  Add health endpoint        TODO → DONE
      ✓ AIC-2  Wire structured logging     TODO → DONE
      ✓ AIC-3  Enforce request timeouts    TODO → DONE
      Tests green. Lint clean.
 
 You: /arcdlc:archive
-AI:  Moved 12 DONE blocks to docs/aics/plan-archive.md.
+AI:  Moved 12 DONE blocks to docs/aics/checkout-redesign/plan-archive.md.
      Plan compacted. Ready for the next initiative.
 ```
 
@@ -83,8 +84,8 @@ the shared plan queue.
   chat transcript.
 - **Compliance as a loop, not a wiki** — audit the codebase against a design or policy; gaps become
   `TODO` plan tasks that `/arcdlc:execute` closes.
-- **One queue for everything** — features and policy fixes flow through the same `docs/aics/plan.md`,
-  driven deterministically by `arctool`.
+- **One queue per initiative** — features and policy fixes flow through the same
+  `docs/aics/<slug>/plan.md`, driven deterministically by `arctool`.
 
 ## How we compare
 
@@ -110,13 +111,14 @@ Installs the skills into every agent it detects (Claude Code, Codex, OpenCode) a
 binary for linux/darwin × amd64/arm64. Then, in your project:
 
 ```
-/arcdlc:aic          # grilled interview → architecture document
-/arcdlc:plan         # decompose it → docs/aics/plan.md task queue
+/arcdlc:aic          # grilled interview → docs/aics/<slug>/ architecture document
+/arcdlc:plan         # decompose it → docs/aics/<slug>/plan.md task queue
 /arcdlc:execute      # implement every task, one commit each
 /arcdlc:archive      # compact the plan, preserving history
 ```
 
-Details and manual alternatives: [Installation](#installation).
+Each initiative gets its own folder `docs/aics/<slug>/`; commands auto-detect it when there's one, or
+take `--aic <slug>` to pick among several. Details and manual alternatives: [Installation](#installation).
 
 ---
 
@@ -124,23 +126,31 @@ Details and manual alternatives: [Installation](#installation).
 
 | Command | What it does | Output |
 | --- | --- | --- |
-| `/arcdlc:aic [aic\|arc42\|togaf\|c4\|adr]` | Build the initiative's architecture document (AIC by default). Always runs a grilled interview first. | `docs/aics/<format>.md`, ADRs, `CONTEXT.md` |
+| `/arcdlc:aic [aic\|arc42\|togaf\|c4\|adr] [--aic <slug>]` | Build the initiative's architecture document (AIC by default). Always runs a grilled interview first. | `docs/aics/<slug>/<format>.md`, ADRs, `CONTEXT.md` |
 | `/arcdlc:policy [name]` | Author a governance policy per the Policy of Policies framework — grilled interview first. | `docs/policies/<name>.md` + index |
-| `/arcdlc:plan` | Decompose the approved architecture document into the executable task queue. | `docs/aics/plan.md` |
-| `/arcdlc:examinate [policy]` | Examine existing code for compliance with a named policy or design (`MDCA`, `DDD`, `SOLID`, …; default: the project's own AIC) and register gaps as plan tasks. | `docs/aics/gap.md`, new TODO blocks in `docs/aics/plan.md` |
-| `/arcdlc:execute [TASK-ID]` | Implement all pending plan tasks (or one by ID): status `TODO→TAKEN→DONE`, tests/lint, one commit per task. | code, tests, commits |
-| `/arcdlc:archive` | Move `DONE` task blocks into `docs/aics/plan-archive.md`, keeping the plan small. | compacted plan + archive |
+| `/arcdlc:plan [--aic <slug>]` | Decompose the approved architecture document into the executable task queue. | `docs/aics/<slug>/plan.md` |
+| `/arcdlc:examinate [policy] [--aic <slug>]` | Examine existing code for compliance with a named policy or design (`MDCA`, `DDD`, `SOLID`, …; default: the project's own AIC) and register gaps as plan tasks. | `docs/aics/<slug>/gap.md`, new TODO blocks in `docs/aics/<slug>/plan.md` |
+| `/arcdlc:execute [--aic <slug>] [TASK-ID]` | Implement all pending plan tasks (or one by ID): status `TODO→TAKEN→DONE`, tests/lint, one commit per task. | code, tests, commits |
+| `/arcdlc:archive [--aic <slug>]` | Move `DONE` task blocks into `docs/aics/<slug>/plan-archive.md`, keeping the plan small. | compacted plan + archive |
 | `source-map` skill | Routing table into the bundled architecture & engineering reference library (AIC, arc42, TOGAF, C4, ADR, DDD, SOLID, MDCA, Go guides, Twelve-Factor, …). | reference guidance |
 
+### Initiatives live in folders
+
+Each initiative gets its own folder `docs/aics/<slug>/` (holding the architecture document, `plan.md`,
+`gap.md`, and `plan-archive.md`). Every pipeline command selects it with `--aic <slug>`, or auto-detects
+the single initiative under `docs/aics/` when the flag is omitted — if several exist, it asks which. The
+legacy flat `docs/aics/plan.md` still works when it's the only plan. Task IDs need only be unique within
+one initiative's plan, and each `/arcdlc:execute` run works exactly one initiative.
+
 ArcDLC is a universal delivery tool: it builds **applications** and authors **policies**, and both
-feed the same executable plan queue (`docs/aics/plan.md`).
+feed the same executable plan queue (`docs/aics/<slug>/plan.md`).
 
 - **Application track:** `/arcdlc:aic` → `/arcdlc:plan` → `/arcdlc:execute` → `/arcdlc:archive`
 - **Governance track:** `/arcdlc:policy` → `/arcdlc:examinate docs/policies/<name>.md` → `/arcdlc:execute`
 
 In the governance track the policy itself is just rules — nothing gets "planned". `/arcdlc:examinate`
 audits the codebase against those rules and files each violation as a `TODO` task directly into
-`docs/aics/plan.md`; `/arcdlc:execute` then closes those gaps. If the audit finds nothing (or the
+`docs/aics/<slug>/plan.md`; `/arcdlc:execute` then closes those gaps. If the audit finds nothing (or the
 policy has no code impact), the track ends with the policy document.
 
 Every plan task carries testable `Acceptance` criteria; `/arcdlc:execute` must demonstrate them
@@ -229,9 +239,10 @@ done
 
 ### `arctool` CLI (optional, recommended)
 
-`arctool` is the deterministic companion for `docs/aics/plan.md`: it validates the plan contract,
-picks the next task, and flips task status atomically so the agent never hand-edits status lines.
-It is pure Go standard library — the binaries are static and need no runtime.
+`arctool` is the deterministic companion for `docs/aics/<slug>/plan.md`: it validates the plan
+contract, picks the next task, and flips task status atomically so the agent never hand-edits status
+lines. It resolves the initiative from `--aic <slug>` (or auto-detects a single one). It is pure Go
+standard library — the binaries are static and need no runtime.
 
 Every ArcDLC skill probes `command -v arctool` and falls back to manual markdown handling when it
 is absent, so the CLI is always optional.
@@ -266,25 +277,27 @@ release binaries with SHA256 checksums and publishes them as a GitHub release.
 ### End-to-end application flow
 
 ```
-/arcdlc:aic                  # grilled interview → docs/aics/aic.md (+ ADRs, CONTEXT.md)
-/arcdlc:plan                 # decompose the document → docs/aics/plan.md task queue
+/arcdlc:aic --aic checkout   # grilled interview → docs/aics/checkout/aic.md (+ ADRs, CONTEXT.md)
+/arcdlc:plan                 # decompose the document → docs/aics/checkout/plan.md task queue
 /arcdlc:execute              # implement every TODO task, one commit per task
-/arcdlc:archive              # move DONE blocks to docs/aics/plan-archive.md
+/arcdlc:archive              # move DONE blocks to docs/aics/checkout/plan-archive.md
 ```
 
-Run a single task, or audit an existing codebase:
+After the first initiative, `--aic <slug>` is inferred when there's only one folder; pass it once a
+second initiative exists. Run a single task, audit an existing codebase, or work a second initiative:
 
 ```
-/arcdlc:execute AIC-3        # implement only task AIC-3
-/arcdlc:examinate MDCA       # audit code against MDCA, gaps become plan tasks
-/arcdlc:aic arc42            # produce an arc42 document instead of an AIC
+/arcdlc:execute AIC-3                # implement only task AIC-3 (single initiative)
+/arcdlc:execute --aic payments AIC-3 # ...or task AIC-3 in a specific initiative
+/arcdlc:examinate MDCA               # audit code against MDCA, gaps become plan tasks
+/arcdlc:aic arc42 --aic payments     # produce an arc42 doc in docs/aics/payments/
 ```
 
 ### Governance flow
 
 ```
 /arcdlc:policy log-retention                       # grilled interview → docs/policies/log-retention.md
-/arcdlc:examinate docs/policies/log-retention.md   # audit the repo; violations land in docs/aics/plan.md as TODO tasks
+/arcdlc:examinate docs/policies/log-retention.md   # audit the repo; violations land in docs/aics/<slug>/plan.md as TODO tasks
 /arcdlc:execute                                    # close the gaps task by task (skip if the audit found none)
 ```
 
@@ -303,16 +316,19 @@ A plan task block looks like this (full contract in
 - WHY: Deploys are unverifiable without a liveness probe.
 - Acceptance:
   - GIVEN a running server WHEN `GET /healthz` THEN the response is 200 with the build version.
-- References: `docs/aics/aic.md`.
+- References: `docs/aics/checkout/aic.md`.
 - Status: TODO.
 ```
+
+Add `--aic <slug>` to any command to target a specific initiative; omit it to auto-detect the single
+one under `docs/aics/` (or `--plan <path>` for an explicit file):
 
 ```bash
 arctool validate --strict      # enforce the contract (unique IDs, statuses, Acceptance per task)
 arctool list                   # all tasks + status counts
 arctool next --json            # first TODO block as JSON (exit 3 when queue is empty)
 arctool take AIC-1             # claim it: TODO → TAKEN (refuses non-TODO without --force)
-arctool done AIC-1             # complete it: TAKEN → DONE
+arctool done AIC-1 --aic checkout   # complete it in a named initiative: TAKEN → DONE
 arctool block AIC-1 -m "vendor API returns 500 on staging"
 arctool archive --dry-run      # preview which DONE blocks would move to plan-archive.md
 arctool archive                # move them (archive written first — crash-safe)

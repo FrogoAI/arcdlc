@@ -45,6 +45,14 @@ checks. Do not merge with a red pipeline.
 - **Status mutations stay byte-preserving and atomic.** `take`/`done`/`block`/`todo` rewrite only
   the one `- Status:` line via temp-file + rename; `archive` writes the archive before compacting
   the plan. Preserve these invariants.
+- **Initiatives are folders; selection is uniform.** Each initiative lives in `docs/aics/<slug>/`
+  (holding the architecture doc, `plan.md`, `gap.md`, `plan-archive.md` — the latter two are always
+  siblings of `plan.md`). Every command and skill resolves the target the same way: explicit
+  `--plan PATH` wins; else `--aic <slug>` → `docs/aics/<slug>/plan.md`; else auto-detect a single
+  plan (the legacy flat `docs/aics/plan.md` and each `docs/aics/*/plan.md` are candidates) —
+  ambiguous → exit 2, none → exit 3. The resolver lives in `cmd/arctool` (`resolvePlan`); keep the
+  skills' manual fallback describing the same rule. Task IDs are unique per plan, not globally. ADRs
+  (`docs/adr/`) and `CONTEXT.md` stay global, not per-initiative. Keep the legacy flat layout working.
 - **Version bumps:** the CLI version lives in `cmd/arctool/main.go` (`const version`); the plugin
   version lives in `.claude-plugin/plugin.json`. Bump whichever component you changed. Releases
   are cut by pushing a `v*` tag.

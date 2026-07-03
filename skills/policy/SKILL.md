@@ -12,7 +12,7 @@ document that `/arcdlc:examinate` can then audit code or process against:
 `/arcdlc:policy` → `/arcdlc:examinate docs/policies/<name>.md` → `/arcdlc:execute`
 
 There is no plan step here: the policy is the rules, and `/arcdlc:examinate` already files each
-violation as a `TODO` task in `docs/aics/plan.md` for `/arcdlc:execute` to close. A policy with no
+violation as a `TODO` task in `docs/aics/<slug>/plan.md` for `/arcdlc:execute` to close. A policy with no
 code impact (or a clean audit) ends the track at the document.
 
 The governing framework is `source/Policy of Policies.md` in the sibling `source-map` skill. It is
@@ -128,4 +128,4 @@ ID and path.
   Policy Approver signs off (per the framework, it may auto-activate two weeks after approval if
   reviewers do not respond).
 - Suggest the next step: `/arcdlc:examinate docs/policies/<name>.md` to audit the codebase or
-  process against the new policy, feeding any gaps into `docs/aics/plan.md` for `/arcdlc:execute`.
+  process against the new policy, feeding any gaps into `docs/aics/<slug>/plan.md` for `/arcdlc:execute`.

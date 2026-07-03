@@ -1,12 +1,19 @@
 ---
-description: Examine existing code for compliance with a named architecture, policy, or design (e.g. /arcdlc:examinate MDCA — also DDD, SOLID, Clean Code, Go Server, Twelve-Factor, ECS), with a project policy authored by /arcdlc:policy (e.g. /arcdlc:examinate docs/policies/log-retention.md), or with the project's own AIC. Records violations as gap blocks in docs/aics/gap.md and adds matching TODO tasks to docs/aics/plan.md. Use when the user runs /arcdlc:examinate, invokes arcdlc-examinate, or asks for a compliance audit / gap analysis of the codebase.
-argument-hint: "[MDCA|DDD|SOLID|arc42|...|(default: project AIC)]"
+description: Examine existing code for compliance with a named architecture, policy, or design (e.g. /arcdlc:examinate MDCA — also DDD, SOLID, Clean Code, Go Server, Twelve-Factor, ECS), with a project policy authored by /arcdlc:policy (e.g. /arcdlc:examinate docs/policies/log-retention.md), or with the project's own AIC. Records violations as gap blocks in docs/aics/<slug>/gap.md and adds matching TODO tasks to docs/aics/<slug>/plan.md. Use when the user runs /arcdlc:examinate, invokes arcdlc-examinate, or asks for a compliance audit / gap analysis of the codebase.
+argument-hint: "[MDCA|DDD|SOLID|...|policy-path] [--aic <slug>]"
 ---
 
 # ArcDLC Examinate (/arcdlc:examinate)
 
 Audit the existing codebase against a policy or design, register every gap as evidence, and feed the gaps into the
 executable plan so `/arcdlc:execute` can close them.
+
+## Initiative selection
+
+Gaps and their mirrored tasks are filed into an initiative folder `docs/aics/<slug>/`. Resolve the
+slug with `--aic <slug>`, or auto-detect the single initiative under `docs/aics/`; if several exist and
+no `--aic` is given, list them and ask. If **no** initiative exists yet, ask the user for a slug (the
+audited policy name is a good default, e.g. `mdca-audit`) and create `docs/aics/<slug>/`.
 
 ## Step 1 — Resolve the standard to audit against
 
@@ -17,8 +24,8 @@ executable plan so `/arcdlc:execute` can close them.
   `Go Library.md`.
 - With a project policy path (e.g. `/arcdlc:examinate docs/policies/log-retention.md`, typically one authored by
   `/arcdlc:policy`): read that policy in full and extract its Allowed/Prohibited rules as the checkable rule set.
-- Without an argument: audit against the project's own architecture — `docs/aics/aic.md` (or other docs in
-  `docs/aics/`), `docs/adr/`, and `CONTEXT.md`. If none of these exist either, stop and ask which policy to audit
+- Without an argument: audit against the initiative's own architecture — `docs/aics/<slug>/aic.md` (or other docs in
+  that folder), `docs/adr/`, and `CONTEXT.md`. If none of these exist either, stop and ask which policy to audit
   against (or suggest `/arcdlc:aic` first).
 - Extract the concrete, checkable rules from the reference before looking at code, so findings cite a rule, not a
   feeling.
@@ -34,8 +41,8 @@ executable plan so `/arcdlc:execute` can close them.
 
 ## Step 3 — Write the gap register
 
-Write or update `docs/aics/gap.md` — the evidence register. One gap per `###` block, using the plan heading format
-so it can be mirrored into the plan verbatim:
+Write or update `docs/aics/<slug>/gap.md` — the evidence register. One gap per `###` block, using the plan heading
+format so it can be mirrored into the plan verbatim:
 
 ```md
 ### <PREFIX>-GAP-NN (<MISSING|PARTIAL|DRIFT>): <Short Title>
@@ -58,15 +65,16 @@ also lets the mirrored plan task pass `arctool validate --strict` (which require
 ## Step 4 — Sync gaps into the plan
 
 Per the Gap Register Sync rules in `../plan/references/plan-format.md` (flat installs:
-`../arcdlc-plan/references/plan-format.md`), append a matching task block to `docs/aics/plan.md` for every new gap:
+`../arcdlc-plan/references/plan-format.md`), append a matching task block to `docs/aics/<slug>/plan.md` for every new
+gap:
 
 - Same task ID and heading as in `gap.md`; same `WHAT`, `WHERE`, `WHY`, and `Acceptance` content.
-- Add runner metadata: `References` (must include `docs/aics/gap.md`, the policy source, and the architecture doc if
-  relevant) and `- Status: TODO.`
+- Add runner metadata: `References` (must include `docs/aics/<slug>/gap.md`, the policy source, and the architecture
+  doc if relevant) and `- Status: TODO.`
 - Append after the existing blocks; never modify existing tasks or reuse an ID already present in the plan.
-- If `docs/aics/plan.md` does not exist yet, create it per the format guide (a `/arcdlc:plan` run can merge it with
-  architecture-driven tasks later).
-- After updating the plan, validate it. Prefer `arctool validate --strict --plan docs/aics/plan.md` (probe once with
+- If `docs/aics/<slug>/plan.md` does not exist yet, create it per the format guide (a `/arcdlc:plan` run can merge it
+  with architecture-driven tasks later).
+- After updating the plan, validate it. Prefer `arctool validate --strict --aic <slug>` (probe once with
   `command -v arctool`, or install it from the arcdlc repo root: `make install`); fix any findings before handoff.
   If `arctool` is unavailable, say so once and hand-check unique IDs, present/uppercase `Status`, and required keys per
   `../plan/references/plan-format.md`.

@@ -1,11 +1,11 @@
 ---
-description: Implement tasks from docs/aics/plan.md following the plan status contract — one task at a time, status TODO→TAKEN→DONE, tests/lint, one commit per task. Use when the user runs /arcdlc:execute (all pending tasks) or /arcdlc:execute <TASK-ID> (single task), or invokes arcdlc-execute.
-argument-hint: "[TASK-ID]"
+description: Implement tasks from docs/aics/<slug>/plan.md following the plan status contract — one task at a time, status TODO→TAKEN→DONE, tests/lint, one commit per task. Use when the user runs /arcdlc:execute (all pending tasks) or /arcdlc:execute <TASK-ID> (single task), or invokes arcdlc-execute.
+argument-hint: "[--aic <slug>] [TASK-ID]"
 ---
 
 # ArcDLC Execute (/arcdlc:execute)
 
-Implement tasks from `docs/aics/plan.md`. You are the executor: the plan format and status lifecycle defined in
+Implement tasks from `docs/aics/<slug>/plan.md`. You are the executor: the plan format and status lifecycle defined in
 `../plan/references/plan-format.md` (flat installs: `../arcdlc-plan/references/plan-format.md`) are the contract you
 enforce — read that file before starting.
 
@@ -16,14 +16,28 @@ one block at a time and mutate status through guarded, byte-preserving, atomic w
 plan or hand-edit a status line. If `arctool` is absent, say so once (`arctool not found — operating on plan.md by hand`)
 and use the manual fallback noted in each step. Either way `plan.md` stays the single source of truth.
 
+Pass the resolved initiative to every `arctool` call as `--aic <slug>` (or `--plan <path>`); when you omit it,
+`arctool` auto-detects the single initiative under `docs/aics/`.
+
+## Initiative selection
+
+Each initiative has its own `docs/aics/<slug>/plan.md`. Resolve which one to work:
+
+- `--aic <slug>` selects it explicitly (put it before the `TASK-ID`, e.g. `/arcdlc:execute --aic payments-v2 AIC-1`).
+- With no `--aic`, auto-detect the single initiative under `docs/aics/`. If several exist, **stop and ask which**
+  (`arctool` exits `2` and lists the slugs) — never guess.
+
+**One initiative per run.** A single `/arcdlc:execute` works exactly one `plan.md` to keep the "one plan is the source
+of truth, one commit per task" discipline. To work another initiative, run again with its `--aic <slug>`.
+
 ## Argument: task selection
 
-- `/arcdlc:execute` — execute every pending task, top-to-bottom, one at a time.
+- `/arcdlc:execute` — execute every pending task in the resolved plan, top-to-bottom, one at a time.
 - `/arcdlc:execute <TASK-ID>` — execute only that task (e.g. `/arcdlc:execute AIC-1`); read it with
-  `arctool show <TASK-ID> --json`.
+  `arctool show <TASK-ID> --json` (add `--aic <slug>` when needed). Task IDs are unique **within** a plan, so pair an
+  ID with `--aic <slug>` when more than one initiative exists.
   - If its status is not `TODO`, stop and report the status; only proceed on `DONE`/`BLOCKED`/`TAKEN` if the user
     explicitly confirms a redo or takeover (`arctool take` refuses a non-`TODO` task unless you pass `--force`).
-- Optional plan path argument overrides the default `docs/aics/plan.md`.
 
 ## Per-task contract
 
@@ -46,7 +60,8 @@ For each task, in order:
    If a criterion is not covered by an existing test, add one (in the `Tests` files named in `WHERE`) so "met" is
    evidenced, not asserted. *Fallback: edit the status line to `- Status: DONE.`*
 6. Commit ONLY this task's changes plus the plan status update. Do not include unrelated pre-existing worktree
-   changes. The commit message must include `#AI-assisted` and a concise summary. Do not push.
+   changes. The commit message must include `#AI-assisted` and a concise summary. When more than one initiative
+   exists, prefix the subject with the slug (e.g. `[payments-v2] AIC-1: add health endpoint`). Do not push.
 7. If the task cannot be completed — including any acceptance criterion you cannot satisfy: `arctool block <id> -m
    "<one-line reason>"` naming the failing criterion (or `arctool todo <id>` to release it back to the queue), report
    why, and stop — do not continue to the next task on failure. Never `arctool done` a task whose acceptance criteria

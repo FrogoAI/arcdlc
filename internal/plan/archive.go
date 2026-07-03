@@ -25,7 +25,7 @@ type ArchiveResult struct {
 
 // Archive computes the plan rewrite and the archive section for the current
 // DONE blocks. archiveRel is the path shown in the ledger line (e.g.
-// "docs/aics/plan-archive.md"); date is the section date (YYYY-MM-DD). It
+// "docs/aics/<slug>/plan-archive.md"); date is the section date (YYYY-MM-DD). It
 // returns (nil, false) when there is nothing to archive. Kept (non-DONE) blocks
 // keep their exact content; only inter-block spacing is normalized to one blank
 // line. Nothing is written — the caller writes the archive first, then the plan.

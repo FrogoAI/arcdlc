@@ -1,4 +1,4 @@
-// Package plan parses docs/aics/plan.md into a Plan value and back.
+// Package plan parses docs/aics/<slug>/plan.md into a Plan value and back.
 //
 // It is a pure, side-effect-free, standard-library-only implementation of the
 // plan format defined in the arcdlc plan skill's references/plan-format.md.

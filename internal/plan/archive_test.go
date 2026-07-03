@@ -32,7 +32,7 @@ var archivePlan = lines(
 
 func TestArchiveBasic(t *testing.T) {
 	p := Parse(archivePlan)
-	res, ok := p.Archive("docs/aics/plan-archive.md", "2026-07-03")
+	res, ok := p.Archive("docs/aics/checkout/plan-archive.md", "2026-07-03")
 	if !ok {
 		t.Fatal("expected something to archive")
 	}
@@ -49,7 +49,7 @@ func TestArchiveBasic(t *testing.T) {
 		t.Errorf("new plan still contains a DONE status:\n%s", body)
 	}
 	for _, want := range []string{
-		"Completed (archived to docs/aics/plan-archive.md):",
+		"Completed (archived to docs/aics/checkout/plan-archive.md):",
 		"- AIC-1: Domain model",
 		"- AIC-3: Handler",
 		"### AIC-2: Repository\n- WHAT: x.", // kept block preserved contiguously
@@ -90,7 +90,7 @@ func TestArchiveExtendsExistingLedger(t *testing.T) {
 	src := lines(
 		"Task format: see plan-format.md.",
 		"",
-		"Completed (archived to docs/aics/plan-archive.md):",
+		"Completed (archived to docs/aics/checkout/plan-archive.md):",
 		"- AIC-0: Bootstrap",
 		"",
 		"### AIC-1: Domain model",
@@ -108,7 +108,7 @@ func TestArchiveExtendsExistingLedger(t *testing.T) {
 		"- Status: TODO.",
 	)
 	p := Parse(src)
-	res, ok := p.Archive("docs/aics/plan-archive.md", "2026-07-03")
+	res, ok := p.Archive("docs/aics/checkout/plan-archive.md", "2026-07-03")
 	if !ok {
 		t.Fatal("expected archive")
 	}

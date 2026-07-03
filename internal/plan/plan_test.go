@@ -20,7 +20,7 @@ var cleanPlan = lines(
 	"- WHERE:",
 	"  Layer `domain`: internal/x/x.go",
 	"- WHY: Needed to start.",
-	"- References: `docs/aics/aic.md`.",
+	"- References: `docs/aics/checkout/aic.md`.",
 	"- Status: DONE.",
 	"",
 	"### AIC-2 (MISSING): Add endpoint",
@@ -30,7 +30,7 @@ var cleanPlan = lines(
 	"  Layer `handler`: internal/h/h.go",
 	"  Tests: internal/h/h_test.go",
 	"- WHY: Parity is blocked without it.",
-	"- References: `docs/aics/aic.md`, `docs/aics/gap.md`.",
+	"- References: `docs/aics/checkout/aic.md`, `docs/aics/checkout/gap.md`.",
 	"- Status: TODO.",
 )
 
@@ -59,7 +59,7 @@ func TestParseCleanPlan(t *testing.T) {
 	if !a.HasWhat || !a.HasWhere || !a.HasWhy || !a.HasRefs || !a.HasStatus {
 		t.Errorf("task0 missing a key flag: %+v", a)
 	}
-	if len(a.References) != 1 || a.References[0] != "docs/aics/aic.md" {
+	if len(a.References) != 1 || a.References[0] != "docs/aics/checkout/aic.md" {
 		t.Errorf("task0 refs: %v", a.References)
 	}
 
@@ -282,7 +282,7 @@ var acceptancePlan = lines(
 	"- Acceptance:",
 	"  - GIVEN an existing id WHEN GET /v2/items/{id} THEN 200 + legacy body.",
 	"  - GIVEN a missing id WHEN GET THEN 404.",
-	"- References: `docs/aics/aic.md`.",
+	"- References: `docs/aics/checkout/aic.md`.",
 	"- Status: TODO.",
 )
 

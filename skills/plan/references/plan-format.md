@@ -1,10 +1,18 @@
 # Plan Task Authoring Guide
 
-This guide defines the `docs/aics/plan.md` task format. The plan is an executable queue: `/arcdlc:execute` (or any
-compatible runner) picks tasks off it mechanically, so the format is a contract, not a style preference.
+This guide defines the `docs/aics/<slug>/plan.md` task format. The plan is an executable queue: `/arcdlc:execute` (or
+any compatible runner) picks tasks off it mechanically, so the format is a contract, not a style preference.
 
-Keep format rules in this file. `docs/aics/plan.md` should only contain the plan content and a short link back to this
-guide.
+Keep format rules in this file. Each `plan.md` should only contain the plan content and a short link back to this guide.
+
+## Initiative folders
+
+Each initiative lives in its own folder `docs/aics/<slug>/`, holding its architecture document
+(`aic.md`, `arc42.md`, …), `plan.md`, `gap.md`, and `plan-archive.md`. `gap.md` and `plan-archive.md`
+are always **siblings** of the initiative's `plan.md` (same folder). Selection is by the `--aic <slug>`
+flag; with no flag, `arctool` and the skills auto-detect the single initiative under `docs/aics/`
+(the legacy flat `docs/aics/plan.md` is still honored when it is the only plan). Everything below
+applies within one initiative folder.
 
 ## Required Task Block Format
 
@@ -55,15 +63,15 @@ The executor transitions status as follows:
 6. One task per session/commit; repeats from step 1 for the next task.
 
 Because `Acceptance` lives inside the task block, `/arcdlc:archive` carries it verbatim into
-`docs/aics/plan-archive.md` — the acceptance criteria become the durable record of what "done" meant.
+`docs/aics/<slug>/plan-archive.md` — the acceptance criteria become the durable record of what "done" meant.
 
 A block missing its `- Status:` line, or whose status is not exactly `TODO` (after trimming spaces and a trailing
 period), is skipped by the executor — check this first when a plan appears to have no pending work.
 
 ## Gap Register Sync
 
-When `docs/aics/gap.md` is used as an input source (e.g. produced by `/arcdlc:examinate`), every `### ...` gap must
-have a matching task block in `docs/aics/plan.md`.
+When `docs/aics/<slug>/gap.md` is used as an input source (e.g. produced by `/arcdlc:examinate`), every `### ...` gap
+must have a matching task block in the same folder's `docs/aics/<slug>/plan.md`.
 
 The `plan.md` copy must preserve:
 
@@ -71,11 +79,12 @@ The `plan.md` copy must preserve:
 - The same `WHAT`, `WHERE`, `WHY`, and `Acceptance` content.
 - Executor metadata: `References` and `Status`.
 
-Use `docs/aics/gap.md` as the evidence register and `docs/aics/plan.md` as the executable queue.
+Use `gap.md` as the evidence register and `plan.md` as the executable queue — both within the same initiative folder.
 
 ## Authoring Rules
 
-1. Use unique `<TASK-ID>` values (for example: `WA240-VER-03`, `AIC-1`).
+1. Use unique `<TASK-ID>` values (for example: `WA240-VER-03`, `AIC-1`). IDs need only be unique **within one
+   initiative's `plan.md`**, not across `docs/aics/<slug>/` folders — each `/arcdlc:execute` run targets a single plan.
 2. Keep exactly one task per `###` block.
 3. Keep headings at level `###`. Do not prefix with `TODO` — the status is tracked by the `- Status:` line inside the block.
 4. Keep section keys exact: `WHAT`, `WHERE`, `WHY`, `Acceptance`, `References`, `Status`.
@@ -104,6 +113,6 @@ Use `docs/aics/gap.md` as the evidence register and `docs/aics/plan.md` as the e
   - GIVEN an existing item id WHEN `GET /v2/sampleapi/items/{id}` THEN the response is 200 with the legacy-compatible body.
   - GIVEN an unknown id WHEN the same call is made THEN the response is 404.
   - GIVEN the new handler WHEN the test suite runs THEN `item_test.go` covers the 200 and 404 paths.
-- References: `docs/epics/initiative-99/aic.md`, `docs/epics/initiative-99/arc42.md`.
+- References: `docs/aics/initiative-99/aic.md`, `docs/aics/initiative-99/arc42.md`.
 - Status: TODO.
 ```
