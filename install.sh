@@ -114,7 +114,9 @@ else
     || die "cannot download $REPO@$REF"
   tar -xzf "$tmpdir/src.tgz" -C "$tmpdir"
   src="$(find "$tmpdir" -maxdepth 1 -type d -name "$PLUGIN-*" | head -1)"
-  [ -n "$src" ] && [ -f "$src/.claude-plugin/plugin.json" ] || die "unexpected archive layout"
+  if [ -z "$src" ] || [ ! -f "$src/.claude-plugin/plugin.json" ]; then
+    die "unexpected archive layout"
+  fi
 fi
 
 # --- skills ---
@@ -170,7 +172,9 @@ if [ "$DO_TOOL" = 1 ]; then
     if command -v sha256sum >/dev/null; then sumcmd="sha256sum"; else sumcmd="shasum -a 256"; fi
     want="$(grep " $TOOL-$platform\$" "$tmpdir/SHA256SUMS" | awk '{print $1}')"
     got="$($sumcmd "$tmpdir/$TOOL" | awk '{print $1}')"
-    [ -n "$want" ] && [ "$want" = "$got" ] || die "checksum mismatch for $TOOL-$platform"
+    if [ -z "$want" ] || [ "$want" != "$got" ]; then
+      die "checksum mismatch for $TOOL-$platform"
+    fi
     install -m 0755 "$tmpdir/$TOOL" "$BINDIR/$TOOL"
     installed="release binary ($platform, sha256 verified)"
   elif command -v go >/dev/null; then
