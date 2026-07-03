@@ -14,10 +14,12 @@ If a project has its own `AGENTS.md`, `CLAUDE.md`, or README guidance, follow th
 
 ## Delivery Workflow Commands
 
-The delivery pipeline is handled by the sibling skills of this `arcdlc` bundle. On Claude Code they are plugin commands (`/arcdlc:<name>`); on Codex and OpenCode the same skills are installed flat as `arcdlc-<name>` (e.g. `arcdlc-aic`) — identical behavior, invoked by skill name instead of a slash command. ArcDLC is a universal delivery tool: it builds **applications** and authors **policies**, and both feed the same audit → plan → execute machinery. When a user asks to design, plan, audit, implement, or govern an initiative end-to-end, route them through this pipeline instead of improvising:
+The delivery pipeline is handled by the sibling skills of this `arcdlc` bundle. On Claude Code they are plugin commands (`/arcdlc:<name>`); on Codex and OpenCode the same skills are installed flat as `arcdlc-<name>` (e.g. `arcdlc-aic`) — identical behavior, invoked by skill name instead of a slash command. ArcDLC is a universal delivery tool: it builds **applications** and authors **policies**, and both feed the same executable plan queue (`docs/aics/plan.md`): architecture is decomposed into it, audit findings are filed into it, and `/arcdlc:execute` works it off task by task. When a user asks to design, plan, audit, implement, or govern an initiative end-to-end, route them through this pipeline instead of improvising:
 
 - **Application track:** `/arcdlc:aic` → `/arcdlc:plan` → `/arcdlc:execute` → `/arcdlc:archive`
-- **Governance track:** `/arcdlc:policy` → `/arcdlc:examinate docs/policies/<name>.md` → `/arcdlc:plan` → `/arcdlc:execute`
+- **Governance track:** `/arcdlc:policy` → `/arcdlc:examinate docs/policies/<name>.md` → `/arcdlc:execute`
+
+The governance track has no separate plan step: a policy is rules, not work to decompose. `/arcdlc:examinate` files each violation as a `TODO` task directly into `docs/aics/plan.md`, and `/arcdlc:execute` closes them; with no findings (or a process-only policy) the track ends at the policy document.
 
 | Stage | Command | Output |
 | --- | --- | --- |

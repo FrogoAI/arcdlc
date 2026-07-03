@@ -45,6 +45,25 @@ jobs:
             test -f "skills/$skill/SKILL.md" || { echo "missing skills/$skill/SKILL.md" >&2; exit 1; }
           done
 
+      - name: shellcheck installer
+        run: shellcheck install.sh
+
+      - name: Installer smoke test
+        run: |
+          export FAKE="$RUNNER_TEMP/fakehome"
+          mkdir -p "$FAKE/.claude" "$FAKE/.codex" "$FAKE/.config/opencode"
+          HOME="$FAKE" ARCDLC_NO_PLUGIN_CLI=1 ./install.sh --bindir "$FAKE/bin"
+          test -f "$FAKE/.claude/skills/arcdlc/.claude-plugin/plugin.json"
+          test -f "$FAKE/.claude/skills/arcdlc/skills/plan/SKILL.md"
+          for s in aic archive examinate execute plan policy source-map; do
+            test -f "$FAKE/.codex/skills/arcdlc-$s/SKILL.md"
+            test -f "$FAKE/.config/opencode/skills/arcdlc-$s/SKILL.md"
+          done
+          "$FAKE/bin/arctool" version
+          HOME="$FAKE" ./install.sh --uninstall --bindir "$FAKE/bin"
+          test ! -e "$FAKE/.claude/skills/arcdlc"
+          test ! -e "$FAKE/bin/arctool"
+
   build:
     name: Cross-compile
     runs-on: ubuntu-latest

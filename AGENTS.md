@@ -56,6 +56,8 @@ checks. Do not merge with a red pipeline.
   flat form).
 - Reference documents belong in `skills/source-map/source/` and are routed via the table in
   `skills/source-map/SKILL.md` — add a row when adding a document.
+- Adding or renaming a sub-skill requires updating the `SUBSKILLS` list in `install.sh` and the
+  skill-layout / installer-smoke checks in `.github/workflows/ci.yml` in the same change set.
 - Exit codes of `arctool` are part of its interface (0 ok, 1 contract failure, 2 usage, 3 not
   found/empty, 4 I/O, 5 archive self-validation) — skills key off them; do not renumber.
 - `CLAUDE.md` is a symlink to this file; edit `AGENTS.md` only.

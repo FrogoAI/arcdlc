@@ -9,10 +9,25 @@ architecture interview to audited, task-by-task implementation — plus `arctool
 zero-dependency Go CLI that drives the executable plan mechanically.
 
 ArcDLC is a universal delivery tool: it builds **applications** and authors **policies**, and both
-feed the same audit → plan → execute machinery.
+feed the same executable plan queue (`docs/aics/plan.md`) — architecture is decomposed into it,
+audit findings are filed into it, and `/arcdlc:execute` works it off task by task.
 
 - **Application track:** `/arcdlc:aic` → `/arcdlc:plan` → `/arcdlc:execute` → `/arcdlc:archive`
-- **Governance track:** `/arcdlc:policy` → `/arcdlc:examinate docs/policies/<name>.md` → `/arcdlc:plan` → `/arcdlc:execute`
+- **Governance track:** `/arcdlc:policy` → `/arcdlc:examinate docs/policies/<name>.md` → `/arcdlc:execute`
+
+In the governance track the policy itself is just rules — nothing gets "planned". `/arcdlc:examinate`
+audits the codebase against those rules and files each violation as a `TODO` task directly into
+`docs/aics/plan.md`; `/arcdlc:execute` then closes those gaps. If the audit finds nothing (or the
+policy has no code impact), the track ends with the policy document.
+
+## Quick Install
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/FrogoAI/arcdlc/main/install.sh | bash
+```
+
+Installs the skills into every agent it detects (Claude Code, Codex, OpenCode) and the `arctool`
+binary for linux/darwin × amd64/arm64. Details and manual alternatives: [Installation](#installation).
 
 ## Commands
 
@@ -166,9 +181,8 @@ Run a single task, or audit an existing codebase:
 
 ```
 /arcdlc:policy log-retention                       # grilled interview → docs/policies/log-retention.md
-/arcdlc:examinate docs/policies/log-retention.md   # audit the repo against the policy
-/arcdlc:plan                                       # fold gaps into the executable plan
-/arcdlc:execute                                    # close the gaps task by task
+/arcdlc:examinate docs/policies/log-retention.md   # audit the repo; violations land in docs/aics/plan.md as TODO tasks
+/arcdlc:execute                                    # close the gaps task by task (skip if the audit found none)
 ```
 
 ### Driving the plan with `arctool`

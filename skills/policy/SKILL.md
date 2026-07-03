@@ -9,7 +9,11 @@ Author a governance policy the same way ArcDLC builds software: a controlled pro
 straight generation. This is the governance track of the delivery pipeline — it produces a policy
 document that `/arcdlc:examinate` can then audit code or process against:
 
-`/arcdlc:policy` → `/arcdlc:examinate docs/policies/<name>.md` → `/arcdlc:plan` → `/arcdlc:execute`
+`/arcdlc:policy` → `/arcdlc:examinate docs/policies/<name>.md` → `/arcdlc:execute`
+
+There is no plan step here: the policy is the rules, and `/arcdlc:examinate` already files each
+violation as a `TODO` task in `docs/aics/plan.md` for `/arcdlc:execute` to close. A policy with no
+code impact (or a clean audit) ends the track at the document.
 
 The governing framework is `source/Policy of Policies.md` in the sibling `source-map` skill. It is
 the contract for how every policy must be created, structured, and managed — read it before writing.
