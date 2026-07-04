@@ -22,7 +22,7 @@ import (
 	"github.com/FrogoAI/arcdlc/internal/registry"
 )
 
-const version = "0.6.0"
+const version = "0.7.0"
 
 // aicsDir is the root directory under which each initiative gets its own folder
 // (docs/aics/<slug>/, holding plan.md, gap.md, plan-archive.md). Selection is

@@ -1,7 +1,6 @@
 # Initiative Lifecycle
 
-> Explicit slug-first initiative selection across all ArcDLC skills and arctool, an arctool-synced
-> initiative registry in AGENTS.md/README.md, and an always-confirmed initiative removal flow.
+> Mandatory slug-first selection, an arctool-synced initiative registry, and an always-confirmed removal flow.
 
 Format: AIC (template: `source-map/source/AIC Template.md`). Status: Draft — decompose with
 `/arcdlc:plan initiative-lifecycle`. Interview date: 2026-07-03.

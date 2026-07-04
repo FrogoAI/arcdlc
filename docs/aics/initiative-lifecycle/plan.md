@@ -279,4 +279,4 @@ explicitly accepted (per ADR-0004; this plan dogfoods the gate IL-10 introduces)
   - GIVEN the build WHEN `arctool version` runs THEN it prints `0.7.0`, and `.claude-plugin/plugin.json` `version` is `0.3.0`.
   - GIVEN this repo after rebuilding arctool WHEN `arctool sync --check` runs THEN it exits `0`; and `go build ./...`, `go test ./...`, `gofmt -l .`, `go vet ./...` are all clean.
 - References: `docs/aics/initiative-lifecycle/aic.md`, `docs/adr/0001-initiative-selection-is-always-explicit.md`, `docs/adr/0002-registry-sync-via-marker-blocks.md`, `docs/adr/0003-initiative-removal-by-skill-not-arctool.md`.
-- Status: TODO.
+- Status: DONE.
