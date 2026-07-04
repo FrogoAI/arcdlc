@@ -251,7 +251,7 @@ explicitly accepted (per ADR-0004; this plan dogfoods the gate IL-10 introduces)
   - GIVEN the skill WHEN read THEN it requires a `## Risk Coverage` mapping in the plan preamble and states the gate is a no-op when the document has no risks section.
   - GIVEN `plan-format.md` WHEN read THEN it documents the optional `## Risk Coverage` preamble section as free-form (non-`###`) content the runner ignores.
 - References: `docs/aics/initiative-lifecycle/aic.md`, `docs/adr/0004-plan-enforces-risk-mitigation-coverage.md`, `skills/plan/references/plan-format.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### IL-11 (DRIFT): docs + registry blocks + version bumps
 

@@ -5,6 +5,10 @@ any compatible runner) picks tasks off it mechanically, so the format is a contr
 
 Keep format rules in this file. Each `plan.md` should only contain the plan content and a short link back to this guide.
 
+A plan may open with a free-form `## Risk Coverage` preamble section mapping each architecture-document
+risk to the task IDs that cover it (or "accepted" with a reason) — see the `/arcdlc:plan` risk-coverage
+gate. It is ordinary prose, not a `### ` task block, so the runner ignores it; only `### ` blocks are tasks.
+
 ## Initiative folders
 
 Each initiative lives in its own folder `docs/aics/<slug>/`, holding its architecture document

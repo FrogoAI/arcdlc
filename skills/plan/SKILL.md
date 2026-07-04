@@ -47,10 +47,30 @@ it into a `docs/aics/<slug>/` folder.
 - Every block ends with `- Status: TODO.`
 - If `docs/aics/<slug>/gap.md` exists, keep it in sync per the Gap Register Sync rules in the format guide.
 
+## Step 2.5 — Risk coverage gate (mandatory)
+
+Risks named in the architecture document must not evaporate during decomposition. After decomposing,
+before handing off, reconcile the plan against the document's **Technical Challenges & Risks** and
+**Open questions** sections:
+
+- For each risk (and open question), decide whether it is **covered** — addressed by at least one plan
+  task, or by an explicit process mitigation you record — or consciously **accepted/deferred** with a
+  short rationale. Nothing may be silently dropped.
+- If any risk is neither covered nor accepted, **run a grilling session with the engineer** focused on
+  the uncovered risks: invoke the `grilling` skill if available, otherwise interview inline (one
+  question at a time, each with your recommended answer). Turn each outcome into the plan — a new task
+  block when it needs implementation, or an accepted-risk note when it does not.
+- Record the result as a `## Risk Coverage` mapping in the plan preamble: one line per risk → the task
+  IDs that cover it, or "accepted" with the reason. This makes the check demonstrable, not asserted.
+
+This is a **hard gate**: do not hand off until every risk is covered by a task or explicitly accepted.
+When the architecture document has no risks section (e.g. a gap-only plan with no AIC), the gate is a
+no-op — note that and continue.
+
 ## Step 3 — Write and validate
 
-- Write `docs/aics/<slug>/plan.md`, starting with a one-line link back to the format guide, then the task blocks. No
-  runner instructions inside the plan.
+- Write `docs/aics/<slug>/plan.md`, starting with a one-line link back to the format guide, then the `## Risk Coverage`
+  mapping from Step 2.5, then the task blocks. No runner instructions inside the plan.
 - Validate against the runner's parsing rules before finishing. Prefer the `arctool` CLI, which enforces the format
   contract mechanically (source at the arcdlc repo root; flat installs may ship it on `PATH`):
   - Probe once with `command -v arctool` (or install it from the arcdlc repo root via
@@ -62,5 +82,6 @@ it into a `docs/aics/<slug>/` folder.
     - Task IDs are unique.
     - Every block has a non-empty `- Acceptance:` section (`--strict` fails otherwise — it implies
       `--require-acceptance`).
-- Report the task count and order to the user, and confirm the decomposition before handing off.
+- Report the task count and order to the user, and confirm the decomposition before handing off. Do not hand off until
+  the Step 2.5 risk-coverage gate has passed (every risk covered by a task or explicitly accepted).
 - Next step: `/arcdlc:execute <slug>` to implement the queue.
