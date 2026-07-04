@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -18,6 +19,7 @@ import (
 	"time"
 
 	"github.com/FrogoAI/arcdlc/internal/plan"
+	"github.com/FrogoAI/arcdlc/internal/registry"
 )
 
 const version = "0.6.0"
@@ -38,6 +40,7 @@ usage:
   arctool validate [--strict] [--json] [--warn-as-error] [--require-acceptance] [--aic SLUG | --plan PATH]
                  (--strict implies --require-acceptance: every task needs an Acceptance section)
   arctool archive  [--dry-run] [--aic SLUG | --plan PATH]    move DONE blocks to plan-archive.md
+  arctool sync     [--check]                                 sync the initiative registry in AGENTS.md/README.md
   arctool version
 
 initiative selection (required):
@@ -73,6 +76,8 @@ func main() {
 		os.Exit(cmdValidate(os.Args[2:]))
 	case "archive":
 		os.Exit(cmdArchive(os.Args[2:]))
+	case "sync":
+		os.Exit(cmdSync(os.Args[2:]))
 	case "version", "--version", "-v":
 		fmt.Printf("arctool %s\n", version)
 	case "help", "--help", "-h":
@@ -468,6 +473,88 @@ func cmdMutate(cmd string, args []string) int {
 	}
 	fmt.Printf("%s %s\n", target, id)
 	return 0
+}
+
+// cmdSync updates the initiative registry blocks in AGENTS.md and README.md at
+// the repo root. It is repo-wide, so it takes no --aic/--plan selection.
+func cmdSync(args []string) int {
+	fs := flag.NewFlagSet("sync", flag.ContinueOnError)
+	check := fs.Bool("check", false, "report drift without writing; exit 1 if any registry block is stale")
+	if err := fs.Parse(args); err != nil {
+		return 2
+	}
+	return runSync(aicsDir, []string{"AGENTS.md", "README.md"}, *check, os.Stdout, os.Stderr)
+}
+
+// runSync scans dir for initiatives and updates each target file's registry
+// block. With check=true it writes nothing and returns 1 when any block is
+// stale. It is factored out of cmdSync so tests can drive it with temp paths.
+func runSync(dir string, targets []string, check bool, out, errw io.Writer) int {
+	inits := scanInitiatives(dir)
+	if check {
+		stale := false
+		for _, f := range targets {
+			_, changed, err := registry.Preview(f, inits)
+			if err != nil {
+				fmt.Fprintf(errw, "arctool: %v\n", err)
+				return 4
+			}
+			if changed {
+				fmt.Fprintf(errw, "arctool: %s initiative registry is stale (run: arctool sync)\n", f)
+				stale = true
+			}
+		}
+		if stale {
+			return 1
+		}
+		fmt.Fprintln(out, "initiative registry up to date")
+		return 0
+	}
+	for _, f := range targets {
+		changed, err := registry.WriteFile(f, inits)
+		if err != nil {
+			fmt.Fprintf(errw, "arctool: %v\n", err)
+			return 4
+		}
+		if changed {
+			fmt.Fprintf(out, "updated %s\n", f)
+		} else {
+			fmt.Fprintf(out, "%s already up to date\n", f)
+		}
+	}
+	return 0
+}
+
+// scanInitiatives returns a registry entry for every <dir>/<slug>/ folder that
+// holds at least one .md file, sorted by slug.
+func scanInitiatives(dir string) []registry.Initiative {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil
+	}
+	var inits []registry.Initiative
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		slug := e.Name()
+		sub, err := os.ReadDir(filepath.Join(dir, slug))
+		if err != nil {
+			continue
+		}
+		hasMD := false
+		for _, f := range sub {
+			if !f.IsDir() && strings.HasSuffix(f.Name(), ".md") {
+				hasMD = true
+				break
+			}
+		}
+		if hasMD {
+			inits = append(inits, registry.Load(dir, slug))
+		}
+	}
+	sort.Slice(inits, func(i, j int) bool { return inits[i].Slug < inits[j].Slug })
+	return inits
 }
 
 // atomicWrite writes data to path via a temp file in the same directory

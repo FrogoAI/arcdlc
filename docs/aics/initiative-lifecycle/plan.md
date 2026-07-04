@@ -112,7 +112,7 @@ explicitly accepted (per ADR-0004; this plan dogfoods the gate IL-10 introduces)
   - GIVEN no `docs/aics/*/` initiatives WHEN `arctool sync` runs THEN the block body is `_none_`.
   - GIVEN the change WHEN `go test ./...` runs THEN it is green and `arctool version` still prints.
 - References: `docs/aics/initiative-lifecycle/aic.md`, `docs/adr/0002-registry-sync-via-marker-blocks.md`, `skills/plan/references/plan-format.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### IL-5 (DRIFT): plan-format contract — mandatory selection + title/summary + registry
 

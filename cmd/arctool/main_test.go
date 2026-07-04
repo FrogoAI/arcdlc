@@ -151,3 +151,72 @@ func TestSlugOf(t *testing.T) {
 		t.Errorf("folder slug = %q, want checkout", s)
 	}
 }
+
+func TestRunSync(t *testing.T) {
+	root := t.TempDir()
+	aics := filepath.Join(root, "docs", "aics")
+	agents := filepath.Join(root, "AGENTS.md")
+	readme := filepath.Join(root, "README.md")
+	targets := []string{agents, readme}
+
+	mkInit := func(slug, title, summary string) {
+		dir := filepath.Join(aics, slug)
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		body := "# " + title + "\n\n> " + summary + "\n"
+		if err := os.WriteFile(filepath.Join(dir, "aic.md"), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	mkInit("pay", "Payments", "take money")
+	mkInit("checkout", "Checkout", "buy flow")
+
+	if code := runSync(aics, targets, false, io.Discard, io.Discard); code != 0 {
+		t.Fatalf("sync write exit=%d, want 0", code)
+	}
+	for _, f := range targets {
+		b, err := os.ReadFile(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		s := string(b)
+		if !strings.Contains(s, "[Checkout]") || !strings.Contains(s, "[Payments]") {
+			t.Errorf("%s missing an initiative:\n%s", f, s)
+		}
+		if strings.Index(s, "[Checkout]") > strings.Index(s, "[Payments]") {
+			t.Errorf("%s not sorted by slug", f)
+		}
+	}
+
+	// Fresh tree: --check reports no drift.
+	if code := runSync(aics, targets, true, io.Discard, io.Discard); code != 0 {
+		t.Fatalf("--check on fresh tree exit=%d, want 0", code)
+	}
+	// Remove an initiative: --check now reports drift (non-zero).
+	if err := os.RemoveAll(filepath.Join(aics, "pay")); err != nil {
+		t.Fatal(err)
+	}
+	if code := runSync(aics, targets, true, io.Discard, io.Discard); code == 0 {
+		t.Fatalf("--check after change exit=0, want non-zero")
+	}
+}
+
+func TestRunSyncNoInitiativesStub(t *testing.T) {
+	root := t.TempDir()
+	aics := filepath.Join(root, "docs", "aics")
+	if err := os.MkdirAll(aics, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	readme := filepath.Join(root, "README.md") // missing -> stub created
+	if code := runSync(aics, []string{readme}, false, io.Discard, io.Discard); code != 0 {
+		t.Fatalf("exit=%d, want 0", code)
+	}
+	b, err := os.ReadFile(readme)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(b), "_none_") {
+		t.Errorf("no-initiative registry should render _none_:\n%s", b)
+	}
+}
