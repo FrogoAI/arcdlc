@@ -67,7 +67,7 @@ explicitly accepted (per ADR-0004; this plan dogfoods the gate IL-10 introduces)
   - GIVEN an H1 with no following blockquote WHEN parsed THEN summary = first paragraph truncated to ≤120 chars; GIVEN a folder with no `.md` THEN title=slug and summary=`(no architecture doc)`.
   - GIVEN the change WHEN `go test ./internal/registry/...` runs THEN all cases pass; `go vet ./...` and `gofmt -l .` are clean.
 - References: `docs/aics/initiative-lifecycle/aic.md`, `docs/adr/0002-registry-sync-via-marker-blocks.md`, `CONTEXT.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### IL-3 (MISSING): arctool — marker-block splice + stub creation (byte-preserving)
 
