@@ -221,7 +221,7 @@ explicitly accepted (per ADR-0004; this plan dogfoods the gate IL-10 introduces)
   - GIVEN the installer smoke test WHEN run (`./install.sh` into a fake HOME) THEN `arcdlc-remove/SKILL.md` is present under the codex and opencode skill roots and uninstall removes it.
   - GIVEN the frontmatter WHEN read THEN its `description` names the `/arcdlc:remove` and `arcdlc-remove` triggers.
 - References: `docs/aics/initiative-lifecycle/aic.md`, `docs/adr/0003-initiative-removal-by-skill-not-arctool.md`, `install.sh`, `.github/workflows/ci.yml`.
-- Status: TODO.
+- Status: DONE.
 
 ### IL-10 (MISSING): plan skill — risk-mitigation coverage gate
 
