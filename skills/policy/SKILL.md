@@ -1,6 +1,6 @@
 ---
-description: Author a governance policy in docs/policies/<name>.md following the ArcDLC "Policy of Policies" framework — mandatory grilled interview first, then the full policy document, then register it in docs/policies/README.md, the project README.md, and AGENTS.md. Use when the user runs /arcdlc:policy, invokes arcdlc-policy, or asks to create/write a company or engineering policy, SOP, or governance document.
-argument-hint: "[name] [POL-GOV|POL-HR|POL-TECH|POL-ENG|POL-SEC|POL-DOC]"
+description: Author a governance policy in docs/policies/<name>.md following the ArcDLC "Policy of Policies" framework — mandatory grilled interview first, then the full policy document, then register it in docs/policies/README.md, the project README.md, and AGENTS.md. The policy name is the required first argument (e.g. /arcdlc:policy vacations). Use when the user runs /arcdlc:policy, invokes arcdlc-policy, or asks to create/write a company or engineering policy, SOP, or governance document.
+argument-hint: "<name> [POL-GOV|POL-HR|POL-TECH|POL-ENG|POL-SEC|POL-DOC]"
 ---
 
 # ArcDLC Policy (/arcdlc:policy)
@@ -20,8 +20,11 @@ the contract for how every policy must be created, structured, and managed — r
 
 ## Argument
 
-- `name` — the policy topic/slug; the output file is `docs/policies/<name>.md`
-  (e.g. `/arcdlc:policy log-retention` → `docs/policies/log-retention.md`).
+- `name` (**required**, first positional) — the policy topic/slug; the output file is
+  `docs/policies/<name>.md` (e.g. `/arcdlc:policy log-retention` → `docs/policies/log-retention.md`).
+  If no name is given, **stop and report the error**, highlighting that the policy name is missing, and
+  list the existing policies under `docs/policies/` so the user can pick a name or reuse one. Do not
+  guess a name.
 - optional `POL-*` class — the Unique ID class (see the classification table below). If omitted,
   choose it during the interview.
 

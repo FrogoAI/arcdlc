@@ -195,7 +195,7 @@ explicitly accepted (per ADR-0004; this plan dogfoods the gate IL-10 introduces)
   - GIVEN the skill WHEN read THEN the output path is still `docs/policies/<name>.md` and no `{code}-<name>.md` renaming is introduced.
   - GIVEN the frontmatter WHEN read THEN `argument-hint` shows the name as required (not bracketed-optional).
 - References: `docs/aics/initiative-lifecycle/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### IL-9 (MISSING): /arcdlc:remove skill + install/CI registration
 
