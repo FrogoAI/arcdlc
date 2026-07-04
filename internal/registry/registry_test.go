@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
@@ -122,4 +123,104 @@ func TestLoad(t *testing.T) {
 			t.Errorf("got %+v, want slug title + no-doc summary + empty DocRelPath", got)
 		}
 	})
+}
+
+func TestRender(t *testing.T) {
+	if got := Render(nil); got != "_none_" {
+		t.Errorf("Render(nil) = %q, want _none_", got)
+	}
+	// Out-of-order input must render sorted by slug.
+	got := Render([]Initiative{
+		{Slug: "pay", Title: "Payments", Summary: "s2", DocRelPath: "docs/aics/pay/aic.md"},
+		{Slug: "checkout", Title: "Checkout", Summary: "s1", DocRelPath: "docs/aics/checkout/aic.md"},
+	})
+	want := "- [Checkout](docs/aics/checkout/aic.md) — s1\n" +
+		"- [Payments](docs/aics/pay/aic.md) — s2"
+	if got != want {
+		t.Errorf("Render sorted = %q, want %q", got, want)
+	}
+	// No architecture doc: bullet without a link.
+	if got := Render([]Initiative{{Slug: "x", Title: "x", Summary: "(no architecture doc)"}}); got != "- x — (no architecture doc)" {
+		t.Errorf("Render no-doc = %q", got)
+	}
+}
+
+func TestSpliceMarkersPresent(t *testing.T) {
+	content := "# Title\n\nintro\n\n## Initiatives\n\n" +
+		beginMarker + "\nOLD BODY\n" + endMarker + "\n\ntrailer\n"
+	body := "- [X](docs/aics/x/aic.md) — sum"
+	got := Splice(content, body)
+
+	if !strings.HasPrefix(got, "# Title\n\nintro\n\n## Initiatives\n\n"+beginMarker+"\n") {
+		t.Errorf("content before begin marker not preserved:\n%s", got)
+	}
+	if !strings.HasSuffix(got, endMarker+"\n\ntrailer\n") {
+		t.Errorf("content after end marker not preserved:\n%s", got)
+	}
+	if !strings.Contains(got, "\n"+body+"\n") {
+		t.Errorf("body not spliced in:\n%s", got)
+	}
+	if strings.Contains(got, "OLD BODY") {
+		t.Errorf("old body not replaced:\n%s", got)
+	}
+	// Idempotent: splicing the same body again is a no-op.
+	if again := Splice(got, body); again != got {
+		t.Errorf("Splice not idempotent")
+	}
+}
+
+func TestSpliceMarkersAbsent(t *testing.T) {
+	content := "# Doc\n\nhello\n"
+	got := Splice(content, "_none_")
+	if !strings.HasPrefix(got, "# Doc\n\nhello\n") {
+		t.Errorf("prior content not preserved:\n%s", got)
+	}
+	if !strings.Contains(got, "## Initiatives") || !strings.Contains(got, beginMarker) || !strings.Contains(got, endMarker) {
+		t.Errorf("section with markers not appended:\n%s", got)
+	}
+}
+
+func TestWriteFileStubAndIdempotent(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "README.md")
+	inits := []Initiative{{Slug: "pay", Title: "Payments", Summary: "s", DocRelPath: "docs/aics/pay/aic.md"}}
+
+	changed, err := WriteFile(path, inits)
+	if err != nil || !changed {
+		t.Fatalf("first WriteFile: changed=%v err=%v, want true/nil (stub created)", changed, err)
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(string(b), "# README\n") {
+		t.Errorf("stub missing H1:\n%s", b)
+	}
+	if !strings.Contains(string(b), "- [Payments](docs/aics/pay/aic.md) — s") {
+		t.Errorf("stub missing bullet:\n%s", b)
+	}
+
+	changed2, err := WriteFile(path, inits)
+	if err != nil || changed2 {
+		t.Fatalf("second WriteFile: changed=%v err=%v, want false/nil (idempotent)", changed2, err)
+	}
+	b2, _ := os.ReadFile(path)
+	if !bytes.Equal(b, b2) {
+		t.Errorf("second WriteFile changed bytes")
+	}
+}
+
+func TestPreviewEmptyIsNone(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "AGENTS.md")
+	if err := os.WriteFile(path, []byte("# AGENTS\n\n"+beginMarker+"\nold\n"+endMarker+"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	content, changed, err := Preview(path, nil)
+	if err != nil || !changed {
+		t.Fatalf("Preview: changed=%v err=%v", changed, err)
+	}
+	if !strings.Contains(content, beginMarker+"\n_none_\n"+endMarker) {
+		t.Errorf("empty registry should render _none_:\n%s", content)
+	}
 }

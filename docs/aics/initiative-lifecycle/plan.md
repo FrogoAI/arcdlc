@@ -90,7 +90,7 @@ explicitly accepted (per ADR-0004; this plan dogfoods the gate IL-10 introduces)
   - GIVEN a missing file path WHEN spliced THEN a stub file is created containing the section; GIVEN an empty initiative set THEN the block body is `_none_`.
   - GIVEN an already-current file WHEN spliced again THEN the result is byte-identical (idempotent).
 - References: `docs/aics/initiative-lifecycle/aic.md`, `docs/adr/0002-registry-sync-via-marker-blocks.md`, `internal/plan/mutate.go`.
-- Status: TODO.
+- Status: DONE.
 
 ### IL-4 (MISSING): arctool — wire the `sync [--check]` subcommand
 
