@@ -9,10 +9,44 @@ Keep format rules in this file. Each `plan.md` should only contain the plan cont
 
 Each initiative lives in its own folder `docs/aics/<slug>/`, holding its architecture document
 (`aic.md`, `arc42.md`, …), `plan.md`, `gap.md`, and `plan-archive.md`. `gap.md` and `plan-archive.md`
-are always **siblings** of the initiative's `plan.md` (same folder). Selection is by the `--aic <slug>`
-flag; with no flag, `arctool` and the skills auto-detect the single initiative under `docs/aics/`
-(the legacy flat `docs/aics/plan.md` is still honored when it is the only plan). Everything below
-applies within one initiative folder.
+are always **siblings** of the initiative's `plan.md` (same folder). Everything below applies within
+one initiative folder.
+
+### Selection is mandatory and explicit
+
+There is no default initiative and no detection of a "single" one. The target is always named:
+
+- **Skills** take the initiative slug as their **first positional argument**
+  (`/arcdlc:plan <slug>`, `/arcdlc:execute <slug> [TASK-ID]`, …). A missing slug is an error: the
+  skill stops and lists the existing initiatives instead of guessing.
+- **`arctool`** requires `--aic <slug>` (→ `docs/aics/<slug>/plan.md`) or `--plan PATH`. With neither,
+  it lists the initiatives under `docs/aics/` and exits `2`.
+- The legacy flat `docs/aics/plan.md` has no slug and is reachable **only** via
+  `arctool --plan docs/aics/plan.md`; skills that encounter one should have the user migrate it into a
+  `docs/aics/<slug>/` folder.
+
+### Architecture-document contract (title + summary)
+
+The first line-1 heading (`# `) of an initiative's architecture document is its **title**, and a
+one-line blockquote (`> …`) placed directly under that heading is its **summary**. The `/arcdlc:aic`
+skill must write both for every document it produces. `arctool sync` parses them mechanically (the
+title/summary feed the registry below); when the summary blockquote is absent it falls back to the
+first paragraph, truncated.
+
+### Initiative registry
+
+`arctool sync [--check]` keeps a list of initiatives (title, link, one-line summary) inside a
+marker-delimited block in `AGENTS.md` and `README.md` at the repo root:
+
+```md
+<!-- arcdlc:initiatives:begin -->
+- [<title>](docs/aics/<slug>/<doc>) — <summary>
+<!-- arcdlc:initiatives:end -->
+```
+
+Only the region between the markers is rewritten (every byte outside is preserved); with no
+initiatives the block reads `_none_`. `sync --check` writes nothing and exits non-zero when a block is
+stale, so CI can enforce it. Never hand-edit inside the markers.
 
 ## Required Task Block Format
 

@@ -133,7 +133,7 @@ explicitly accepted (per ADR-0004; this plan dogfoods the gate IL-10 introduces)
   - GIVEN the guide WHEN read THEN it documents the H1-title + `> `-summary architecture-doc contract and the `arctool sync` marker-block registry.
   - GIVEN the guide WHEN `grep -i "auto-detect" skills/plan/references/plan-format.md` runs THEN there are no matches.
 - References: `docs/aics/initiative-lifecycle/aic.md`, `docs/adr/0001-initiative-selection-is-always-explicit.md`, `docs/adr/0002-registry-sync-via-marker-blocks.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### IL-6 (DRIFT): aic skill — slug-first mandatory + summary blockquote + post-create sync
 
