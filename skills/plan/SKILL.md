@@ -1,6 +1,6 @@
 ---
-description: Decompose an approved architecture document (AIC by default; arc42, TOGAF) into the executable docs/aics/<slug>/plan.md task queue consumed by /arcdlc:execute. Use when the user runs /arcdlc:plan, invokes arcdlc-plan, or asks to turn an architecture document into an implementation plan.
-argument-hint: "[aic|arc42|togaf|path] [--aic <slug>]"
+description: Decompose an approved architecture document (AIC by default; arc42, TOGAF) into the executable docs/aics/<slug>/plan.md task queue consumed by /arcdlc:execute. The initiative slug is the required first argument (e.g. /arcdlc:plan payments). Use when the user runs /arcdlc:plan, invokes arcdlc-plan, or asks to turn an architecture document into an implementation plan.
+argument-hint: "<slug> [aic|arc42|togaf|path]"
 ---
 
 # ArcDLC Plan (/arcdlc:plan)
@@ -15,15 +15,16 @@ the contract `/arcdlc:execute` parses mechanically.
 
 ## Initiative selection
 
-Each initiative lives in `docs/aics/<slug>/`. Resolve the slug the same way the whole pipeline does:
-if the user passes `--aic <slug>`, use it; otherwise auto-detect the single initiative folder under
-`docs/aics/`. If several exist and no `--aic` is given, list them and ask which one. All inputs and
-outputs below are inside that folder.
+The initiative slug is the **required first positional argument**: `/arcdlc:plan <slug> [format]`.
+If it is missing, stop and report the error, listing the existing initiatives under `docs/aics/` —
+never guess. All inputs and outputs below live inside `docs/aics/<slug>/`, and the slug is passed to
+`arctool` as `--aic <slug>`. A legacy flat `docs/aics/plan.md` has no slug; tell the user to migrate
+it into a `docs/aics/<slug>/` folder.
 
 ## Step 1 — Locate the inputs
 
 - Architecture document: `docs/aics/<slug>/aic.md` by default; accept an explicit path or format argument
-  (e.g. `/arcdlc:plan arc42` reads `docs/aics/<slug>/arc42.md`).
+  (e.g. `/arcdlc:plan <slug> arc42` reads `docs/aics/<slug>/arc42.md`).
 - If no architecture document exists, stop and tell the user to run `/arcdlc:aic` first. Do not plan from a verbal
   description — the pipeline requires the grilled, written document as the source of truth.
 - Also read `docs/aics/<slug>/gap.md` if present (evidence register, possibly produced by `/arcdlc:examinate`),
@@ -46,10 +47,30 @@ outputs below are inside that folder.
 - Every block ends with `- Status: TODO.`
 - If `docs/aics/<slug>/gap.md` exists, keep it in sync per the Gap Register Sync rules in the format guide.
 
+## Step 2.5 — Risk coverage gate (mandatory)
+
+Risks named in the architecture document must not evaporate during decomposition. After decomposing,
+before handing off, reconcile the plan against the document's **Technical Challenges & Risks** and
+**Open questions** sections:
+
+- For each risk (and open question), decide whether it is **covered** — addressed by at least one plan
+  task, or by an explicit process mitigation you record — or consciously **accepted/deferred** with a
+  short rationale. Nothing may be silently dropped.
+- If any risk is neither covered nor accepted, **run a grilling session with the engineer** focused on
+  the uncovered risks: invoke the `grilling` skill if available, otherwise interview inline (one
+  question at a time, each with your recommended answer). Turn each outcome into the plan — a new task
+  block when it needs implementation, or an accepted-risk note when it does not.
+- Record the result as a `## Risk Coverage` mapping in the plan preamble: one line per risk → the task
+  IDs that cover it, or "accepted" with the reason. This makes the check demonstrable, not asserted.
+
+This is a **hard gate**: do not hand off until every risk is covered by a task or explicitly accepted.
+When the architecture document has no risks section (e.g. a gap-only plan with no AIC), the gate is a
+no-op — note that and continue.
+
 ## Step 3 — Write and validate
 
-- Write `docs/aics/<slug>/plan.md`, starting with a one-line link back to the format guide, then the task blocks. No
-  runner instructions inside the plan.
+- Write `docs/aics/<slug>/plan.md`, starting with a one-line link back to the format guide, then the `## Risk Coverage`
+  mapping from Step 2.5, then the task blocks. No runner instructions inside the plan.
 - Validate against the runner's parsing rules before finishing. Prefer the `arctool` CLI, which enforces the format
   contract mechanically (source at the arcdlc repo root; flat installs may ship it on `PATH`):
   - Probe once with `command -v arctool` (or install it from the arcdlc repo root via
@@ -61,5 +82,6 @@ outputs below are inside that folder.
     - Task IDs are unique.
     - Every block has a non-empty `- Acceptance:` section (`--strict` fails otherwise — it implies
       `--require-acceptance`).
-- Report the task count and order to the user, and confirm the decomposition before handing off.
-- Next step: `/arcdlc:execute` to implement the queue.
+- Report the task count and order to the user, and confirm the decomposition before handing off. Do not hand off until
+  the Step 2.5 risk-coverage gate has passed (every risk covered by a task or explicitly accepted).
+- Next step: `/arcdlc:execute <slug>` to implement the queue.

@@ -1,6 +1,6 @@
 ---
 description: Examine existing code for compliance with a named architecture, policy, or design (e.g. /arcdlc:examinate MDCA — also DDD, SOLID, Clean Code, Go Server, Twelve-Factor, ECS), with a project policy authored by /arcdlc:policy (e.g. /arcdlc:examinate docs/policies/log-retention.md), or with the project's own AIC. Records violations as gap blocks in docs/aics/<slug>/gap.md and adds matching TODO tasks to docs/aics/<slug>/plan.md. Use when the user runs /arcdlc:examinate, invokes arcdlc-examinate, or asks for a compliance audit / gap analysis of the codebase.
-argument-hint: "[MDCA|DDD|SOLID|...|policy-path] [--aic <slug>]"
+argument-hint: "<slug> [MDCA|DDD|SOLID|...|policy-path]"
 ---
 
 # ArcDLC Examinate (/arcdlc:examinate)
@@ -10,21 +10,24 @@ executable plan so `/arcdlc:execute` can close them.
 
 ## Initiative selection
 
-Gaps and their mirrored tasks are filed into an initiative folder `docs/aics/<slug>/`. Resolve the
-slug with `--aic <slug>`, or auto-detect the single initiative under `docs/aics/`; if several exist and
-no `--aic` is given, list them and ask. If **no** initiative exists yet, ask the user for a slug (the
-audited policy name is a good default, e.g. `mdca-audit`) and create `docs/aics/<slug>/`.
+The initiative slug is the **required first positional argument**: `/arcdlc:examinate <slug> [target]`.
+Gaps and their mirrored tasks are filed into `docs/aics/<slug>/` (as `gap.md` and `plan.md`), and the
+slug is passed to `arctool` as `--aic <slug>`. If the slug is missing, stop and report the error,
+listing the existing initiatives under `docs/aics/` — never guess. If the named initiative folder does
+not exist yet (a fresh audit, e.g. `mdca-audit`), confirm the slug with the user and create
+`docs/aics/<slug>/`.
 
 ## Step 1 — Resolve the standard to audit against
 
-- With an argument (e.g. `/arcdlc:examinate MDCA`): look the policy up in the sibling `source-map` skill's table
+- With a standard as the second argument (e.g. `/arcdlc:examinate <slug> MDCA`): look the policy up in the sibling `source-map` skill's table
   (from this file: `../source-map/source/` in the plugin layout, `../arcdlc-source-map/source/` in flat installs)
   and read every listed reference in full — e.g. MDCA → `mdca.md` +
   `mdca_standard.md`; DDD → `ddd.md`; SOLID → `solid.md`; Go architecture → `Go Server.md` / `Go Client.md` /
   `Go Library.md`.
-- With a project policy path (e.g. `/arcdlc:examinate docs/policies/log-retention.md`, typically one authored by
-  `/arcdlc:policy`): read that policy in full and extract its Allowed/Prohibited rules as the checkable rule set.
-- Without an argument: audit against the initiative's own architecture — `docs/aics/<slug>/aic.md` (or other docs in
+- With a project policy path as the second argument (e.g. `/arcdlc:examinate <slug> docs/policies/log-retention.md`,
+  typically one authored by `/arcdlc:policy`): read that policy in full and extract its Allowed/Prohibited rules as the
+  checkable rule set.
+- With no second argument (no standard or policy path): audit against the initiative's own architecture — `docs/aics/<slug>/aic.md` (or other docs in
   that folder), `docs/adr/`, and `CONTEXT.md`. If none of these exist either, stop and ask which policy to audit
   against (or suggest `/arcdlc:aic` first).
 - Extract the concrete, checkable rules from the reference before looking at code, so findings cite a rule, not a

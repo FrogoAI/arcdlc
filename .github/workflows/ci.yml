@@ -41,7 +41,7 @@ jobs:
 
       - name: Check skill layout
         run: |
-          for skill in aic archive examinate execute plan policy source-map; do
+          for skill in aic archive examinate execute plan policy remove source-map; do
             test -f "skills/$skill/SKILL.md" || { echo "missing skills/$skill/SKILL.md" >&2; exit 1; }
           done
 
@@ -59,7 +59,7 @@ jobs:
           HOME="$FAKE" ARCDLC_NO_PLUGIN_CLI=1 ./install.sh --bindir "$FAKE/bin"
           test -f "$FAKE/.claude/skills/arcdlc/.claude-plugin/plugin.json"
           test -f "$FAKE/.claude/skills/arcdlc/skills/plan/SKILL.md"
-          for s in aic archive examinate execute plan policy source-map; do
+          for s in aic archive examinate execute plan policy remove source-map; do
             test -f "$FAKE/.codex/skills/arcdlc-$s/SKILL.md"
             test -f "$FAKE/.config/opencode/skills/arcdlc-$s/SKILL.md"
           done

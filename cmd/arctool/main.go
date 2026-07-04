@@ -1,9 +1,9 @@
 // Command arctool is the deterministic companion for the ArcDLC plan
 // (docs/aics/<slug>/plan.md). It covers the full plan lifecycle: read commands
 // (validate, next, show, list), status mutation (take, done, block, todo),
-// archive, and version. When neither --plan nor --aic is given it auto-detects a
-// single initiative under docs/aics/ (the legacy flat docs/aics/plan.md still
-// works).
+// archive, and version. Initiative selection is mandatory and explicit: pass
+// --aic <slug> or --plan PATH. There is no auto-detect; with neither flag arctool
+// lists the initiatives under docs/aics/ and exits 2.
 package main
 
 import (
@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -18,13 +19,14 @@ import (
 	"time"
 
 	"github.com/FrogoAI/arcdlc/internal/plan"
+	"github.com/FrogoAI/arcdlc/internal/registry"
 )
 
-const version = "0.6.0"
+const version = "0.7.0"
 
 // aicsDir is the root directory under which each initiative gets its own folder
-// (docs/aics/<slug>/, holding plan.md, gap.md, plan-archive.md). The legacy flat
-// docs/aics/plan.md is still honored by auto-detect for backward compatibility.
+// (docs/aics/<slug>/, holding plan.md, gap.md, plan-archive.md). Selection is
+// explicit; the legacy flat docs/aics/plan.md is reachable only via --plan.
 const aicsDir = "docs/aics"
 
 const usage = `arctool %s — deterministic companion for the ArcDLC plan (docs/aics/<slug>/plan.md)
@@ -38,14 +40,14 @@ usage:
   arctool validate [--strict] [--json] [--warn-as-error] [--require-acceptance] [--aic SLUG | --plan PATH]
                  (--strict implies --require-acceptance: every task needs an Acceptance section)
   arctool archive  [--dry-run] [--aic SLUG | --plan PATH]    move DONE blocks to plan-archive.md
+  arctool sync     [--check]                                 sync the initiative registry in AGENTS.md/README.md
   arctool version
 
-initiative selection:
+initiative selection (required):
   --aic SLUG   operate on docs/aics/<slug>/plan.md
   --plan PATH  operate on an explicit path (overrides --aic)
-  neither      auto-detect a single plan under docs/aics/ (the flat docs/aics/plan.md
-               and each docs/aics/*/plan.md are candidates): one match is used;
-               several -> exit 2 (pass --aic <slug>); none -> exit 3.
+  Selection is mandatory: with neither flag, arctool lists the initiatives under
+  docs/aics/ and exits 2. The legacy flat docs/aics/plan.md is reachable via --plan.
 
 exit codes:
   0  ok / clean
@@ -74,6 +76,8 @@ func main() {
 		os.Exit(cmdValidate(os.Args[2:]))
 	case "archive":
 		os.Exit(cmdArchive(os.Args[2:]))
+	case "sync":
+		os.Exit(cmdSync(os.Args[2:]))
 	case "version", "--version", "-v":
 		fmt.Printf("arctool %s\n", version)
 	case "help", "--help", "-h":
@@ -95,11 +99,13 @@ func loadPlan(path string) (*plan.Plan, int) {
 	return plan.Parse(b), 0
 }
 
-// resolvePlan turns the --plan / --aic flags into a concrete plan path.
-// Order: an explicit planFlag wins; then aicFlag selects <aicsDir>/<slug>/plan.md;
-// otherwise it auto-detects a single plan (the flat <aicsDir>/plan.md and every
-// <aicsDir>/*/plan.md are candidates). It returns (path, 0) on success, or
-// ("", code): a bad slug or an ambiguous auto-detect -> 2 (usage), none found -> 3.
+// resolvePlan turns the --plan / --aic flags into a concrete plan path. Selection
+// is mandatory and explicit: an explicit planFlag wins; then aicFlag selects
+// <aicsDir>/<slug>/plan.md. With neither flag there is no auto-detect — arctool
+// lists the initiatives under <aicsDir>/ and returns ("", 2) so the caller must
+// choose. It returns (path, 0) on success, or ("", 2) for a bad slug or a missing
+// selection. (A well-formed --aic whose folder lacks plan.md still resolves to the
+// path; the downstream open then yields not-found 3.)
 func resolvePlan(dir, planFlag, aicFlag string) (string, int) {
 	if planFlag != "" {
 		return planFlag, 0
@@ -112,32 +118,36 @@ func resolvePlan(dir, planFlag, aicFlag string) (string, int) {
 		return filepath.Join(dir, aicFlag, "plan.md"), 0
 	}
 
-	var candidates []string
-	flat := filepath.Join(dir, "plan.md")
-	if fi, err := os.Stat(flat); err == nil && !fi.IsDir() {
-		candidates = append(candidates, flat)
+	// No selection given. Selection is mandatory — list what is available and fail.
+	fmt.Fprintf(os.Stderr, "arctool: no initiative selected — pass --aic <slug> (or --plan PATH)\n")
+	slugs := listInitiatives(dir)
+	if len(slugs) == 0 {
+		fmt.Fprintf(os.Stderr, "  no initiatives found under %s/ (run /arcdlc:aic <slug> to create one)\n", dir)
+	} else {
+		fmt.Fprintf(os.Stderr, "  available initiatives under %s/:\n", dir)
+		for _, s := range slugs {
+			fmt.Fprintf(os.Stderr, "    %s\n", s)
+		}
 	}
+	if fi, err := os.Stat(filepath.Join(dir, "plan.md")); err == nil && !fi.IsDir() {
+		fmt.Fprintf(os.Stderr, "  (a legacy flat %s/plan.md exists — select it with --plan %s/plan.md)\n", dir, dir)
+	}
+	return "", 2
+}
+
+// listInitiatives returns the slugs of every initiative that has a
+// <dir>/<slug>/plan.md, sorted. The legacy flat <dir>/plan.md has no slug and is
+// reachable only via --plan, so it is not listed here.
+func listInitiatives(dir string) []string {
 	matches, _ := filepath.Glob(filepath.Join(dir, "*", "plan.md"))
 	sort.Strings(matches)
-	candidates = append(candidates, matches...)
-
-	switch len(candidates) {
-	case 1:
-		return candidates[0], 0
-	case 0:
-		fmt.Fprintf(os.Stderr, "arctool: no initiative found under %s/ (run /arcdlc:aic, or pass --aic <slug> / --plan PATH)\n", dir)
-		return "", 3
-	default:
-		fmt.Fprintf(os.Stderr, "arctool: multiple initiatives under %s/; select one with --aic <slug> (or --plan PATH):\n", dir)
-		for _, c := range candidates {
-			if s := slugOf(dir, c); s != "" {
-				fmt.Fprintf(os.Stderr, "  %-20s (%s)\n", s, c)
-			} else {
-				fmt.Fprintf(os.Stderr, "  %-20s (%s)\n", "(flat, legacy)", c)
-			}
+	var slugs []string
+	for _, m := range matches {
+		if s := slugOf(dir, m); s != "" {
+			slugs = append(slugs, s)
 		}
-		return "", 2
 	}
+	return slugs
 }
 
 // validSlug reports whether s is a safe single-segment initiative slug.
@@ -239,7 +249,7 @@ func emitTask(p *plan.Plan, t *plan.Task, asJSON bool) int {
 
 func cmdNext(args []string) int {
 	fs := flag.NewFlagSet("next", flag.ContinueOnError)
-	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic and auto-detect)")
+	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic)")
 	aicFlag := fs.String("aic", "", "initiative slug under docs/aics/ (selects docs/aics/<slug>/plan.md)")
 	asJSON := fs.Bool("json", false, "emit the task as JSON")
 	if err := fs.Parse(args); err != nil {
@@ -268,7 +278,7 @@ func cmdNext(args []string) int {
 func cmdShow(args []string) int {
 	flags, pos := splitArgs(args, map[string]bool{"plan": true, "aic": true})
 	fs := flag.NewFlagSet("show", flag.ContinueOnError)
-	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic and auto-detect)")
+	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic)")
 	aicFlag := fs.String("aic", "", "initiative slug under docs/aics/")
 	asJSON := fs.Bool("json", false, "emit the task as JSON")
 	if err := fs.Parse(flags); err != nil {
@@ -311,7 +321,7 @@ func cmdShow(args []string) int {
 
 func cmdList(args []string) int {
 	fs := flag.NewFlagSet("list", flag.ContinueOnError)
-	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic and auto-detect)")
+	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic)")
 	aicFlag := fs.String("aic", "", "initiative slug under docs/aics/")
 	statusFilter := fs.String("status", "", "filter by status (TODO/TAKEN/DONE/BLOCKED)")
 	asJSON := fs.Bool("json", false, "emit as JSON")
@@ -393,7 +403,7 @@ func cmdMutate(cmd string, args []string) int {
 	flags, pos := splitArgs(args, valueFlags)
 
 	fs := flag.NewFlagSet(cmd, flag.ContinueOnError)
-	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic and auto-detect)")
+	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic)")
 	aicFlag := fs.String("aic", "", "initiative slug under docs/aics/")
 	force := fs.Bool("force", false, "override transition guardrails")
 	var reason *string
@@ -465,6 +475,88 @@ func cmdMutate(cmd string, args []string) int {
 	return 0
 }
 
+// cmdSync updates the initiative registry blocks in AGENTS.md and README.md at
+// the repo root. It is repo-wide, so it takes no --aic/--plan selection.
+func cmdSync(args []string) int {
+	fs := flag.NewFlagSet("sync", flag.ContinueOnError)
+	check := fs.Bool("check", false, "report drift without writing; exit 1 if any registry block is stale")
+	if err := fs.Parse(args); err != nil {
+		return 2
+	}
+	return runSync(aicsDir, []string{"AGENTS.md", "README.md"}, *check, os.Stdout, os.Stderr)
+}
+
+// runSync scans dir for initiatives and updates each target file's registry
+// block. With check=true it writes nothing and returns 1 when any block is
+// stale. It is factored out of cmdSync so tests can drive it with temp paths.
+func runSync(dir string, targets []string, check bool, out, errw io.Writer) int {
+	inits := scanInitiatives(dir)
+	if check {
+		stale := false
+		for _, f := range targets {
+			_, changed, err := registry.Preview(f, inits)
+			if err != nil {
+				fmt.Fprintf(errw, "arctool: %v\n", err)
+				return 4
+			}
+			if changed {
+				fmt.Fprintf(errw, "arctool: %s initiative registry is stale (run: arctool sync)\n", f)
+				stale = true
+			}
+		}
+		if stale {
+			return 1
+		}
+		fmt.Fprintln(out, "initiative registry up to date")
+		return 0
+	}
+	for _, f := range targets {
+		changed, err := registry.WriteFile(f, inits)
+		if err != nil {
+			fmt.Fprintf(errw, "arctool: %v\n", err)
+			return 4
+		}
+		if changed {
+			fmt.Fprintf(out, "updated %s\n", f)
+		} else {
+			fmt.Fprintf(out, "%s already up to date\n", f)
+		}
+	}
+	return 0
+}
+
+// scanInitiatives returns a registry entry for every <dir>/<slug>/ folder that
+// holds at least one .md file, sorted by slug.
+func scanInitiatives(dir string) []registry.Initiative {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil
+	}
+	var inits []registry.Initiative
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		slug := e.Name()
+		sub, err := os.ReadDir(filepath.Join(dir, slug))
+		if err != nil {
+			continue
+		}
+		hasMD := false
+		for _, f := range sub {
+			if !f.IsDir() && strings.HasSuffix(f.Name(), ".md") {
+				hasMD = true
+				break
+			}
+		}
+		if hasMD {
+			inits = append(inits, registry.Load(dir, slug))
+		}
+	}
+	sort.Slice(inits, func(i, j int) bool { return inits[i].Slug < inits[j].Slug })
+	return inits
+}
+
 // atomicWrite writes data to path via a temp file in the same directory
 // followed by rename, so a crash never leaves a half-written plan.
 func atomicWrite(path string, data []byte) error {
@@ -493,7 +585,7 @@ func atomicWrite(path string, data []byte) error {
 
 func cmdValidate(args []string) int {
 	fs := flag.NewFlagSet("validate", flag.ContinueOnError)
-	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic and auto-detect)")
+	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic)")
 	aicFlag := fs.String("aic", "", "initiative slug under docs/aics/")
 	strict := fs.Bool("strict", false, "enable strict checks and treat warnings as failures")
 	asJSON := fs.Bool("json", false, "emit findings as JSON")
@@ -552,7 +644,7 @@ func cmdValidate(args []string) int {
 // DONE block; a re-run heals a duplicate.
 func cmdArchive(args []string) int {
 	fs := flag.NewFlagSet("archive", flag.ContinueOnError)
-	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic and auto-detect)")
+	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic)")
 	aicFlag := fs.String("aic", "", "initiative slug under docs/aics/")
 	archivePath := fs.String("archive", "", "archive file path (default: plan-archive.md beside the plan)")
 	dryRun := fs.Bool("dry-run", false, "show what would move without writing")

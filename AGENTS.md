@@ -8,13 +8,21 @@ Guidance for AI coding agents working **on this repository**. (If you are lookin
 ArcDLC is two deliverables in one repo, and they share a contract:
 
 1. **A skill bundle** (`skills/`, packaged by `.claude-plugin/`) — the `/arcdlc:*` delivery
-   workflow (aic, policy, plan, examinate, execute, archive) plus the `source-map` reference
+   workflow (aic, policy, plan, examinate, execute, remove, archive) plus the `source-map` reference
    library.
-2. **The `arctool` CLI** (`cmd/arctool`, `internal/plan`) — a deterministic runner for the plan
-   format those skills produce and consume.
+2. **The `arctool` CLI** (`cmd/arctool`, `internal/plan`, `internal/registry`) — a deterministic
+   runner for the plan format those skills produce and consume, plus the initiative registry sync.
 
 The shared contract is `skills/plan/references/plan-format.md`. It is parsed mechanically by
 `internal/plan`; treat it as an API, not prose.
+
+## Initiatives
+
+Active initiatives in this repo (kept in sync by `arctool sync`; do not edit inside the markers):
+
+<!-- arcdlc:initiatives:begin -->
+- [Initiative Lifecycle](docs/aics/initiative-lifecycle/aic.md) — Mandatory slug-first selection, an arctool-synced initiative registry, and an always-confirmed removal flow.
+<!-- arcdlc:initiatives:end -->
 
 ## Build, test, verify
 
@@ -45,14 +53,20 @@ checks. Do not merge with a red pipeline.
 - **Status mutations stay byte-preserving and atomic.** `take`/`done`/`block`/`todo` rewrite only
   the one `- Status:` line via temp-file + rename; `archive` writes the archive before compacting
   the plan. Preserve these invariants.
-- **Initiatives are folders; selection is uniform.** Each initiative lives in `docs/aics/<slug>/`
-  (holding the architecture doc, `plan.md`, `gap.md`, `plan-archive.md` — the latter two are always
-  siblings of `plan.md`). Every command and skill resolves the target the same way: explicit
-  `--plan PATH` wins; else `--aic <slug>` → `docs/aics/<slug>/plan.md`; else auto-detect a single
-  plan (the legacy flat `docs/aics/plan.md` and each `docs/aics/*/plan.md` are candidates) —
-  ambiguous → exit 2, none → exit 3. The resolver lives in `cmd/arctool` (`resolvePlan`); keep the
-  skills' manual fallback describing the same rule. Task IDs are unique per plan, not globally. ADRs
-  (`docs/adr/`) and `CONTEXT.md` stay global, not per-initiative. Keep the legacy flat layout working.
+- **Initiatives are folders; selection is mandatory and explicit.** Each initiative lives in
+  `docs/aics/<slug>/` (holding the architecture doc, `plan.md`, `gap.md`, `plan-archive.md` — the
+  latter two are always siblings of `plan.md`). Selection is always named, never inferred:
+  skills take the slug as their first positional argument (missing → error listing initiatives), and
+  `arctool` requires `--aic <slug>` or `--plan PATH` (neither → lists initiatives, exit 2). The
+  resolver lives in `cmd/arctool` (`resolvePlan`); keep the skills' manual fallback describing the
+  same rule. The legacy flat `docs/aics/plan.md` is reachable only via `--plan`. Task IDs are unique
+  per plan, not globally. ADRs (`docs/adr/`) and `CONTEXT.md` stay global, not per-initiative.
+- **The initiative registry is generated.** `arctool sync` keeps the initiative list (title +
+  summary, parsed from each arch doc's `# ` H1 and the `> ` blockquote under it, per `internal/registry`)
+  inside the `<!-- arcdlc:initiatives -->` marker blocks in `AGENTS.md` and `README.md`, rewriting
+  only that region (byte-preserving elsewhere, atomic). `sync --check` fails on drift for CI. Never
+  hand-edit inside the markers. `/arcdlc:remove <slug>` deletes an initiative folder (always after an
+  explicit confirmation) and re-syncs; `arctool` itself performs no deletion.
 - **Version bumps:** the CLI version lives in `cmd/arctool/main.go` (`const version`); the plugin
   version lives in `.claude-plugin/plugin.json`. Bump whichever component you changed. Releases
   are cut by pushing a `v*` tag.

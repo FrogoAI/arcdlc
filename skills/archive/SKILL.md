@@ -1,6 +1,6 @@
 ---
-description: Archive DONE task blocks from docs/aics/<slug>/plan.md into docs/aics/<slug>/plan-archive.md and compact the plan, keeping it short for agent context while preserving history. Use when the user runs /arcdlc:archive, invokes arcdlc-archive, or asks to archive/compact the plan.
-argument-hint: "[--aic <slug>]"
+description: Archive DONE task blocks from docs/aics/<slug>/plan.md into docs/aics/<slug>/plan-archive.md and compact the plan, keeping it short for agent context while preserving history. The initiative slug is the required first argument (e.g. /arcdlc:archive payments). Use when the user runs /arcdlc:archive, invokes arcdlc-archive, or asks to archive/compact the plan.
+argument-hint: "<slug>"
 ---
 
 # ArcDLC Archive (/arcdlc:archive)
@@ -11,14 +11,15 @@ depends on (defined in `../plan/references/plan-format.md`; flat installs:
 
 ## Initiative selection
 
-Resolve which initiative to compact with `--aic <slug>`, or auto-detect the single one under `docs/aics/`; if several
-exist and no `--aic` is given, list them and ask. `plan-archive.md` is always written **beside** that folder's
-`plan.md`.
+The initiative slug is the **required first positional argument**: `/arcdlc:archive <slug>`. If it is
+missing, stop and report the error, listing the existing initiatives under `docs/aics/` — never guess.
+Compact that folder's `docs/aics/<slug>/plan.md` (passing `--aic <slug>` to `arctool`);
+`plan-archive.md` is always written **beside** it.
 
 ## Prefer `arctool`
 
-Probe once: `command -v arctool`. If present, run `arctool archive --aic <slug>` (or add `--dry-run` first to preview;
-omit `--aic` to auto-detect). It performs every step below deterministically — moves the `DONE` blocks into
+Probe once: `command -v arctool`. If present, run `arctool archive --aic <slug>` (or add `--dry-run` first to preview).
+It performs every step below deterministically — moves the `DONE` blocks into
 `docs/aics/<slug>/plan-archive.md` under a dated `## Archived <YYYY-MM-DD>` section, extends the single compact ledger,
 leaves `TODO`/`TAKEN`/`BLOCKED` blocks untouched, and self-validates (writing nothing, exit 5, if an invariant fails).
 It writes the archive before the plan so a crash never loses a `DONE` block. Report its `archived N, pending M` line.
