@@ -44,7 +44,7 @@ explicitly accepted (per ADR-0004; this plan dogfoods the gate IL-10 introduces)
   - GIVEN an invalid slug (`../x`, `a/b`) WHEN passed to `--aic` THEN it exits `2`.
   - GIVEN the change WHEN `go test ./...` runs THEN `cmd/arctool` tests pass and no test still asserts auto-detect.
 - References: `docs/aics/initiative-lifecycle/aic.md`, `docs/adr/0001-initiative-selection-is-always-explicit.md`, `skills/plan/references/plan-format.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### IL-2 (MISSING): arctool — initiative title/summary parsing (pure functions)
 
