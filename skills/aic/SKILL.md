@@ -1,6 +1,6 @@
 ---
-description: Build or update an initiative's architecture document under docs/aics/<slug>/ — AIC by default, or arc42, TOGAF, C4, ADR when given as argument (e.g. /arcdlc:aic arc42). Pass --aic <slug> to name the initiative folder, else it is derived from the interview. Always starts with a mandatory grill-with-docs interview before any document is written. Use when the user runs /arcdlc:aic, invokes arcdlc-aic, or asks to create an architecture document for an initiative.
-argument-hint: "[aic|arc42|togaf|c4|adr] [--aic <slug>]"
+description: Build or update an initiative's architecture document under docs/aics/<slug>/. The initiative slug is the required first argument (e.g. /arcdlc:aic payments); an optional second argument picks the format (AIC by default, or arc42, TOGAF, C4, ADR — e.g. /arcdlc:aic payments arc42). Always starts with a mandatory grill-with-docs interview before any document is written. Use when the user runs /arcdlc:aic, invokes arcdlc-aic, or asks to create an architecture document for an initiative.
+argument-hint: "<slug> [aic|arc42|togaf|c4|adr]"
 ---
 
 # ArcDLC AIC (/arcdlc:aic)
@@ -10,10 +10,25 @@ Produce the architecture document that anchors the ArcDLC delivery pipeline:
 `/arcdlc:aic` → `/arcdlc:plan` → `/arcdlc:execute` → `/arcdlc:archive`, with `/arcdlc:examinate` feeding
 compliance gaps into the plan at any point.
 
+## Argument: initiative slug (required, first positional)
+
+The initiative slug is the **first positional argument** and is **required**:
+`/arcdlc:aic <slug> [format]` (e.g. `/arcdlc:aic payments`, or `/arcdlc:aic payments arc42`).
+
+- If no slug is given, **stop and report the error** — highlight that the slug is missing and list the
+  existing initiatives under `docs/aics/` so the user can pick a name or reuse one. Do not guess or
+  silently derive a slug.
+- The slug is a single kebab-case path segment (no `/` or `..`). Its folder is `docs/aics/<slug>/`,
+  holding the architecture document, `plan.md`, `gap.md`, and `plan-archive.md`.
+
+Write the architecture document — and later `plan.md` — inside that folder. ADRs stay **global** under
+`docs/adr/`; `CONTEXT.md` stays at the repo root (both are cross-cutting, not per-initiative).
+
 ## Argument: document format
 
-The optional argument selects the format. Resolve the template through the sibling `source-map` skill of this bundle
-(from this file: `../source-map/source/` in the plugin layout, `../arcdlc-source-map/source/` in flat installs):
+The optional **second** positional argument selects the format (the first is the slug above). Resolve
+the template through the sibling `source-map` skill of this bundle (from this file:
+`../source-map/source/` in the plugin layout, `../arcdlc-source-map/source/` in flat installs):
 
 | Argument | Output file | Template in `../source-map/source/` |
 | --- | --- | --- |
@@ -23,19 +38,6 @@ The optional argument selects the format. Resolve the template through the sibli
 | `c4` | `docs/aics/<slug>/c4.md` | `C4.md` |
 | `adr` | `docs/adr/NNNN-<title>.md` (global) | `ADR.md` |
 | anything else | `docs/aics/<slug>/<format>.md` | Look it up in the `source-map` table; if no matching source exists, tell the user and list available formats. |
-
-## Argument: initiative folder (`--aic <slug>`)
-
-Each initiative gets its own folder `docs/aics/<slug>/`, holding its architecture document, `plan.md`,
-`gap.md`, and `plan-archive.md`. Determine the slug:
-
-- If the user passes `--aic <slug>`, use it (a single kebab-case path segment: no `/` or `..`).
-- Otherwise derive a kebab-case slug from the initiative title established in the grill interview, and
-  **confirm it with the user** before creating the folder (e.g. "Checkout Redesign" → create
-  `docs/aics/checkout-redesign/`?).
-
-Write the architecture document — and later `plan.md` — inside that folder. ADRs stay **global** under
-`docs/adr/`; `CONTEXT.md` stays at the repo root (both are cross-cutting, not per-initiative).
 
 ## Step 1 — Gather existing context (before asking anything)
 
@@ -68,13 +70,21 @@ The interview ends only when the user confirms shared understanding or explicitl
 ## Step 3 — Write the document
 
 - Fill the template section by section at the output path from the table.
+- The document must open with a level-1 heading (`# <Title>`) and a one-line summary blockquote
+  (`> …`) directly under it. This title and summary are a contract: `arctool sync` parses them into
+  the initiative registry (see `../plan/references/plan-format.md`), so keep the summary to a single
+  informative line.
 - Every significant decision in the document must trace to an interview answer, an existing ADR, or code evidence.
   Do not imagine, invent, or silently assume architecture conclusions (this is the `source-map` rule).
 - Anything still undecided goes into an explicit "Open questions" section — never into the body as if decided.
 - Link the ADRs created during the interview from the document.
 
-## Step 4 — Review and hand off
+## Step 4 — Register and hand off
 
 - Walk the user through the draft; iterate until approved.
-- Tell the user the next step: `/arcdlc:plan` (with the same `--aic <slug>` if several initiatives exist) to
-  decompose this document into the executable `docs/aics/<slug>/plan.md`.
+- Register the initiative so it is discoverable. Probe once with `command -v arctool`; if present, run
+  `arctool sync` to refresh the `<!-- arcdlc:initiatives -->` blocks in `AGENTS.md` and `README.md`
+  from this new folder. *Fallback (no `arctool`): add the initiative by hand to those marker blocks —
+  `- [<Title>](docs/aics/<slug>/<doc>) — <summary>`.*
+- Tell the user the next step: `/arcdlc:plan <slug>` to decompose this document into the executable
+  `docs/aics/<slug>/plan.md`.

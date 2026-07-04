@@ -154,7 +154,7 @@ explicitly accepted (per ADR-0004; this plan dogfoods the gate IL-10 introduces)
   - GIVEN the skill WHEN read THEN Step 3 requires a one-line `> ` summary blockquote under the H1, and Step 4 runs `arctool sync` after folder creation with a `command -v arctool` probe and a manual marker-block fallback.
   - GIVEN the frontmatter WHEN read THEN `description`/`argument-hint` show `/arcdlc:aic <slug> [format]` and both `/arcdlc:aic` and `arcdlc-aic` triggers.
 - References: `docs/aics/initiative-lifecycle/aic.md`, `docs/adr/0001-initiative-selection-is-always-explicit.md`, `docs/adr/0002-registry-sync-via-marker-blocks.md`, `skills/plan/references/plan-format.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### IL-7 (DRIFT): plan/execute/examinate/archive skills — slug-first mandatory
 
