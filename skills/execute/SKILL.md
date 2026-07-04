@@ -1,6 +1,6 @@
 ---
-description: Implement tasks from docs/aics/<slug>/plan.md following the plan status contract — one task at a time, status TODO→TAKEN→DONE, tests/lint, one commit per task. Use when the user runs /arcdlc:execute (all pending tasks) or /arcdlc:execute <TASK-ID> (single task), or invokes arcdlc-execute.
-argument-hint: "[--aic <slug>] [TASK-ID]"
+description: Implement tasks from docs/aics/<slug>/plan.md following the plan status contract — one task at a time, status TODO→TAKEN→DONE, tests/lint, one commit per task. The initiative slug is the required first argument. Use when the user runs /arcdlc:execute <slug> (all pending tasks) or /arcdlc:execute <slug> <TASK-ID> (single task), or invokes arcdlc-execute.
+argument-hint: "<slug> [TASK-ID]"
 ---
 
 # ArcDLC Execute (/arcdlc:execute)
@@ -16,26 +16,26 @@ one block at a time and mutate status through guarded, byte-preserving, atomic w
 plan or hand-edit a status line. If `arctool` is absent, say so once (`arctool not found — operating on plan.md by hand`)
 and use the manual fallback noted in each step. Either way `plan.md` stays the single source of truth.
 
-Pass the resolved initiative to every `arctool` call as `--aic <slug>` (or `--plan <path>`); when you omit it,
-`arctool` auto-detects the single initiative under `docs/aics/`.
+Pass the resolved initiative to every `arctool` call as `--aic <slug>` (or `--plan <path>`); `arctool`
+always requires an explicit selection.
 
 ## Initiative selection
 
-Each initiative has its own `docs/aics/<slug>/plan.md`. Resolve which one to work:
+The initiative slug is the **required first positional argument**: `/arcdlc:execute <slug> [TASK-ID]`
+(e.g. `/arcdlc:execute payments-v2 AIC-1`). If it is missing, stop and report the error, listing the
+existing initiatives under `docs/aics/` — never guess. Work that one `docs/aics/<slug>/plan.md`, passing
+`--aic <slug>` to every `arctool` call. A legacy flat `docs/aics/plan.md` has no slug; tell the user to
+migrate it into a `docs/aics/<slug>/` folder.
 
-- `--aic <slug>` selects it explicitly (put it before the `TASK-ID`, e.g. `/arcdlc:execute --aic payments-v2 AIC-1`).
-- With no `--aic`, auto-detect the single initiative under `docs/aics/`. If several exist, **stop and ask which**
-  (`arctool` exits `2` and lists the slugs) — never guess.
-
-**One initiative per run.** A single `/arcdlc:execute` works exactly one `plan.md` to keep the "one plan is the source
-of truth, one commit per task" discipline. To work another initiative, run again with its `--aic <slug>`.
+**One initiative per run.** A single `/arcdlc:execute` works exactly one `plan.md` to keep the "one plan
+is the source of truth, one commit per task" discipline. To work another initiative, run again with its
+slug.
 
 ## Argument: task selection
 
-- `/arcdlc:execute` — execute every pending task in the resolved plan, top-to-bottom, one at a time.
-- `/arcdlc:execute <TASK-ID>` — execute only that task (e.g. `/arcdlc:execute AIC-1`); read it with
-  `arctool show <TASK-ID> --json` (add `--aic <slug>` when needed). Task IDs are unique **within** a plan, so pair an
-  ID with `--aic <slug>` when more than one initiative exists.
+- `/arcdlc:execute <slug>` — execute every pending task in that initiative's plan, top-to-bottom, one at a time.
+- `/arcdlc:execute <slug> <TASK-ID>` — execute only that task (e.g. `/arcdlc:execute payments-v2 AIC-1`); read it
+  with `arctool show <TASK-ID> --aic <slug> --json`. Task IDs are unique **within** a plan.
   - If its status is not `TODO`, stop and report the status; only proceed on `DONE`/`BLOCKED`/`TAKEN` if the user
     explicitly confirms a redo or takeover (`arctool take` refuses a non-`TODO` task unless you pass `--force`).
 

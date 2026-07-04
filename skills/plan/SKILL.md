@@ -1,6 +1,6 @@
 ---
-description: Decompose an approved architecture document (AIC by default; arc42, TOGAF) into the executable docs/aics/<slug>/plan.md task queue consumed by /arcdlc:execute. Use when the user runs /arcdlc:plan, invokes arcdlc-plan, or asks to turn an architecture document into an implementation plan.
-argument-hint: "[aic|arc42|togaf|path] [--aic <slug>]"
+description: Decompose an approved architecture document (AIC by default; arc42, TOGAF) into the executable docs/aics/<slug>/plan.md task queue consumed by /arcdlc:execute. The initiative slug is the required first argument (e.g. /arcdlc:plan payments). Use when the user runs /arcdlc:plan, invokes arcdlc-plan, or asks to turn an architecture document into an implementation plan.
+argument-hint: "<slug> [aic|arc42|togaf|path]"
 ---
 
 # ArcDLC Plan (/arcdlc:plan)
@@ -15,15 +15,16 @@ the contract `/arcdlc:execute` parses mechanically.
 
 ## Initiative selection
 
-Each initiative lives in `docs/aics/<slug>/`. Resolve the slug the same way the whole pipeline does:
-if the user passes `--aic <slug>`, use it; otherwise auto-detect the single initiative folder under
-`docs/aics/`. If several exist and no `--aic` is given, list them and ask which one. All inputs and
-outputs below are inside that folder.
+The initiative slug is the **required first positional argument**: `/arcdlc:plan <slug> [format]`.
+If it is missing, stop and report the error, listing the existing initiatives under `docs/aics/` —
+never guess. All inputs and outputs below live inside `docs/aics/<slug>/`, and the slug is passed to
+`arctool` as `--aic <slug>`. A legacy flat `docs/aics/plan.md` has no slug; tell the user to migrate
+it into a `docs/aics/<slug>/` folder.
 
 ## Step 1 — Locate the inputs
 
 - Architecture document: `docs/aics/<slug>/aic.md` by default; accept an explicit path or format argument
-  (e.g. `/arcdlc:plan arc42` reads `docs/aics/<slug>/arc42.md`).
+  (e.g. `/arcdlc:plan <slug> arc42` reads `docs/aics/<slug>/arc42.md`).
 - If no architecture document exists, stop and tell the user to run `/arcdlc:aic` first. Do not plan from a verbal
   description — the pipeline requires the grilled, written document as the source of truth.
 - Also read `docs/aics/<slug>/gap.md` if present (evidence register, possibly produced by `/arcdlc:examinate`),
@@ -62,4 +63,4 @@ outputs below are inside that folder.
     - Every block has a non-empty `- Acceptance:` section (`--strict` fails otherwise — it implies
       `--require-acceptance`).
 - Report the task count and order to the user, and confirm the decomposition before handing off.
-- Next step: `/arcdlc:execute` to implement the queue.
+- Next step: `/arcdlc:execute <slug>` to implement the queue.

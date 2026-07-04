@@ -177,7 +177,7 @@ explicitly accepted (per ADR-0004; this plan dogfoods the gate IL-10 introduces)
   - GIVEN any of the four WHEN it encounters a flat `docs/aics/plan.md` THEN the doc instructs migration into `docs/aics/<slug>/`.
   - GIVEN `grep -ri "auto-detect" skills/{plan,execute,examinate,archive}/SKILL.md` WHEN run THEN there are no matches.
 - References: `docs/aics/initiative-lifecycle/aic.md`, `docs/adr/0001-initiative-selection-is-always-explicit.md`, `skills/plan/references/plan-format.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### IL-8 (DRIFT): policy skill — require the policy name argument
 
