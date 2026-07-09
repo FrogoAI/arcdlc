@@ -72,8 +72,7 @@ The interview ends only when the user confirms shared understanding or explicitl
 - Fill the template section by section at the output path from the table.
 - The document must open with a level-1 heading (`# <Title>`) and a one-line summary blockquote
   (`> …`) directly under it. This title and summary are a contract: `arctool sync` parses them into
-  the initiative registry (see `../plan/references/plan-format.md`), so keep the summary to a single
-  informative line.
+  the initiative registry in `AGENTS.md`/`README.md`, so keep the summary to a single informative line.
 - Every significant decision in the document must trace to an interview answer, an existing ADR, or code evidence.
   Do not imagine, invent, or silently assume architecture conclusions (this is the `source-map` rule).
 - Anything still undecided goes into an explicit "Open questions" section — never into the body as if decided.

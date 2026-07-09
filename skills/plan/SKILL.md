@@ -32,18 +32,31 @@ it into a `docs/aics/<slug>/` folder.
 
 ## Step 2 — Decompose into tasks
 
+Write every task for a **less capable executor than you**: the model running `/arcdlc:execute` may be
+weaker, and it only sees the task block plus its references — not your reasoning. Every decision that
+matters goes into the block.
+
 - One task per `###` block, exactly in the format from `references/plan-format.md`
-  (keys `WHAT`, `WHERE`, `WHY`, `References`, `Status` — exact casing).
+  (keys `WHAT`, `HOW`, `WHERE`, `WHY`, `Acceptance`, `References`, `Status` — exact casing; `HOW` is optional).
 - Task IDs: unique, prefixed by the initiative (e.g. `AIC-1`, `AIC-2`, or a project code like `WA240-VER-03`).
-  These IDs are what `/arcdlc:execute <TASK-ID>` targets — keep them short and stable.
-- Size each task so a single agent session can implement, test, and commit it. Split anything larger.
+  These IDs are what `/arcdlc:execute <TASK-ID>` targets — keep them short and stable. Headings of
+  AIC-derived tasks take **no** parenthetical tag — `(MISSING|PARTIAL|DRIFT)` is only for gap-derived tasks.
+- Size each task so a single agent session can implement, test, and commit it: one coherent slice,
+  roughly ≤5–6 files in `WHERE`. If it spans unrelated modules, split it.
 - Order blocks by dependency: the runner executes top-to-bottom, so a task may only depend on tasks above it.
+- `HOW` records the design decisions the executor must not re-derive or guess: signatures, naming,
+  data shapes, algorithm choice, edge cases, error handling — resolved by you from the architecture
+  document. Name the relevant section of a long reference here (e.g. `see aic.md §"Data model"`).
+  When adjacent work must not be touched, fence it: `Out of scope: <thing> (covered by <TASK-ID>).`
 - `WHERE` lists the exact files/modules expected to change, per layer of the target project.
 - `Acceptance` gives at least one testable success criterion — the task's definition of done that
   `/arcdlc:execute` must demonstrate before marking it `DONE`. Prefer `GIVEN … WHEN … THEN …`
   scenarios; each criterion must be confirmable by a test or observable behavior, not a paraphrase of
-  `WHAT`. This is the contract's teeth: a task with no acceptance criteria is not plannable.
-- `References` must include the architecture document and any ADRs the task relies on.
+  `WHAT`. Where a criterion is test-verifiable, name the runnable check (test file or command, e.g.
+  ``go test ./internal/x/...``). This is the contract's teeth: a task with no acceptance criteria is
+  not plannable.
+- `References` must include the architecture document and any ADRs the task relies on — clean file
+  paths only (section pointers go in `HOW`).
 - Every block ends with `- Status: TODO.`
 - If `docs/aics/<slug>/gap.md` exists, keep it in sync per the Gap Register Sync rules in the format guide.
 
@@ -82,6 +95,10 @@ no-op — note that and continue.
     - Task IDs are unique.
     - Every block has a non-empty `- Acceptance:` section (`--strict` fails otherwise — it implies
       `--require-acceptance`).
+- Self-sufficiency check (the litmus test): reread each block as if you were a weaker model that has
+  read **only** the block and its `References`. If implementing it would require asking a question,
+  guessing a design decision, or hunting for an unnamed file, fix the block now — put the decision in
+  `HOW`, the file in `WHERE` — do not defer it to the executor.
 - Report the task count and order to the user, and confirm the decomposition before handing off. Do not hand off until
   the Step 2.5 risk-coverage gate has passed (every risk covered by a task or explicitly accepted).
 - Next step: `/arcdlc:execute <slug>` to implement the queue.

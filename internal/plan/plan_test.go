@@ -305,6 +305,51 @@ func TestAcceptanceParsedAndStrictClean(t *testing.T) {
 	}
 }
 
+func TestHowParsedMultiLineAndOptional(t *testing.T) {
+	p := Parse(lines(
+		"### AIC-1: Add read endpoint",
+		"- WHAT: Add the endpoint.",
+		"- HOW:",
+		"  Handler delegates to `item.Service.Get`; return `ErrNotFound` as 404.",
+		"  Out of scope: pagination (AIC-3).",
+		"- WHERE: internal/x.go",
+		"- WHY: y.",
+		"- Acceptance:",
+		"  - GIVEN an id WHEN GET THEN 200.",
+		"- References: `a`.",
+		"- Status: TODO.",
+		"",
+		"### AIC-2: No HOW here",
+		"- WHAT: x.",
+		"- WHERE: internal/y.go",
+		"- WHY: y.",
+		"- Acceptance:",
+		"  - GIVEN z WHEN run THEN ok.",
+		"- References: `a`.",
+		"- Status: TODO.",
+	))
+	if len(p.Tasks) != 2 {
+		t.Fatalf("want 2 tasks, got %d", len(p.Tasks))
+	}
+	a := p.Tasks[0]
+	if !a.HasHow {
+		t.Fatalf("HOW not detected: %+v", a)
+	}
+	if !strings.Contains(a.How, "item.Service.Get") || !strings.Contains(a.How, "Out of scope: pagination") {
+		t.Errorf("HOW did not absorb multi-line body: %q", a.How)
+	}
+	if !strings.Contains(a.Where, "internal/x.go") {
+		t.Errorf("WHERE after HOW mis-parsed: %q", a.Where)
+	}
+	if b := p.Tasks[1]; b.HasHow || b.How != "" {
+		t.Errorf("task without HOW should have empty field: %+v", b)
+	}
+	// HOW is optional: both tasks must validate clean, strict included.
+	if f := p.Validate(ValidateOpts{Strict: true, RequireAcceptance: true}); len(f) != 0 {
+		t.Fatalf("HOW plan should have no findings, got %+v", f)
+	}
+}
+
 func TestEmptyAcceptanceStrict(t *testing.T) {
 	// Acceptance key present but with no body: strict must flag it.
 	p := Parse(lines(

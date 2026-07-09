@@ -44,14 +44,17 @@ slug.
 For each task, in order:
 
 1. Get the task: `arctool next --json` (whole queue) or `arctool show <TASK-ID> --json` (single task). Read only the
-   files named in its `references` and `where`/`whereLayers` — not the whole plan. Note its `acceptance` criteria:
-   they are the definition of done you must satisfy in step 5. *Fallback: read `plan.md` and take the first `### `
-   block whose `- Status:` is `TODO`, including its `- Acceptance:` section.*
+   files named in its `references` and `where`/`whereLayers` — not the whole plan. Note its `how` field (when
+   present): those are the planner's design decisions — signatures, naming, edge cases, out-of-scope fences — and
+   they are binding, not suggestions. Note its `acceptance` criteria: they are the definition of done you must
+   satisfy in step 5. *Fallback: read `plan.md` and take the first `### ` block whose `- Status:` is `TODO`,
+   including its `- HOW:` and `- Acceptance:` sections.*
 2. Claim it before touching code: `arctool take <id>` (flips `TODO`→`TAKEN`; refuses a non-`TODO` task). A `TAKEN` block
    with no commit marks a crashed session. *Fallback: edit the block's `- Status: TODO.` to `- Status: TAKEN.`*
 3. Implement ONLY this task, exactly as written — including intentional breaking changes when the task says so.
-   The whole repository is context; changes go in the files/modules named in `WHERE` (extend within the same
-   subproject when strictly needed to complete the task).
+   Follow the `HOW` decisions when present and leave anything it marks `Out of scope:` untouched, even if you see
+   an adjacent improvement. The whole repository is context; changes go in the files/modules named in `WHERE`
+   (extend within the same subproject when strictly needed to complete the task).
 4. Run the relevant tests and lint for the touched areas. If the subproject `Makefile` has `test`/`lint` targets, use
    `make test` and `make lint`; otherwise use the project's documented commands.
 5. Verify acceptance, then mark done. Walk **every** `acceptance` criterion from step 1 and confirm each is

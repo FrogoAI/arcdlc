@@ -1,84 +1,75 @@
 # Plan Task Authoring Guide
 
 This guide defines the `docs/aics/<slug>/plan.md` task format. The plan is an executable queue: `/arcdlc:execute` (or
-any compatible runner) picks tasks off it mechanically, so the format is a contract, not a style preference.
+any compatible runner) picks tasks off it mechanically, so the format is a contract, not a style preference. It is
+written to be executed by a **less capable model than the one that planned it**: every decision that matters belongs
+in the task block, not in the executor's judgment.
 
-Keep format rules in this file. Each `plan.md` should only contain the plan content and a short link back to this guide.
+Keep format rules in this file. Each `plan.md` contains only the plan content and a short link back to this guide —
+no runner instructions. `gap.md` (evidence register) and `plan-archive.md` (archive) are always siblings of `plan.md`
+in the same `docs/aics/<slug>/` folder. Initiative selection, folder layout, and the initiative registry are defined
+by the skills and `AGENTS.md`, not here.
 
 A plan may open with a free-form `## Risk Coverage` preamble section mapping each architecture-document
 risk to the task IDs that cover it (or "accepted" with a reason) — see the `/arcdlc:plan` risk-coverage
 gate. It is ordinary prose, not a `### ` task block, so the runner ignores it; only `### ` blocks are tasks.
 
-## Initiative folders
-
-Each initiative lives in its own folder `docs/aics/<slug>/`, holding its architecture document
-(`aic.md`, `arc42.md`, …), `plan.md`, `gap.md`, and `plan-archive.md`. `gap.md` and `plan-archive.md`
-are always **siblings** of the initiative's `plan.md` (same folder). Everything below applies within
-one initiative folder.
-
-### Selection is mandatory and explicit
-
-There is no default initiative and no detection of a "single" one. The target is always named:
-
-- **Skills** take the initiative slug as their **first positional argument**
-  (`/arcdlc:plan <slug>`, `/arcdlc:execute <slug> [TASK-ID]`, …). A missing slug is an error: the
-  skill stops and lists the existing initiatives instead of guessing.
-- **`arctool`** requires `--aic <slug>` (→ `docs/aics/<slug>/plan.md`) or `--plan PATH`. With neither,
-  it lists the initiatives under `docs/aics/` and exits `2`.
-- The legacy flat `docs/aics/plan.md` has no slug and is reachable **only** via
-  `arctool --plan docs/aics/plan.md`; skills that encounter one should have the user migrate it into a
-  `docs/aics/<slug>/` folder.
-
-### Architecture-document contract (title + summary)
-
-The first line-1 heading (`# `) of an initiative's architecture document is its **title**, and a
-one-line blockquote (`> …`) placed directly under that heading is its **summary**. The `/arcdlc:aic`
-skill must write both for every document it produces. `arctool sync` parses them mechanically (the
-title/summary feed the registry below); when the summary blockquote is absent it falls back to the
-first paragraph, truncated.
-
-### Initiative registry
-
-`arctool sync [--check]` keeps a list of initiatives (title, link, one-line summary) inside a
-marker-delimited block in `AGENTS.md` and `README.md` at the repo root:
-
-```md
-<!-- arcdlc:initiatives:begin -->
-- [<title>](docs/aics/<slug>/<doc>) — <summary>
-<!-- arcdlc:initiatives:end -->
-```
-
-Only the region between the markers is rewritten (every byte outside is preserved); with no
-initiatives the block reads `_none_`. `sync --check` writes nothing and exits non-zero when a block is
-stale, so CI can enforce it. Never hand-edit inside the markers.
-
 ## Required Task Block Format
 
 ```md
-### <TASK-ID> (<SOURCE-STATUS>): <Short Title>
+### <TASK-ID>: <Short Title>
 
-- WHAT: <Clear implementation scope.>
+- WHAT: <Clear implementation scope, one line.>
+- HOW:
+  <Optional. Implementation decisions the executor must follow: signatures, naming, data shapes,
+  edge cases, error handling. End with "Out of scope: …" when adjacent work must NOT be touched.>
 - WHERE:
   Layer `domain`: <files/modules>
   Layer `repository`: <files/modules>
   Layer `handler`: <files/modules>
   Tests: <files/modules>
   Swagger/docs: <files/modules>
-- WHY: <Why this is required / risk if skipped.>
+- WHY: <Why this is required / risk if skipped, one line.>
 - Acceptance:
   - GIVEN <precondition> WHEN <action> THEN <observable result>.
   - GIVEN <precondition> WHEN <action> THEN <observable result>.
-- References: `<doc/path-1>`, `<doc/path-2>`, `<doc/path-3>`.
+- References: `<doc/path-1>`, `<doc/path-2>`.
 - Status: TODO.
 ```
 
-`Acceptance` is the task's definition of done: concrete, testable success criteria the executor
-must be able to demonstrate. Prefer `GIVEN … WHEN … THEN …` scenarios; a plain checklist of
-verifiable outcomes is acceptable when a scenario would be contrived. Every criterion must be
-something a test or an observable behavior can confirm — not a restatement of `WHAT`.
+### Heading
 
-The `WHERE` layer names above match the ArcDLC Go server layout (`domain`, `repository`, `handler`). For projects with
-a different structure, keep the `Layer` line format but use that project's real layer/module names.
+`### <TASK-ID>: <Short Title>` is the normal form. A parenthetical source-status tag —
+`### <TASK-ID> (MISSING): <Short Title>` — is **optional** and only carried by gap-derived tasks
+(from `/arcdlc:examinate`); the only valid values are `MISSING`, `PARTIAL`, `DRIFT`
+(`arctool validate` warns on anything else). Tasks decomposed from an architecture document take
+**no** tag. Do not put status in the heading — status lives on the `- Status:` line.
+
+### Section keys
+
+The parser reads exactly these keys (exact casing). `WHAT`, `WHY`, `References`, and `Status` are
+**single-line** — anything on following lines is invisible to the runner. `HOW`, `WHERE`, and
+`Acceptance` are **multi-line**: they absorb indented lines until the next key. Keep multi-line
+bodies to plain/bulleted lines with inline backticks — a fenced code block ends the section.
+
+- `WHAT` (required) — the scope, one sentence.
+- `HOW` (optional) — the design decisions a weaker executor would otherwise have to guess:
+  function/interface signatures, naming, data shapes, algorithm choice, edge cases, error handling.
+  Also the place for scope fencing: `Out of scope: <thing> (covered by <TASK-ID>).`
+- `WHERE` (required) — the exact files/modules expected to change, one `Layer` line per layer. The
+  layer names above match the ArcDLC Go server layout; for other projects keep the `Layer` line
+  format with that project's real layer/module names.
+- `WHY` (required) — motivation / risk if skipped, one sentence.
+- `Acceptance` (required) — the definition of done: concrete, testable criteria the executor must
+  demonstrate. Prefer `GIVEN … WHEN … THEN …`; a checklist of verifiable outcomes is acceptable when
+  a scenario would be contrived. Where a criterion is test-verifiable, **name the runnable check**
+  (test file, test name, or command) so "met" is demonstrable, not asserted. A criterion must never
+  be a paraphrase of `WHAT`.
+- `References` (required) — comma-separated source docs needed for implementation. Each entry must
+  stay a clean file path (the runner parses and opens them); when a referenced document is long,
+  name the relevant section inside `HOW` (e.g. `see docs/aics/checkout/aic.md §"Data model"`) so
+  the executor does not re-derive which part applies.
+- `Status` (required) — see the lifecycle below.
 
 ## Status Lifecycle (In-Block)
 
@@ -93,7 +84,7 @@ The executor transitions status as follows:
 
 1. Finds the first `###` block whose `- Status:` is `TODO` (top-to-bottom order).
 2. Changes status to `TAKEN` before starting implementation, so a crashed or interrupted session is visible.
-3. Implements that one task, with the full plan file as context.
+3. Implements that one task, following `HOW` when present and staying out of anything it fences off.
 4. Verifies **every** `Acceptance` criterion (via tests or observable behavior), then sets status to
    `DONE` only when the task is implemented, all criteria are demonstrably met, validated, and committed.
 5. On failure — including any acceptance criterion that cannot be met — reverts status to `TODO`, or sets
@@ -113,8 +104,8 @@ must have a matching task block in the same folder's `docs/aics/<slug>/plan.md`.
 
 The `plan.md` copy must preserve:
 
-- The same task ID and heading.
-- The same `WHAT`, `WHERE`, `WHY`, and `Acceptance` content.
+- The same task ID and heading (including the `(MISSING|PARTIAL|DRIFT)` tag).
+- The same `WHAT`, `HOW` (when present), `WHERE`, `WHY`, and `Acceptance` content.
 - Executor metadata: `References` and `Status`.
 
 Use `gap.md` as the evidence register and `plan.md` as the executable queue — both within the same initiative folder.
@@ -122,24 +113,31 @@ Use `gap.md` as the evidence register and `plan.md` as the executable queue — 
 ## Authoring Rules
 
 1. Use unique `<TASK-ID>` values (for example: `WA240-VER-03`, `AIC-1`). IDs need only be unique **within one
-   initiative's `plan.md`**, not across `docs/aics/<slug>/` folders — each `/arcdlc:execute` run targets a single plan.
-2. Keep exactly one task per `###` block.
-3. Keep headings at level `###`. Do not prefix with `TODO` — the status is tracked by the `- Status:` line inside the block.
-4. Keep section keys exact: `WHAT`, `WHERE`, `WHY`, `Acceptance`, `References`, `Status`.
-5. Keep `Status` values uppercase: `TODO`, `TAKEN`, `DONE`, `BLOCKED`.
-6. In `WHERE`, list exact files/modules expected to change.
-7. In `Acceptance`, give at least one testable success criterion; `arctool validate --strict` fails a task
-   with no (or an empty) `Acceptance` section.
-8. In `References`, include all source docs required for implementation.
-9. Prefer ending `Status` with a trailing period for consistency (`- Status: TODO.`).
-10. Do not place executor instructions inside `plan.md`; update this file instead.
+   initiative's `plan.md`** — each `/arcdlc:execute` run targets a single plan.
+2. Keep exactly one task per `###` block, headings at level `###`, section keys exact
+   (`WHAT`, `HOW`, `WHERE`, `WHY`, `Acceptance`, `References`, `Status`).
+3. Keep `Status` values uppercase (`TODO`, `TAKEN`, `DONE`, `BLOCKED`), preferably with a trailing
+   period (`- Status: TODO.`).
+4. Size each task so one agent session can implement, test, and commit it: one coherent slice,
+   roughly ≤5–6 files in `WHERE`. If `WHERE` spans unrelated modules, split the task.
+5. Order blocks by dependency — the queue runs top-to-bottom, so a task may only depend on tasks above it.
+6. Make each block self-sufficient: an executor reading only the block plus its referenced sections
+   must be able to implement it without asking questions. If you cannot name a file or a decision
+   while authoring, resolve it now — do not defer it to the executor.
+7. `arctool validate --strict` fails a task with a missing or empty `Acceptance` section, an empty
+   `References` list, or a `WHERE` with no concrete file/module.
+8. Do not place executor instructions inside `plan.md`; update this file instead.
 
 ## Minimal Example
 
 ```md
-### WA999-VER-01 (MISSING): Add endpoint parity for sample flow
+### WA999-VER-01: Add endpoint parity for sample flow
 
 - WHAT: Add `/v2/sampleapi/items/{id}` read endpoint with legacy-compatible response.
+- HOW:
+  Handler calls `item.Service.Get(ctx, id)`; map `item.ErrNotFound` to 404, everything else to 500.
+  Response body mirrors the legacy v1 shape (see AIC §"Item API parity") — do not rename fields.
+  Out of scope: list endpoint and pagination (WA999-VER-02).
 - WHERE:
   Layer `handler`: `services/sampleapi/internal/handler/item.go`, `router.go`.
   Layer `domain`: `services/sampleapi/internal/domain/item/{port,service}.go`.
@@ -150,7 +148,7 @@ Use `gap.md` as the evidence register and `plan.md` as the executable queue — 
 - Acceptance:
   - GIVEN an existing item id WHEN `GET /v2/sampleapi/items/{id}` THEN the response is 200 with the legacy-compatible body.
   - GIVEN an unknown id WHEN the same call is made THEN the response is 404.
-  - GIVEN the new handler WHEN the test suite runs THEN `item_test.go` covers the 200 and 404 paths.
-- References: `docs/aics/initiative-99/aic.md`, `docs/aics/initiative-99/arc42.md`.
+  - GIVEN the new code WHEN `go test ./services/sampleapi/...` runs THEN `item_test.go` covers the 200 and 404 paths and passes.
+- References: `docs/aics/initiative-99/aic.md`.
 - Status: TODO.
 ```

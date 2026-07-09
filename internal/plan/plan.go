@@ -58,6 +58,7 @@ type Task struct {
 	Title        string
 
 	What       string
+	How        string // optional: implementation decisions the executor must follow
 	Where      string
 	Why        string
 	References []string
@@ -66,7 +67,8 @@ type Task struct {
 	StatusRaw  string // the status token as written (for casing checks), e.g. "TODO" or "Todo"
 
 	// Presence flags for required-key validation (a key can be present but empty).
-	HasWhat, HasWhere, HasWhy, HasRefs, HasStatus, HasAcceptance bool
+	// HasHow is informational only: HOW is never required.
+	HasWhat, HasHow, HasWhere, HasWhy, HasRefs, HasStatus, HasAcceptance bool
 
 	HeadingOK bool // heading matched the expected "### <ID>...: <Title>" shape
 	Line      int  // 1-based line of the heading (block start), for messages
@@ -96,7 +98,7 @@ type Plan struct {
 
 var (
 	reHeading = regexp.MustCompile(`^###\s+(\S+?)\s*(?:\(([^)]*)\))?\s*:\s*(.*?)\s*$`)
-	reKey     = regexp.MustCompile(`^-\s+(WHAT|WHERE|WHY|References|Acceptance|Status):\s?(.*)$`)
+	reKey     = regexp.MustCompile(`^-\s+(WHAT|HOW|WHERE|WHY|References|Acceptance|Status):\s?(.*)$`)
 	reFence   = regexp.MustCompile("^(```|~~~)")
 	rePathExt = regexp.MustCompile(`\.\w{1,6}(\s|$|,|` + "`" + `)`)
 )
@@ -228,7 +230,7 @@ func parseBlock(lines []srcLine, start, end int) Task {
 			t.StatusLineStart, t.StatusLineEnd = ln.start, ln.end
 			t.StatusLine = i + 1
 			i++
-		case "WHERE", "Acceptance":
+		case "HOW", "WHERE", "Acceptance":
 			// Multi-line: absorb following lines until the next key / block end.
 			body := []string{val}
 			j := i + 1
@@ -242,9 +244,12 @@ func parseBlock(lines []srcLine, start, end int) Task {
 				j++
 			}
 			v := strings.TrimSpace(strings.Join(body, "\n"))
-			if key == "WHERE" {
+			switch key {
+			case "HOW":
+				t.How, t.HasHow = v, true
+			case "WHERE":
 				t.Where, t.HasWhere = v, true
-			} else {
+			default:
 				t.Acceptance, t.HasAcceptance = v, true
 			}
 			i = j

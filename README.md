@@ -316,6 +316,8 @@ A plan task block looks like this (full contract in
 ### AIC-1 (MISSING): Add health endpoint
 
 - WHAT: Add `GET /healthz` returning build version.
+- HOW:
+  Handler returns `{"version": <build version>}`; inject the version via `main.go` ldflags, no new deps.
 - WHERE:
   Layer `handler`: `internal/handler/health.go`, `router.go`.
   Tests: `internal/handler/health_test.go`.

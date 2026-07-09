@@ -45,20 +45,35 @@ not exist yet (a fresh audit, e.g. `mdca-audit`), confirm the slug with the user
 ## Step 3 — Write the gap register
 
 Write or update `docs/aics/<slug>/gap.md` — the evidence register. One gap per `###` block, using the plan heading
-format so it can be mirrored into the plan verbatim:
+format so it can be mirrored into the plan verbatim. Write each block for a **less capable executor**: the mirrored
+task will be implemented by whatever model runs `/arcdlc:execute`, reading only the block and its references — so
+the block must carry the fix decision, not just the complaint:
 
 ```md
 ### <PREFIX>-GAP-NN (<MISSING|PARTIAL|DRIFT>): <Short Title>
 
-- WHAT: <What must change to become compliant.>
-- WHERE: <Files/modules with the violation, with file:line evidence.>
+- WHAT: <What must change to become compliant, one line.>
+- HOW:
+  <The concrete fix you already know from the audit: target structure, naming, what moves where.
+  Out of scope: <adjacent non-violations the executor must leave alone>.>
+- WHERE: <Exact files/modules with the violation, with file:line evidence.>
 - WHY: <The violated rule, quoted or paraphrased, with the policy source path.>
 - Acceptance:
-  - GIVEN the audited code WHEN re-examined against <rule> THEN the violation is gone (no MISSING/PARTIAL/DRIFT finding).
+  - GIVEN <the violating code> WHEN <the concrete re-check: the named test, lint rule, grep, or build command> THEN <the observable compliant result>.
 ```
 
-Derive the `Acceptance` criterion from the violated rule, so "compliant" is testable rather than asserted — this
-also lets the mirrored plan task pass `arctool validate --strict` (which requires an `Acceptance` section).
+Precision rules for each gap block:
+
+- `WHAT` names the change, not the finding ("Move DB access behind a repository port", not "handler
+  violates layering").
+- `HOW` (optional but preferred) records the fix decisions the audit already surfaced — where the code
+  should land, what the compliant shape looks like — so the executor does not re-derive them. Fence
+  adjacent non-violations with `Out of scope:` to prevent over-fixing.
+- `WHERE` cites evidence as exact `file:line` (or package/module) — the executor edits only these.
+- `Acceptance` must be a runnable re-check wherever one exists (the lint rule, a named test, a grep
+  that must come up empty, a build that must pass) — "re-examine and the violation is gone" is the
+  fallback, not the default. This also lets the mirrored plan task pass `arctool validate --strict`
+  (which requires an `Acceptance` section).
 
 - `<PREFIX>` is the audited policy or initiative (e.g. `MDCA-GAP-01`, `AIC-GAP-03`). Number gaps sequentially,
   continuing from existing entries — never renumber or delete previous gaps.
@@ -71,7 +86,7 @@ Per the Gap Register Sync rules in `../plan/references/plan-format.md` (flat ins
 `../arcdlc-plan/references/plan-format.md`), append a matching task block to `docs/aics/<slug>/plan.md` for every new
 gap:
 
-- Same task ID and heading as in `gap.md`; same `WHAT`, `WHERE`, `WHY`, and `Acceptance` content.
+- Same task ID and heading as in `gap.md`; same `WHAT`, `HOW` (when present), `WHERE`, `WHY`, and `Acceptance` content.
 - Add runner metadata: `References` (must include `docs/aics/<slug>/gap.md`, the policy source, and the architecture
   doc if relevant) and `- Status: TODO.`
 - Append after the existing blocks; never modify existing tasks or reuse an ID already present in the plan.

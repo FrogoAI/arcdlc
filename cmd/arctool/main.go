@@ -22,7 +22,7 @@ import (
 	"github.com/FrogoAI/arcdlc/internal/registry"
 )
 
-const version = "0.7.0"
+const version = "0.8.0"
 
 // aicsDir is the root directory under which each initiative gets its own folder
 // (docs/aics/<slug>/, holding plan.md, gap.md, plan-archive.md). Selection is
@@ -198,6 +198,7 @@ type taskJSON struct {
 	SourceStatus string       `json:"sourceStatus"`
 	Title        string       `json:"title"`
 	What         string       `json:"what"`
+	How          string       `json:"how"`
 	Where        string       `json:"where"`
 	WhereLayers  []plan.Layer `json:"whereLayers"`
 	Why          string       `json:"why"`
@@ -218,6 +219,7 @@ func toTaskJSON(t *plan.Task) taskJSON {
 		SourceStatus: string(t.SourceStatus),
 		Title:        t.Title,
 		What:         t.What,
+		How:          t.How,
 		Where:        t.Where,
 		WhereLayers:  plan.ParseWhereLayers(t.Where),
 		Why:          t.Why,
