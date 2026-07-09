@@ -39,9 +39,50 @@ slug.
   - If its status is not `TODO`, stop and report the status; only proceed on `DONE`/`BLOCKED`/`TAKEN` if the user
     explicitly confirms a redo or takeover (`arctool take` refuses a non-`TODO` task unless you pass `--force`).
 
+## Session strategy: fresh context per task (whole-queue mode)
+
+The plan is the only state carrier — statuses live in `plan.md`, work lives in per-task commits — so nothing needs to
+survive in conversation context between tasks, and quality drops when it does: a long session accumulates earlier
+tasks' file reads and diffs until the harness compacts mid-work, and a squeezed executor loses acceptance criteria
+first. Give every task a fresh context.
+
+Probe once: can this harness spawn subagents with their own clean context (e.g. the Agent/Task tool in Claude Code)?
+
+**Orchestrator mode (subagents available).** Run the queue as a thin dispatcher and implement nothing yourself:
+
+1. Get the next task ID: `arctool next --json` (fallback: the first `TODO` block in `plan.md`). None left → go to the
+   Verification phase.
+2. Spawn ONE fresh subagent — never several in parallel: the queue is dependency-ordered and commits must not
+   interleave. Its prompt must name the initiative slug, the task ID, the per-task contract to follow (point it at
+   this skill file and `../plan/references/plan-format.md`; flat installs: `../arcdlc-plan/references/plan-format.md`),
+   and the accumulated notes from earlier task reports.
+3. The subagent executes the full per-task contract below (take → implement → verify acceptance → done → commit) and
+   reports back: files changed, test results, commit subject, final status — plus at most one line of notes useful to
+   later tasks (e.g. a project convention it discovered).
+4. Verify the outcome yourself before looping: the task's status is `DONE` (`arctool show <id>`) and the commit exists
+   (`git log -1`). A subagent that reports success without both counts as failed — reset per step 7 of the contract.
+5. On `BLOCKED` or failure, stop the whole run and report — same rule as step 7.
+
+Keep your own context small: in orchestrator mode never read source files or diffs — only plan state, subagent
+reports, and commit subjects. That is what lets a long queue finish in a single `/arcdlc:execute <slug>` invocation.
+
+**In-session mode (no subagents — flat installs and other harnesses).** Execute tasks yourself, one at a time, with a
+hard boundary discipline. You cannot measure your own context size, so use proxies:
+
+- Task boundaries (after `done` + commit) are the only legitimate stopping points.
+- After each non-trivial task — or roughly every third small one, or immediately when the harness signals compaction
+  or low context — finish the current task, commit, then stop and tell the user: clear the session and re-run
+  `/arcdlc:execute <slug>`. Nothing is lost; the run resumes from `plan.md` exactly where it stopped.
+- Never start a new task in a nearly-exhausted context, and never let compaction land mid-task.
+
+A queue can also be driven externally — one non-interactive run per task (e.g. `claude -p "/arcdlc:execute <slug>"`
+in a loop) until `arctool next` exits `3` (no `TODO` left).
+
+Single-task mode (`/arcdlc:execute <slug> <TASK-ID>`) needs none of this: execute it directly in the current session.
+
 ## Per-task contract
 
-For each task, in order:
+For each task, in order (in orchestrator mode, the spawned subagent performs these steps for its one task):
 
 1. Get the task: `arctool next --json` (whole queue) or `arctool show <TASK-ID> --json` (single task). Read only the
    files named in its `references` and `where`/`whereLayers` — not the whole plan. Note its `how` field (when
@@ -79,6 +120,8 @@ When running the full queue (no task-ID argument), finish with a whole-project c
 - Run `make test` and `make lint` in the subproject (skip targets that don't exist).
 - Fix any failures, commit fixes separately with `#AI-assisted`, and re-run until clean or the same failure repeats
   without progress — then stop and report.
+- In orchestrator mode, delegate this phase to one final subagent (running tests and fixing failures is
+  implementation work, and its output does not belong in the dispatcher's context).
 
 ## Report
 
