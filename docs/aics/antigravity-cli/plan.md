@@ -126,7 +126,7 @@ when present, else from `~/.gemini/config/skills/`), and confirm uninstall clear
   - GIVEN a local run of the extended smoke-test snippet (a fake `$HOME` with `.gemini`, `ARCDLC_NO_PLUGIN_CLI=1`, `./install.sh`) WHEN it executes THEN every `arcdlc-$s/SKILL.md` under `$FAKE/.gemini/config/skills/` is present, and absent after `--uninstall`.
   - GIVEN the workflow file WHEN parsed (e.g. `python -c 'import yaml,sys; yaml.safe_load(open(".github/workflows/ci.yml"))'`) THEN it is valid YAML.
 - References: `docs/aics/antigravity-cli/aic.md`, `.github/workflows/ci.yml`, `install.sh`.
-- Status: TODO.
+- Status: DONE.
 
 ### AGY-4: Docs — name Antigravity as a fourth agent
 

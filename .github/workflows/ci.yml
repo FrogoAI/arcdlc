@@ -38,6 +38,8 @@ jobs:
         run: |
           jq -e '.name == "arcdlc"' .claude-plugin/plugin.json
           jq -e '.plugins | length > 0' .claude-plugin/marketplace.json
+          jq -e '.name == "arcdlc"' .antigravity-plugin/plugin.json
+          test "$(jq -r .version .antigravity-plugin/plugin.json)" = "$(jq -r .version .claude-plugin/plugin.json)"
 
       - name: Check skill layout
         run: |
@@ -55,7 +57,7 @@ jobs:
           # the OpenCode dir. GitHub runners set XDG_CONFIG_HOME=/home/runner/.config,
           # which otherwise steers install away from $FAKE/.config.
           export XDG_CONFIG_HOME="$FAKE/.config"
-          mkdir -p "$FAKE/.claude" "$FAKE/.codex" "$FAKE/.config/opencode" "$FAKE/.cursor"
+          mkdir -p "$FAKE/.claude" "$FAKE/.codex" "$FAKE/.config/opencode" "$FAKE/.cursor" "$FAKE/.gemini"
           HOME="$FAKE" ARCDLC_NO_PLUGIN_CLI=1 ./install.sh --bindir "$FAKE/bin"
           test -f "$FAKE/.claude/skills/arcdlc/.claude-plugin/plugin.json"
           test -f "$FAKE/.claude/skills/arcdlc/skills/plan/SKILL.md"
@@ -63,11 +65,13 @@ jobs:
             test -f "$FAKE/.codex/skills/arcdlc-$s/SKILL.md"
             test -f "$FAKE/.config/opencode/skills/arcdlc-$s/SKILL.md"
             test -f "$FAKE/.cursor/skills/arcdlc-$s/SKILL.md"
+            test -f "$FAKE/.gemini/config/skills/arcdlc-$s/SKILL.md"
           done
           "$FAKE/bin/arctool" version
           HOME="$FAKE" ./install.sh --uninstall --bindir "$FAKE/bin"
           test ! -e "$FAKE/.claude/skills/arcdlc"
           test ! -e "$FAKE/.cursor/skills/arcdlc-aic"
+          test ! -e "$FAKE/.gemini/config/skills/arcdlc-aic"
           test ! -e "$FAKE/bin/arctool"
 
   build:
