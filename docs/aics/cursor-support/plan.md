@@ -84,4 +84,4 @@ Reconciled against `docs/aics/cursor-support/aic.md` → Technical Challenges & 
   - GIVEN `AGENTS.md` WHEN grepped THEN the install-agnostic rule lists `Cursor` alongside Codex/OpenCode.
   - GIVEN the edits WHEN the `<!-- arcdlc:initiatives:begin -->…:end -->` region is compared THEN it is byte-unchanged (only prose outside the markers changed), verifiable via `./bin/arctool sync --check` exiting 0.
 - References: `docs/aics/cursor-support/aic.md`, `docs/adr/0006-cursor-support-via-flat-personal-skills.md`, `README.md`, `AGENTS.md`.
-- Status: TODO.
+- Status: DONE.

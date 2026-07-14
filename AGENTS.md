@@ -48,8 +48,8 @@ checks. Do not merge with a red pipeline.
   `internal/plan` (parser/validator/mutator/archiver), its tests, and the skills that reference
   the format — in the same change set.
 - **Skills must stay install-agnostic.** Every SKILL.md must work both as a Claude Code plugin
-  command (`/arcdlc:<name>`) and as a flat skill (`arcdlc-<name>` on Codex/OpenCode). Keep the
-  dual path references (`../plan/...` and `../arcdlc-plan/...`) intact when editing.
+ command (`/arcdlc:<name>`) and as a flat skill (`arcdlc-<name>` on Codex/OpenCode/Cursor). Keep the
+ dual path references (`../plan/...` and `../arcdlc-plan/...`) intact when editing.
 - **`arctool` is always optional in skills.** Every skill that uses it must probe
   `command -v arctool` and describe the manual fallback. Never make a skill hard-depend on the CLI.
 - **Status mutations stay byte-preserving and atomic.** `take`/`done`/`block`/`todo` rewrite only
