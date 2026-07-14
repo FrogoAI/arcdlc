@@ -51,7 +51,7 @@ Reconciled against `docs/aics/cursor-support/aic.md` → Technical Challenges & 
   - GIVEN the workflow WHEN the smoke test runs with a fake `$HOME` seeded with `.cursor/` THEN it asserts `~/.cursor/skills/arcdlc-<name>/SKILL.md` present for the subskill list after install.
   - GIVEN the uninstall step ran WHEN the post-uninstall assertions run THEN they include a check that `~/.cursor/skills/arcdlc-aic` is absent.
 - References: `docs/aics/cursor-support/aic.md`, `.github/workflows/ci.yml`.
-- Status: TODO.
+- Status: DONE.
 
 ### CUR-3: Bump the bundle version to 0.5.0
 

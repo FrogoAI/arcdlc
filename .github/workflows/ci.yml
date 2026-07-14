@@ -55,17 +55,19 @@ jobs:
           # the OpenCode dir. GitHub runners set XDG_CONFIG_HOME=/home/runner/.config,
           # which otherwise steers install away from $FAKE/.config.
           export XDG_CONFIG_HOME="$FAKE/.config"
-          mkdir -p "$FAKE/.claude" "$FAKE/.codex" "$FAKE/.config/opencode"
+          mkdir -p "$FAKE/.claude" "$FAKE/.codex" "$FAKE/.config/opencode" "$FAKE/.cursor"
           HOME="$FAKE" ARCDLC_NO_PLUGIN_CLI=1 ./install.sh --bindir "$FAKE/bin"
           test -f "$FAKE/.claude/skills/arcdlc/.claude-plugin/plugin.json"
           test -f "$FAKE/.claude/skills/arcdlc/skills/plan/SKILL.md"
           for s in aic archive examinate execute plan policy remove source-map; do
             test -f "$FAKE/.codex/skills/arcdlc-$s/SKILL.md"
             test -f "$FAKE/.config/opencode/skills/arcdlc-$s/SKILL.md"
+            test -f "$FAKE/.cursor/skills/arcdlc-$s/SKILL.md"
           done
           "$FAKE/bin/arctool" version
           HOME="$FAKE" ./install.sh --uninstall --bindir "$FAKE/bin"
           test ! -e "$FAKE/.claude/skills/arcdlc"
+          test ! -e "$FAKE/.cursor/skills/arcdlc-aic"
           test ! -e "$FAKE/bin/arctool"
 
   build:
