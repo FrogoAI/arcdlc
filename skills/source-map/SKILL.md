@@ -1,4 +1,5 @@
 ---
+name: arcdlc-source-map
 description: Use when a user asks for architecture, architecture decision records or ADRs, engineering governance, delivery workflow, Jira decomposition, Go architecture, Go best practices, clean code, KISS, simple design, modularity, DDD, SOLID, ECS, MDCA, TOGAF, ArchiMate, AIC, arc42, C4, UML, BPMN, flowcharts, Twelve-Factor App guidance, tech stack decisions, CTO methodology, or asks which ArcDLC source reference file to read.
 ---
 

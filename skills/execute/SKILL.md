@@ -1,4 +1,5 @@
 ---
+name: arcdlc-execute
 description: Implement tasks from docs/aics/<slug>/plan.md following the plan status contract — one task at a time, status TODO→TAKEN→DONE, tests/lint, one commit per task. The initiative slug is the required first argument. Use when the user runs /arcdlc:execute <slug> (all pending tasks) or /arcdlc:execute <slug> <TASK-ID> (single task), or invokes arcdlc-execute.
 argument-hint: "<slug> [TASK-ID]"
 ---

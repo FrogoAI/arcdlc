@@ -1,4 +1,5 @@
 ---
+name: arcdlc-policy
 description: Author a governance policy in docs/policies/<name>.md following the ArcDLC "Policy of Policies" framework — mandatory grilled interview first, then the full policy document, then register it in docs/policies/README.md, the project README.md, and AGENTS.md. The policy name is the required first argument (e.g. /arcdlc:policy vacations). Use when the user runs /arcdlc:policy, invokes arcdlc-policy, or asks to create/write a company or engineering policy, SOP, or governance document.
 argument-hint: "<name> [POL-GOV|POL-HR|POL-TECH|POL-ENG|POL-SEC|POL-DOC]"
 ---

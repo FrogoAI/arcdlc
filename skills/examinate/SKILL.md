@@ -1,4 +1,5 @@
 ---
+name: arcdlc-examinate
 description: Examine existing code for compliance with a named architecture, policy, or design (e.g. /arcdlc:examinate MDCA — also DDD, SOLID, Clean Code, Go Server, Twelve-Factor, ECS), with a project policy authored by /arcdlc:policy (e.g. /arcdlc:examinate docs/policies/log-retention.md), or with the project's own AIC. Records violations as gap blocks in docs/aics/<slug>/gap.md and adds matching TODO tasks to docs/aics/<slug>/plan.md. Use when the user runs /arcdlc:examinate, invokes arcdlc-examinate, or asks for a compliance audit / gap analysis of the codebase.
 argument-hint: "<slug> [MDCA|DDD|SOLID|...|policy-path]"
 ---

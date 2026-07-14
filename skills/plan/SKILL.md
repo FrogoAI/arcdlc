@@ -1,4 +1,5 @@
 ---
+name: arcdlc-plan
 description: Decompose an approved architecture document (AIC by default; arc42, TOGAF) into the executable docs/aics/<slug>/plan.md task queue consumed by /arcdlc:execute. The initiative slug is the required first argument (e.g. /arcdlc:plan payments). Use when the user runs /arcdlc:plan, invokes arcdlc-plan, or asks to turn an architecture document into an implementation plan.
 argument-hint: "<slug> [aic|arc42|togaf|path]"
 ---

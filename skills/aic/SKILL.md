@@ -1,4 +1,5 @@
 ---
+name: arcdlc-aic
 description: Build or update an initiative's architecture document under docs/aics/<slug>/. The initiative slug is the required first argument (e.g. /arcdlc:aic payments); an optional second argument picks the format (AIC by default, or arc42, TOGAF, C4, ADR — e.g. /arcdlc:aic payments arc42). Always starts with a mandatory grill-with-docs interview before any document is written. Use when the user runs /arcdlc:aic, invokes arcdlc-aic, or asks to create an architecture document for an initiative.
 argument-hint: "<slug> [aic|arc42|togaf|c4|adr]"
 ---

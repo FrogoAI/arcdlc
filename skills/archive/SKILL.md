@@ -1,4 +1,5 @@
 ---
+name: arcdlc-archive
 description: Archive DONE task blocks from docs/aics/<slug>/plan.md into docs/aics/<slug>/plan-archive.md and compact the plan, keeping it short for agent context while preserving history. The initiative slug is the required first argument (e.g. /arcdlc:archive payments). Use when the user runs /arcdlc:archive, invokes arcdlc-archive, or asks to archive/compact the plan.
 argument-hint: "<slug>"
 ---
