@@ -48,7 +48,7 @@ checks. Do not merge with a red pipeline.
   `internal/plan` (parser/validator/mutator/archiver), its tests, and the skills that reference
   the format — in the same change set.
 - **Skills must stay install-agnostic.** Every SKILL.md must work both as a Claude Code plugin
- command (`/arcdlc:<name>`) and as a flat skill (`arcdlc-<name>` on Codex/OpenCode/Cursor). Keep the
+ command (`/arcdlc:<name>`) and as a flat skill (`arcdlc-<name>` on Codex/OpenCode/Cursor/Antigravity). Keep the
  dual path references (`../plan/...` and `../arcdlc-plan/...`) intact when editing.
 - **`arctool` is always optional in skills.** Every skill that uses it must probe
   `command -v arctool` and describe the manual fallback. Never make a skill hard-depend on the CLI.
@@ -70,8 +70,9 @@ checks. Do not merge with a red pipeline.
   hand-edit inside the markers. `/arcdlc:remove <slug>` deletes an initiative folder (always after an
   explicit confirmation) and re-syncs; `arctool` itself performs no deletion.
 - **Version bumps:** the CLI version lives in `cmd/arctool/main.go` (`const version`); the plugin
-  version lives in `.claude-plugin/plugin.json`. Bump whichever component you changed. Releases
-  are cut by pushing a `v*` tag.
+  version lives in `.claude-plugin/plugin.json`, with `.antigravity-plugin/plugin.json` as a second
+  plugin manifest kept in lockstep with it. Bump whichever component you changed (both plugin
+  manifests together). Releases are cut by pushing a `v*` tag.
 
 ## Conventions
 
@@ -84,4 +85,6 @@ checks. Do not merge with a red pipeline.
   skill-layout / installer-smoke checks in `.github/workflows/ci.yml` in the same change set.
 - Exit codes of `arctool` are part of its interface (0 ok, 1 contract failure, 2 usage, 3 not
   found/empty, 4 I/O, 5 archive self-validation) — skills key off them; do not renumber.
+- The Antigravity plugin manifest lives in `.antigravity-plugin/` (alongside the Claude Code manifest
+  in `.claude-plugin/`).
 - `CLAUDE.md` is a symlink to this file; edit `AGENTS.md` only.

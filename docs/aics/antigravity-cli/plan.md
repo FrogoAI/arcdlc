@@ -154,4 +154,4 @@ when present, else from `~/.gemini/config/skills/`), and confirm uninstall clear
   - GIVEN the repo WHEN `git diff --name-only` is inspected THEN `CLAUDE.md` is not modified independently of `AGENTS.md` (symlink).
   - GIVEN the docs WHEN `gofmt -l .` / `go build ./...` run THEN they are unaffected (docs-only change compiles/formats clean).
 - References: `docs/aics/antigravity-cli/aic.md`, `README.md`, `AGENTS.md`.
-- Status: TODO.
+- Status: DONE.

@@ -8,7 +8,7 @@
   <a href="https://github.com/FrogoAI/arcdlc/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/FrogoAI/arcdlc/actions/workflows/ci.yml/badge.svg" /></a>
   <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" /></a>
   <img alt="Zero dependencies" src="https://img.shields.io/badge/arctool-zero%20deps-0aa?style=flat-square" />
-  <img alt="Agents" src="https://img.shields.io/badge/agents-Claude%20Code%20·%20Codex%20·%20OpenCode%20·%20Cursor-818CF8?style=flat-square" />
+  <img alt="Agents" src="https://img.shields.io/badge/agents-Claude%20Code%20·%20Codex%20·%20OpenCode%20·%20Cursor%20·%20Antigravity-818CF8?style=flat-square" />
 </p>
 
 <p align="center">
@@ -23,7 +23,7 @@ Our philosophy:
 → deterministic plans, not vibes
 → audited every step, not assumed done
 → brownfield audits and greenfield builds — one workflow
-→ agent-native across Claude Code, Codex, OpenCode, and Cursor
+→ agent-native across Claude Code, Codex, OpenCode, Cursor, and Antigravity
 ```
 
 > [!TIP]
@@ -71,7 +71,7 @@ way they were designed.
   `arctool` CLI validates the contract and flips task status atomically. No hand-edited status lines.
 - **Audit what already exists** — `/arcdlc:examinate` measures real code against a named architecture
   or policy (MDCA, DDD, SOLID, Twelve-Factor, …) and files each gap as a tracked task.
-- **Bring your own agent** — one install-agnostic bundle for Claude Code, Codex, OpenCode, and Cursor.
+- **Bring your own agent** — one install-agnostic bundle for Claude Code, Codex, OpenCode, Cursor, and Antigravity.
 
 ## Why teams adopt ArcDLC
 
@@ -107,7 +107,7 @@ and actually executes the plan.
 curl -fsSL https://raw.githubusercontent.com/FrogoAI/arcdlc/main/install.sh | bash
 ```
 
-Installs the skills into every agent it detects (Claude Code, Codex, OpenCode, Cursor) and the `arctool`
+Installs the skills into every agent it detects (Claude Code, Codex, OpenCode, Cursor, Antigravity) and the `arctool`
 binary for linux/darwin × amd64/arm64. Then, in your project:
 
 ```
@@ -192,7 +192,7 @@ curl -fsSL https://raw.githubusercontent.com/FrogoAI/arcdlc/main/install.sh | ba
 
 The installer:
 
-- detects which agents you have (Claude Code, Codex, OpenCode, Cursor) and installs the skills for each
+- detects which agents you have (Claude Code, Codex, OpenCode, Cursor, Antigravity) and installs the skills for each
   — via the official `claude plugin` CLI when available (Claude Code ≥ 2.1.157), otherwise into
   the agent's skills directory;
 - installs the `arctool` binary to `~/.local/bin`: a checksum-verified release binary for
@@ -231,7 +231,7 @@ Alternative — clone into your skills directory; Claude Code auto-loads the plu
 git clone https://github.com/FrogoAI/arcdlc ~/.claude/skills/arcdlc
 ```
 
-### Codex / OpenCode / Cursor (manual)
+### Codex / OpenCode / Cursor / Antigravity (manual)
 
 These agents have no plugin namespace, so install each sub-skill flattened as `arcdlc-<name>`
 (identical behavior, invoked by skill name instead of a slash command):
@@ -249,6 +249,13 @@ On Cursor the one-line installer auto-detects the presence of `~/.cursor` and in
 `arcdlc-<name>` skills into `~/.cursor/skills/`. Cursor auto-discovers them and, having no
 `disable-model-invocation` field, may invoke them from their descriptions in addition to explicit
 use — the descriptions already name their triggers.
+
+On Antigravity the installer prefers the native plugin, falling back to flat skills. When the `agy`
+CLI is present it runs `agy plugin install <repo-or-path>` (installing into
+`~/.gemini/antigravity-cli/plugins/`); otherwise it copies the same `arcdlc-<name>` skills flat,
+using `skills_root=~/.gemini/config/skills` in the loop above. To install manually, either run
+`agy plugin install FrogoAI/arcdlc` (or a local checkout path), or set that `skills_root` and reuse
+the copy loop.
 
 ### `arctool` CLI (optional, recommended)
 
