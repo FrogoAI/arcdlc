@@ -8,7 +8,7 @@
     {
       "name": "arcdlc",
       "source": "./",
-      "description": "ArcDLC — Architecture Development Life Cycle: engineering reference library and /arcdlc:* delivery-workflow commands (aic, policy, plan, examinate, execute, archive)."
+      "description": "ArcDLC — Architecture Development Life Cycle: engineering reference library and /arcdlc:* delivery-workflow commands (aic, policy, plan, examinate, execute, archive). Works on Claude Code, Codex, OpenCode, Cursor, and Antigravity."
     }
   ]
 }

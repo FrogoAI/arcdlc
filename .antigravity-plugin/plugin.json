@@ -1,5 +1,5 @@
 {
   "name": "arcdlc",
   "version": "0.6.0",
-  "description": "ArcDLC — architecture and delivery workflow skill bundle for Google Antigravity (CLI/IDE)."
+  "description": "ArcDLC — architecture and delivery workflow skill bundle for Claude Code, Codex, OpenCode, Cursor, and Antigravity (CLI/IDE)."
 }

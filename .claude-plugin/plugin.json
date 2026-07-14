@@ -1,6 +1,6 @@
 {
   "name": "arcdlc",
-  "description": "ArcDLC — Architecture Development Life Cycle: engineering reference library (source-map) and universal delivery workflow for applications and policies: grilled AIC, grilled policy authoring, executable acceptance-enforced plan, compliance examination, per-task execution, initiative removal, and plan archiving.",
+  "description": "ArcDLC — Architecture Development Life Cycle: engineering reference library (source-map) and universal delivery workflow for applications and policies: grilled AIC, grilled policy authoring, executable acceptance-enforced plan, compliance examination, per-task execution, initiative removal, and plan archiving. Works on Claude Code, Codex, OpenCode, Cursor, and Antigravity.",
   "version": "0.6.0",
   "author": {
     "name": "FrogoAI"
