@@ -102,7 +102,7 @@ when present, else from `~/.gemini/config/skills/`), and confirm uninstall clear
   - GIVEN only `~/.gemini` present in a fake HOME WHEN `--agents auto` resolves THEN the antigravity flat install runs (its SKILL.md files appear), proving auto-detect includes it.
   - GIVEN the change WHEN `shellcheck install.sh` runs THEN it reports no findings.
 - References: `docs/aics/antigravity-cli/aic.md`, `docs/adr/0005-antigravity-support-via-plugin-with-flat-fallback.md`, `install.sh`.
-- Status: TODO.
+- Status: DONE.
 
 ### AGY-3: CI — installer-smoke fallback coverage + manifest lint
 

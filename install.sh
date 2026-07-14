@@ -8,7 +8,7 @@
 #   ./install.sh
 #
 # Options (flags or environment):
-#   --agents LIST   comma-separated: claude,codex,opencode,cursor,all,none (default: auto-detect)
+#   --agents LIST   comma-separated: claude,codex,opencode,cursor,antigravity,all,none (default: auto-detect)
 #   --bindir DIR    where to put arctool                (default: ~/.local/bin)   [ARCDLC_BINDIR]
 #   --ref REF       git tag/branch for the skills       (default: main)           [ARCDLC_REF]
 #   --skills-only   install the skills, skip arctool
@@ -69,6 +69,7 @@ claude_dir="$HOME/.claude"
 codex_dir="$HOME/.codex"
 opencode_dir="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
 cursor_dir="$HOME/.cursor"
+gemini_dir="$HOME/.gemini"
 
 resolve_agents() {
   case "$AGENTS" in
@@ -78,8 +79,9 @@ resolve_agents() {
       [ -d "$codex_dir" ]    && found="$found codex"
       [ -d "$opencode_dir" ] && found="$found opencode"
       [ -d "$cursor_dir" ]   && found="$found cursor"
+      [ -d "$gemini_dir" ]   && found="$found antigravity"
       echo "$found" ;;
-    all)  echo "claude codex opencode cursor" ;;
+    all)  echo "claude codex opencode cursor antigravity" ;;
     none) echo "" ;;
     *)    echo "$AGENTS" | tr ',' ' ' ;;
   esac
@@ -90,8 +92,10 @@ if [ "$UNINSTALL" = 1 ]; then
   info "removing ArcDLC skills and $TOOL"
   rm -rf "$claude_dir/skills/$PLUGIN"
   for s in $SUBSKILLS; do
-    rm -rf "$codex_dir/skills/$PLUGIN-$s" "$opencode_dir/skills/$PLUGIN-$s" "$cursor_dir/skills/$PLUGIN-$s"
+    rm -rf "$codex_dir/skills/$PLUGIN-$s" "$opencode_dir/skills/$PLUGIN-$s" "$cursor_dir/skills/$PLUGIN-$s" "$gemini_dir/config/skills/$PLUGIN-$s"
   done
+  rm -rf "$gemini_dir/antigravity-cli/plugins/$PLUGIN"
+  if command -v agy >/dev/null 2>&1; then agy plugin uninstall "$PLUGIN" >/dev/null 2>&1 || true; fi
   rm -f "$BINDIR/$TOOL"
   info "done"
   exit 0
@@ -125,8 +129,8 @@ fi
 if [ "$DO_SKILLS" = 1 ]; then
   agents="$(resolve_agents)"
   if [ -z "$agents" ]; then
-    warn "no agent directories found (~/.claude, ~/.codex, ~/.config/opencode, ~/.cursor) — skipping skills."
-    warn "re-run with --agents claude|codex|opencode|cursor|all to force."
+    warn "no agent directories found (~/.claude, ~/.codex, ~/.config/opencode, ~/.cursor, ~/.gemini) — skipping skills."
+    warn "re-run with --agents claude|codex|opencode|cursor|antigravity|all to force."
   fi
   for agent in $agents; do
     case "$agent" in
@@ -158,6 +162,28 @@ if [ "$DO_SKILLS" = 1 ]; then
           cp -R "$src/skills/$s" "$root/$PLUGIN-$s"
         done
         info "$agent: $root/$PLUGIN-<name> (invoke by skill name)" ;;
+      antigravity)
+        # Prefer the Antigravity plugin CLI when present; otherwise drop the
+        # flattened sub-skills into ~/.gemini/config/skills.
+        if [ -z "${ARCDLC_NO_PLUGIN_CLI:-}" ] && command -v agy >/dev/null 2>&1; then
+          stage="$(mktemp -d)"
+          cp "$src/.antigravity-plugin/plugin.json" "$stage/"
+          mkdir -p "$stage/skills"
+          for s in $SUBSKILLS; do
+            cp -R "$src/skills/$s" "$stage/skills/$PLUGIN-$s"
+          done
+          agy plugin install "$stage" >/dev/null 2>&1
+          rm -rf "$stage"
+          info "antigravity: installed via 'agy plugin install' (commands: /$PLUGIN-<name>)"
+        else
+          root="$gemini_dir/config/skills"
+          mkdir -p "$root"
+          for s in $SUBSKILLS; do
+            rm -rf "${root:?}/$PLUGIN-$s"
+            cp -R "$src/skills/$s" "$root/$PLUGIN-$s"
+          done
+          info "antigravity: $root/$PLUGIN-<name> (flat fallback; invoke by skill name)"
+        fi ;;
       *) warn "unknown agent '$agent' — skipped" ;;
     esac
   done
