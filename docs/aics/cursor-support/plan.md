@@ -33,7 +33,7 @@ Reconciled against `docs/aics/cursor-support/aic.md` → Technical Challenges & 
   - GIVEN a fake `$HOME` containing only `.cursor/` WHEN `resolve_agents` runs under `--agents auto` THEN `cursor` is selected (verifiable via the smoke test in CUR-2).
   - GIVEN the edited script WHEN `shellcheck install.sh` runs THEN it reports no findings.
 - References: `docs/aics/cursor-support/aic.md`, `docs/adr/0006-cursor-support-via-flat-personal-skills.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### CUR-2: Cover the Cursor install path in CI
 

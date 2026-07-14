@@ -8,7 +8,7 @@
 #   ./install.sh
 #
 # Options (flags or environment):
-#   --agents LIST   comma-separated: claude,codex,opencode,all,none (default: auto-detect)
+#   --agents LIST   comma-separated: claude,codex,opencode,cursor,all,none (default: auto-detect)
 #   --bindir DIR    where to put arctool                (default: ~/.local/bin)   [ARCDLC_BINDIR]
 #   --ref REF       git tag/branch for the skills       (default: main)           [ARCDLC_REF]
 #   --skills-only   install the skills, skip arctool
@@ -68,6 +68,7 @@ detect_platform() {
 claude_dir="$HOME/.claude"
 codex_dir="$HOME/.codex"
 opencode_dir="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
+cursor_dir="$HOME/.cursor"
 
 resolve_agents() {
   case "$AGENTS" in
@@ -76,8 +77,9 @@ resolve_agents() {
       [ -d "$claude_dir" ]   && found="claude"
       [ -d "$codex_dir" ]    && found="$found codex"
       [ -d "$opencode_dir" ] && found="$found opencode"
+      [ -d "$cursor_dir" ]   && found="$found cursor"
       echo "$found" ;;
-    all)  echo "claude codex opencode" ;;
+    all)  echo "claude codex opencode cursor" ;;
     none) echo "" ;;
     *)    echo "$AGENTS" | tr ',' ' ' ;;
   esac
@@ -88,7 +90,7 @@ if [ "$UNINSTALL" = 1 ]; then
   info "removing ArcDLC skills and $TOOL"
   rm -rf "$claude_dir/skills/$PLUGIN"
   for s in $SUBSKILLS; do
-    rm -rf "$codex_dir/skills/$PLUGIN-$s" "$opencode_dir/skills/$PLUGIN-$s"
+    rm -rf "$codex_dir/skills/$PLUGIN-$s" "$opencode_dir/skills/$PLUGIN-$s" "$cursor_dir/skills/$PLUGIN-$s"
   done
   rm -f "$BINDIR/$TOOL"
   info "done"
@@ -123,8 +125,8 @@ fi
 if [ "$DO_SKILLS" = 1 ]; then
   agents="$(resolve_agents)"
   if [ -z "$agents" ]; then
-    warn "no agent directories found (~/.claude, ~/.codex, ~/.config/opencode) — skipping skills."
-    warn "re-run with --agents claude|codex|opencode|all to force."
+    warn "no agent directories found (~/.claude, ~/.codex, ~/.config/opencode, ~/.cursor) — skipping skills."
+    warn "re-run with --agents claude|codex|opencode|cursor|all to force."
   fi
   for agent in $agents; do
     case "$agent" in
@@ -143,9 +145,13 @@ if [ "$DO_SKILLS" = 1 ]; then
           cp -R "$src/.claude-plugin" "$src/skills" "$dest/"
           info "Claude Code: $dest (commands: /$PLUGIN:<name>)"
         fi ;;
-      codex|opencode)
+      codex|opencode|cursor)
         # No plugin namespace: flatten each sub-skill to <plugin>-<name>.
-        [ "$agent" = codex ] && root="$codex_dir/skills" || root="$opencode_dir/skills"
+        case "$agent" in
+          codex)    root="$codex_dir/skills" ;;
+          opencode) root="$opencode_dir/skills" ;;
+          cursor)   root="$cursor_dir/skills" ;;
+        esac
         mkdir -p "$root"
         for s in $SUBSKILLS; do
           rm -rf "${root:?}/$PLUGIN-$s"
