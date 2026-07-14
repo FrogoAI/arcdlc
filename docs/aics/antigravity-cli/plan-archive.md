@@ -116,3 +116,17 @@ Archived task blocks from [plan.md](plan.md). Managed by `arctool archive`; do n
   - GIVEN the docs WHEN `gofmt -l .` / `go build ./...` run THEN they are unaffected (docs-only change compiles/formats clean).
 - References: `docs/aics/antigravity-cli/aic.md`, `README.md`, `AGENTS.md`.
 - Status: DONE.
+
+## Archived 2026-07-14
+
+### ANTIGRAVITY-CLI-GAP-01 (MISSING): Add Antigravity to plugin descriptions
+
+- WHAT: Update the `description` fields in plugin manifests to enumerate Antigravity.
+- HOW:
+  Update the `description` in `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` (and `.antigravity-plugin/plugin.json` if applicable) to mention that the bundle supports multiple agents, explicitly naming Antigravity (e.g. "for Claude Code, Codex, OpenCode, Cursor, and Antigravity").
+- WHERE: `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`.
+- WHY: "Enumerate Antigravity as a fourth agent in the ... .claude-plugin/plugin.json + marketplace.json descriptions" from `docs/aics/antigravity-cli/aic.md`.
+- Acceptance:
+  - GIVEN the plugin manifests WHEN `grep -i antigravity .claude-plugin/plugin.json` THEN it matches the updated description.
+- References: `docs/aics/antigravity-cli/gap.md`, `docs/aics/antigravity-cli/aic.md`.
+- Status: DONE.
