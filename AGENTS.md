@@ -21,6 +21,7 @@ The shared contract is `skills/plan/references/plan-format.md`. It is parsed mec
 Active initiatives in this repo (kept in sync by `arctool sync`; do not edit inside the markers):
 
 <!-- arcdlc:initiatives:begin -->
+- [Antigravity CLI](docs/aics/antigravity-cli/aic.md) — Add Google Antigravity as a fourth supported agent — a native plugin bundle with a flat-skills fallback.
 - [Initiative Lifecycle](docs/aics/initiative-lifecycle/aic.md) — Mandatory slug-first selection, an arctool-synced initiative registry, and an always-confirmed removal flow.
 <!-- arcdlc:initiatives:end -->
 

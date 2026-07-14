@@ -145,6 +145,7 @@ instead of guessing. Task IDs need only be unique within one initiative's plan, 
 `docs/aics/`, and `/arcdlc:remove <slug>` retires a finished one.
 
 <!-- arcdlc:initiatives:begin -->
+- [Antigravity CLI](docs/aics/antigravity-cli/aic.md) — Add Google Antigravity as a fourth supported agent — a native plugin bundle with a flat-skills fallback.
 - [Initiative Lifecycle](docs/aics/initiative-lifecycle/aic.md) — Mandatory slug-first selection, an arctool-synced initiative registry, and an always-confirmed removal flow.
 <!-- arcdlc:initiatives:end -->
 
