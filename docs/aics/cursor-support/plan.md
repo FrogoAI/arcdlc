@@ -66,7 +66,7 @@ Reconciled against `docs/aics/cursor-support/aic.md` → Technical Challenges & 
   - GIVEN the edited manifest WHEN `jq -e '.version == "0.5.0"' .claude-plugin/plugin.json` runs THEN it exits 0.
   - GIVEN the edited manifest WHEN `jq -e '.name == "arcdlc"' .claude-plugin/plugin.json` runs THEN it still exits 0 (CI manifest lint unaffected).
 - References: `docs/aics/cursor-support/aic.md`, `.claude-plugin/plugin.json`.
-- Status: TODO.
+- Status: DONE.
 
 ### CUR-4: Name Cursor as a supported agent in the docs
 
