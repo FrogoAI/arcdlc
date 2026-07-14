@@ -65,7 +65,7 @@ when present, else from `~/.gemini/config/skills/`), and confirm uninstall clear
   - GIVEN the repo WHEN `jq -e '.version=="0.6.0"' .claude-plugin/plugin.json` runs THEN it exits 0.
   - GIVEN the repo WHEN `[ "$(jq -r .version .antigravity-plugin/plugin.json)" = "$(jq -r .version .claude-plugin/plugin.json)" ]` runs THEN it exits 0 (versions equal).
 - References: `docs/aics/antigravity-cli/aic.md`, `docs/adr/0005-antigravity-support-via-plugin-with-flat-fallback.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### AGY-2: install.sh — antigravity agent (detect, prefer-plugin-else-flat, uninstall)
 
