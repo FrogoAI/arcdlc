@@ -105,8 +105,7 @@ For each task, in order (in orchestrator mode, the spawned subagent performs the
    If a criterion is not covered by an existing test, add one (in the `Tests` files named in `WHERE`) so "met" is
    evidenced, not asserted. *Fallback: edit the status line to `- Status: DONE.`*
 6. Commit ONLY this task's changes plus the plan status update. Do not include unrelated pre-existing worktree
-   changes. The commit message must include `#AI-assisted` and a concise summary. When more than one initiative
-   exists, prefix the subject with the slug (e.g. `[payments-v2] AIC-1: add health endpoint`). Do not push.
+   changes. Write the message exactly as specified in "Commit message: Conventional Commits" below. Do not push.
 7. If the task cannot be completed — including any acceptance criterion you cannot satisfy: `arctool block <id> -m
    "<one-line reason>"` naming the failing criterion (or `arctool todo <id>` to release it back to the queue), report
    why, and stop — do not continue to the next task on failure. Never `arctool done` a task whose acceptance criteria
@@ -114,12 +113,60 @@ For each task, in order (in orchestrator mode, the spawned subagent performs the
 8. Repeat from step 1. When running the whole queue, stop when `arctool next` exits non-zero (code `3` = no `TODO`
    left). *Fallback: stop when no `TODO` block remains.*
 
+## Commit message: Conventional Commits
+
+Every commit this skill makes — per-task commits and verification-phase fixes alike — follows the Conventional
+Commits 1.0.0 specification, bundled at `../source-map/source/Conventional Commits.md` (flat installs:
+`../arcdlc-source-map/source/Conventional Commits.md`). Read that reference when a case below is not covered.
+
+The shape:
+
+```
+<type>(<slug>): <description>
+
+<body: why the change, plus anything a reviewer needs>
+
+Refs: <TASK-ID>
+#AI-assisted
+```
+
+Mechanical rules:
+
+- **type** — derived from what the diff actually does, not from the task's wording: `feat` (new behavior), `fix`
+  (bug fix), `docs`, `test`, `refactor` (no behavior change), `perf`, `build`, `ci`, `chore`. If a task spans two
+  types, the dominant one wins — never split one task across two commits.
+- **scope** — always the initiative slug, including in single-initiative repos: `feat(payments-v2): …`. This
+  replaces the former `[payments-v2]` subject prefix.
+- **description** — imperative mood, lower case, no trailing period; keep the whole subject line ≤ 72 characters.
+- **breaking change** — when the task intentionally breaks an interface (the plan says so), append `!` after the
+  scope (`feat(payments-v2)!: …`) **and** add a `BREAKING CHANGE: <what breaks and what callers must do>` footer.
+- **footers** — `Refs: <TASK-ID>` (the plan task ID, e.g. `AIC-1`), then the literal `#AI-assisted` marker as the
+  last line. `#AI-assisted` is required on every commit, `Refs:` on every task commit; the task ID no longer
+  belongs in the subject.
+- **fix-up commits** (verification phase, or repairing an earlier task) — same shape with the type that fits
+  (`fix`, `test`, `ci`, …) and `Refs:` the task whose work they repair; omit `Refs:` when they belong to no single
+  task.
+- Pass the message with `git commit -m` (or `-F -`) — an editor-based commit strips the `#AI-assisted` line as a
+  comment.
+
+Example, per task:
+
+```
+feat(payments-v2): add health endpoint
+
+Expose /healthz returning 200 with build info so the load balancer can
+drop unhealthy instances.
+
+Refs: AIC-1
+#AI-assisted
+```
+
 ## Verification phase (after the queue is empty)
 
 When running the full queue (no task-ID argument), finish with a whole-project check:
 
 - Run `make test` and `make lint` in the subproject (skip targets that don't exist).
-- Fix any failures, commit fixes separately with `#AI-assisted`, and re-run until clean or the same failure repeats
+- Fix any failures, commit fixes separately (Conventional Commits, as above), and re-run until clean or the same failure repeats
   without progress — then stop and report.
 - In orchestrator mode, delegate this phase to one final subagent (running tests and fixing failures is
   implementation work, and its output does not belong in the dispatcher's context).

@@ -130,10 +130,10 @@ argument (e.g. `/arcdlc:plan checkout`). Details and manual alternatives: [Insta
 | `/arcdlc:policy <name>` | Author a governance policy per the Policy of Policies framework — grilled interview first. | `docs/policies/<name>.md` + index |
 | `/arcdlc:plan <slug>` | Decompose the approved architecture document into the executable task queue. | `docs/aics/<slug>/plan.md` |
 | `/arcdlc:examinate <slug> [policy]` | Examine existing code for compliance with a named policy or design (`MDCA`, `DDD`, `SOLID`, …; default: the project's own AIC) and register gaps as plan tasks. | `docs/aics/<slug>/gap.md`, new TODO blocks in `docs/aics/<slug>/plan.md` |
-| `/arcdlc:execute <slug> [TASK-ID]` | Implement all pending plan tasks (or one by ID): status `TODO→TAKEN→DONE`, tests/lint, one commit per task. | code, tests, commits |
+| `/arcdlc:execute <slug> [TASK-ID]` | Implement all pending plan tasks (or one by ID): status `TODO→TAKEN→DONE`, tests/lint, one Conventional Commits commit per task. | code, tests, commits |
 | `/arcdlc:remove <slug>` | Delete a completed initiative's folder and clean the registry — always after an explicit confirmation. | removed folder, refreshed `docs/aics/` + registry |
 | `/arcdlc:archive <slug>` | Move `DONE` task blocks into `docs/aics/<slug>/plan-archive.md`, keeping the plan small. | compacted plan + archive |
-| `source-map` skill | Routing table into the bundled architecture & engineering reference library (AIC, arc42, TOGAF, C4, ADR, DDD, SOLID, MDCA, Go guides, Twelve-Factor, …). | reference guidance |
+| `source-map` skill | Routing table into the bundled architecture & engineering reference library (AIC, arc42, TOGAF, C4, ADR, DDD, SOLID, MDCA, Go guides, Twelve-Factor, Conventional Commits, …). | reference guidance |
 
 ### Initiatives live in folders
 
