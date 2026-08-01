@@ -199,7 +199,7 @@ stay green.
   - GIVEN the rewritten file WHEN `grep -n "Tasks" skills/source-map/source/Arc42.md` runs THEN no line lists `Tasks` as a section of the AIC.
   - GIVEN the rewritten file WHEN `grep -n "CTO" skills/source-map/source/Arc42.md` runs THEN it returns no matches.
   - GIVEN the rewritten file WHEN `grep -n "CC BY-SA" skills/source-map/source/Arc42.md` runs THEN it returns at least one match.
-  - GIVEN the rewritten file WHEN `grep -n "<img\|\.png" skills/source-map/source/Arc42.md` runs THEN it returns no matches (no content depends on an image).
+  - GIVEN the rewritten file WHEN `grep -n "<img" skills/source-map/source/Arc42.md` runs THEN it returns no matches, and no content in sections 1–12 depends on an image. (Corrected 2026-08-01: this criterion originally forbade `.png` anywhere in the file, which contradicted the same task's `Out of scope` fence around the `## Diagram Conventions` tail — that block legitimately names `.dot`/`.png` build outputs and is owned by SLC-20.)
 - References: `docs/aics/source-library-cleanup/aic.md`, `docs/adr/0009-arc42-source-is-self-sufficient.md`.
 - Status: DONE.
 
