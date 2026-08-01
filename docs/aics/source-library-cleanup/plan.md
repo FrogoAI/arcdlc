@@ -131,7 +131,7 @@ stay green.
   - GIVEN the file WHEN the text under the H1 is read THEN it states the stack-specific rules are conditional.
   - GIVEN the file WHEN `grep -n "KISS.md" "skills/source-map/source/Engineering Principles.md"` runs THEN it returns at least one match.
 - References: `docs/aics/source-library-cleanup/aic.md`, `skills/plan/references/plan-format.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-5: Merge the MDCA pair into one normative mdca.md
 

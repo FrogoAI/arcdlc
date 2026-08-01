@@ -1,22 +1,12 @@
 # Engineering Principles (POL-ENG-001)
 
-## Purpose
-
-The purpose of this policy is to establish a unified and consistent framework of engineering principles for the design, development, testing, and deployment of all company software. By adhering to these principles, we will ensure our systems are simple, high-performing, maintainable, and aligned with strategic goals. This policy fosters clarity, accountability, and technical excellence across the engineering department.
-
----
-
-## Policy Statement
-
-All engineering, product, and technical personnel must create, review, and manage software initiatives and respond to operational failures in accordance with the framework established in this document. This "Engineering Principles" Policy is the single source of truth for the company's software development lifecycle, standards, and incident analysis process. No software initiative is considered complete, and no incident response is finalized, until it fully complies with the requirements outlined herein.
-
----
-
-## Scope
-
-This policy applies to all full-time employees and contractors involved in the software development lifecycle, including but not limited to roles such as Engineer, Team Lead, Tech Lead, System Analyst, Product Manager, and Engineering Manager. It governs all activities related to software architecture, coding, testing, review, deployment, and incident analysis.
-
-This policy does not supersede external laws or regulations. All software and systems developed must comply with applicable legal and regulatory frameworks.
+This document records one organization's engineering practice, kept as a worked example of a
+delivery standard. It is not a universal mandate: where a rule names a specific stack — event-driven
+internal communication, NATS, Swagger, Kubernetes — it applies **only** to projects built on that
+stack. On any other stack, those rules are conditional and should be read as "the equivalent rule for
+your transport / API-doc / deployment target", or ignored outright. The stack-neutral rules (KISS,
+DRY, Clean Code, non-decreasing test coverage, API versioning discipline, review duties, branch and
+MR conventions) are the portable part.
 
 ---
 
@@ -27,12 +17,8 @@ This policy does not supersede external laws or regulations. All software and sy
 * **System Down-time**: Any period during which a system is unavailable or fails to perform its primary functions, impacting users or business operations.
 * **Post-mortem**: A formal document analyzing an incident, its impact, the actions taken to resolve it, the root cause, and the follow-up actions required to prevent recurrence.
 * **Root Cause**: The fundamental issue which, if addressed, will prevent the incident from recurring.
-* **KISS (Keep It Simple and Smart)**: A design principle that means efficient, smart, readable code - not simplistic code. Solve the actual problem with a clear, fast, modular design. Do not add services, managers, pass-through layers, or other abstractions unless they own a real responsibility.
+* **KISS (Keep It Simple and Smart)**: See `source/KISS.md` for the full definition and its rules.
 * **DRY (Don't Repeat Yourself)**: A principle aimed at reducing repetition of software patterns.
-* **Accountable (A)**: The person ultimately answerable for completing the correct and thorough task.
-* **Responsible (R)**: The individual(s) who perform the work to complete the task.
-* **Consulted (C)**: Individuals whose input and opinions are sought.
-* **Informed (I)**: Individuals who are kept up to date on progress.
 
 ---
 
@@ -50,12 +36,13 @@ This policy does not supersede external laws or regulations. All software and sy
 * **Code Quality**: Developers must follow **Clean Code** principles.
 * **Test Coverage**: Test coverage must be improved over time and is not permitted to decrease in any merge request. Reviewers must check test coverage.
 * **Test Types**: Integration tests are required for communication with other services and databases. Unit tests are required for functionality not covered by integration tests.
-* **Task Management**: A task is considered "Done" only after it has been deployed to production and tested by QA.
+* **Task Completion**: A task is "Done" when it is implemented, every one of its acceptance criteria is demonstrably met, the change is validated (tests and lint green), and the work is committed. This matches the `DONE` status of the ArcDLC plan format, which `/arcdlc:execute` enforces; nothing beyond the task's own scope gates it.
+* **Release Gate**: Deployment to production and QA verification form a separate release gate that follows task completion. A release is not shippable until its changes are deployed and QA-verified, but that gate is tracked on the release — never on the individual task's status.
 
 ### Code Review & Deployment Procedures
 
 * **Reviewer Responsibility**: Reviewers must provide feedback within two business days. The review must focus on logic, algorithms, adherence to Engineering Principles, and fulfillment of the Acceptance Criteria.
-* **Developer Responsibility**: The developer who authors the code is responsible for finding a reviewer, ensuring all pipeline checks pass, merging approved code, and moving the task to "Done" upon release.
+* **Developer Responsibility**: The developer who authors the code is responsible for finding a reviewer, ensuring all pipeline checks pass, merging approved code, and shepherding the change through the release gate above.
 * **Deployment**: All infrastructure must be deployed in a unified way. If a component is deployable in Kubernetes, it must be deployed in Kubernetes.
 
 ### Branch Naming Convention
@@ -87,48 +74,3 @@ This policy does not supersede external laws or regulations. All software and sy
 * **Versioning**: To create a new version of an existing subject, a version number (e.g., `v2`, `v3`) may be added to the end of the subject name. The initial version does not use a `v1` suffix.
 * **Renaming Subjects**: To rename a subject, a new service must be created to publish events with the new topic. After new versions of all consumers are prepared and deployed, the old services can be removed once 100% of traffic is using the new version.
 * **Request/Reply**: Services that communicate using a request/reply pattern must have only one consumer. Every NATS request-reply handler must send a reply back to the client, even if an error occurs.
-
----
-
-## Roles & Responsibilities
-
-| Rule/Step RACI | A | R | C | I |
-| :---- | :---- | :---- | :---- | :---- |
-| Writing high-quality, tested code; creating and following AC; finding a reviewer and seeing a task through to deployment. | Team Lead | Engineer | Software Arch. / CTO / Eng Manag. | Team Lead |
-| Providing timely and thorough reviews of Merge Requests. | Team Lead | Engineer | Software Arch. / CTO / Eng Manag. | Team Lead |
-| Adherence to Engineering Principles | CTO / Eng Manag. | Team Lead | CTO / Eng Manag. | Engineer |
-| Ensuring API Development & Versioning Standards are met. | CTO / Team Lead | Engineer | Cloud Arch. / Software Arch. | Eng Manag. |
-
----
-
-## Allowed & Prohibited Conduct
-
-### Allowed
-
-* Following an event-driven approach for internal communication and REST for external communication.
-* Writing simple, clean, and non-repetitive code (KISS, DRY, Clean Code, MDCA).
-* Improving test coverage in all merge requests.
-* Proposing architectural changes by filling out an Architecture Inception Canvas.
-* Deploying infrastructure in a unified way using Kubernetes where applicable.
-* Always using the `epic/{TASK}_{TITLE}` format for branches related to an epic.
-* Creating sub-branches from an epic branch for individual subtasks.
-* Consolidating all work for an epic into a single, final Merge Request for review.
-* Deploying all new API endpoints with a specific version (e.g., v1).
-* Following the standard naming convention for all NATS subjects.
-
-### Prohibited
-
-* Starting development on a task that does not have clear Acceptance Criteria.
-* Decreasing test coverage in a merge request.
-* Making architectural changes without prior discussion and approval.
-* Over-engineering solutions or introducing unnecessary complexity.
-* A reviewer failing to provide feedback within the required two-day timeframe without communication.
-* Deploying a non-backward-compatible API change without incrementing the version number.
-* Releasing a "non-versioned" API without explicit approval from the CTO and BE Lead.
-* Renaming an existing NATS subject without following the new service creation and migration procedure.
-
----
-
-## Consequences of Non-Compliance
-
-Failure to adhere to this Engineering Principles Policy can expose the company to significant technical debt, security vulnerabilities, and operational risks. Any violation is considered a serious matter. Employees who fail to comply may be subject to disciplinary action, ranging from coaching and re-training up to and including formal disciplinary measures.
