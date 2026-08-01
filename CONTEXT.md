@@ -22,3 +22,10 @@ skills, `arctool`, ADRs, and architecture documents.
   skills `remove` and `policy`).
 - **Plan contract** — the task-block format defined in `skills/plan/references/plan-format.md`,
   parsed mechanically by `internal/plan`.
+- **Reference library** — `skills/source-map/source/`: the bundled reference documents, reached only
+  through the routing table in `skills/source-map/SKILL.md` (one row per document). Agent-facing: a
+  document earns its place by changing what an agent produces.
+- **Source document** — one file in the reference library. Either a **generator template** (consumed
+  by `/arcdlc:aic` to produce an architecture document) or an **audit target** (a rule set
+  `/arcdlc:examinate` checks code against); an audit target must expose rules a gap block can cite by
+  identifier.
