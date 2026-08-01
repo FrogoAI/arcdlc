@@ -425,7 +425,7 @@ stay green.
   - GIVEN the file WHEN the `internal/` rule is read THEN it states the library-versus-application context.
   - GIVEN the file WHEN `grep -c "" "skills/source-map/source/Go Library.md"` runs THEN the line count is below 340.
 - References: `docs/aics/source-library-cleanup/aic.md`, `skills/source-map/source/Clean Code.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-16: Trim Twelve-Factor App.md
 

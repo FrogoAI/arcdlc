@@ -25,7 +25,7 @@ mylib/
 
   # --- Root package = public API surface ---
   service.go                      # Exported orchestrator type the consumer instantiates
-  config.go                       # Config struct with env tags + direct construction
+  config.go                       # Config struct with env parsing + direct construction
   error.go                        # All sentinel errors
   <engine>.go                     # Core algorithm / computation (internal to the lib)
   utils.go                        # Stateless pure helpers
@@ -77,7 +77,7 @@ mylib/
 
 - No `cmd/` -- this is not an application.
 - No `main.go` -- there is nothing to run.
-- No `internal/` -- everything is either exported (root package) or a sub-package. The consumer decides what to use.
+- No `internal/` -- a published library keeps its API surface in the root package and its sub-packages, and the consumer decides what to use. `Clean Code.md`'s Package Design rule ("use `internal/` to hide packages that external consumers should not depend on") is the rule for **applications**, and for the rare library code that must never become API -- that, and only that, belongs in `internal/`.
 - No `pkg/` -- the root package IS the package.
 - No `docker-compose.yml` or deployment configs -- the consuming app owns infrastructure.
 
@@ -182,13 +182,21 @@ cfg, err := mylib.GetConfigFromEnv()
 
 // Path 2: Struct literal (tests, programmatic use)
 cfg := &mylib.Config{ParamA: 20, ParamB: 0.6, Seed: 42}
+
+// Inside GetConfigFromEnv -- standard library only, one block per field:
+if v := os.Getenv("MYLIB_PARAM_A"); v != "" {
+    n, err := strconv.Atoi(v)
+    if err != nil {
+        return nil, fmt.Errorf("MYLIB_PARAM_A: %w", err)
+    }
+    cfg.ParamA = n
+}
 ```
 
 ### Rules
 
-- Every field has a sensible `envDefault`.
-- Derived values are methods on Config, not standalone functions.
-- Config is a plain struct -- no hidden initialization, no `init()`.
+- Defaults live in the struct literal `GetConfigFromEnv` starts from, not in struct tags -- so the library needs no config-parsing dependency, and an unset variable is never an error.
+- Config is a plain struct -- derived values are methods on it; no hidden initialization, no `init()`.
 
 ---
 
@@ -320,78 +328,7 @@ import (
 
 ---
 
-## 10. Makefile
-
-```makefile
-.PHONY: test test-integration lint coverage bench bench-baseline bench-compare ci
-
-test:
-    go test -race -count=1 ./...
-
-test-integration:
-    go test -tags=integration -race -count=1 -v ./...
-
-lint:
-    golangci-lint run ./...
-
-coverage:
-    go test -coverprofile=coverage.out -cover -race ./...
-    go-test-coverage --config=./.testcoverage.yml
-
-bench:
-    go test -bench=. -benchmem -count=6 -run="^$$" ./... | tee benchmarks/current.txt
-
-bench-baseline:
-    go test -bench=. -benchmem -count=6 -run="^$$" ./... | tee benchmarks/baseline.txt
-
-bench-compare:
-    benchstat benchmarks/baseline.txt benchmarks/current.txt
-
-ci: lint coverage
-```
-
----
-
-## 11. CI Pipeline
-
-```yaml
-jobs:
-  lint:
-    steps: [checkout, setup-go, golangci-lint run ./...]
-
-  test:
-    steps:
-      - checkout
-      - setup-go
-      - go test -coverprofile=coverage.out -cover -race ./...
-      - go-test-coverage --config=./.testcoverage.yml
-      - go test -bench=. -run="^$$" ./...
-```
-
----
-
-## 12. .gitignore
-
-```gitignore
-*.exe
-*.dll
-*.so
-*.dylib
-*.test
-*.out
-coverage.*
-go.work
-go.work.sum
-.idea/
-.vscode/
-.env
-benchmarks/*.txt
-!benchmarks/baseline.txt
-```
-
----
-
-## 13. Metadata Files
+## 10. Metadata Files
 
 | File | Purpose |
 |---|---|
@@ -400,23 +337,3 @@ benchmarks/*.txt
 | `CODEOWNERS` | Review ownership |
 | `LICENSE` | Apache 2.0, MIT, etc. |
 | `dependabot.yml` | Weekly `gomod` updates |
-
----
-
-## 14. Principles
-
-| Principle | What it means for a vendor library |
-|---|---|
-| **No `main()`** | This is imported, never executed directly |
-| **Root package = public API** | Consumer imports one path and gets the service, config, errors |
-| **One file, one concern** | service / config / error / engine / utils -- never mixed |
-| **Model is inert** | `model/` has zero imports. It's the shared vocabulary. |
-| **Interface at the consumer boundary** | `repositories/storage.go` defines the contract. Implementations are pluggable. |
-| **Memory impl ships with the lib** | Consumers use it in their own tests. No Docker needed. |
-| **No infrastructure in domain** | Root package never imports DB drivers, frameworks, or infra SDKs |
-| **Two config paths** | Env vars for production, struct literals for tests |
-| **Errors are exported sentinels** | Consumer checks `errors.Is(err, mylib.ErrX)` |
-| **Table-driven tests only** | `cases` + `t.Run`, no exceptions |
-| **Integration behind build tags** | CI runs only unit tests. Integration needs explicit opt-in. |
-| **Strict linting as CI gate** | No print statements, enforced imports, magic numbers flagged |
-| **Benchmarks are tracked** | Baseline committed, regressions caught with `benchstat` |
