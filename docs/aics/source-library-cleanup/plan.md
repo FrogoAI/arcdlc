@@ -512,7 +512,7 @@ stay green.
   - GIVEN the change WHEN `grep -rn "Tech Stack Canvas Original" skills/` runs THEN it returns no matches.
   - GIVEN `skills/source-map/SKILL.md` WHEN the tech-stack row is read THEN it routes to `source/Tech Stack Canvas.md` only.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-20: Extract one shared Diagram Conventions document
 

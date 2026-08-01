@@ -52,7 +52,7 @@ when it is absent.
 | ADR or architecture decision record                           | `source/ADR.md`                                                                                       |
 | Architecture documentation                                    | `source/Arc42.md`                                                                                     |
 | Enterprise architecture, TOGAF, or ArchiMate                  | `source/TOGAF.md`                                                                                     |
-| Tech stack decisions                                          | `source/Tech Stack Canvas.md`, `source/Tech Stack Canvas Original.md`                                 |
+| Tech stack decisions                                          | `source/Tech Stack Canvas.md`                                                                         |
 | Go server architecture                                        | `source/Go Server.md`                                                                                 |
 | Go client architecture                                        | `source/Go Client.md`                                                                                 |
 | Go libraries                                                  | `source/Go Library.md`                                                                                |
