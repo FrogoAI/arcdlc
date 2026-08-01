@@ -585,7 +585,7 @@ stay green.
   - GIVEN `Flowchart.md` WHEN `grep -nE "^## (Decision Patterns|Flowchart vs Other Notations|What is a Flowchart)" skills/source-map/source/Flowchart.md` runs THEN it returns no matches.
   - GIVEN `Flowchart.md` WHEN `## Standard Symbols` and `## DOT Templates` are read THEN both are present in full.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-23: Trim TOGAF.md and mark it generator-only
 

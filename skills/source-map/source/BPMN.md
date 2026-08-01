@@ -39,6 +39,10 @@ Use BPMN when you need to document **business processes** — workflows that inv
 | **Gateway** (inclusive) | Diamond with O | OR — one or more paths taken | `shape=diamond` with `O` label |
 | **Gateway** (event-based) | Diamond with pentagon | Wait for one of several events | `shape=diamond` with `⬠` label |
 
+In DOT, represent a task's type with a stereotype in its label: `[label="<<Service Task>>\nCompute CBF"]`.
+The templates below use `<<User Task>>` (human), `<<Service Task>>` (automated), `<<Send Task>>` and
+`<<Receive Task>>` (message out / in).
+
 ### Connecting Objects (the edges)
 
 | Element | Style | Description |
@@ -62,41 +66,6 @@ Use BPMN when you need to document **business processes** — workflows that inv
 | **Data Store** | Persistent storage (database, file system) |
 | **Annotation** | Free-text comment attached to an element |
 | **Group** | Visual grouping of elements for documentation purposes |
-
----
-
-## Event Types (Detail)
-
-Events are the most nuanced BPMN elements. Key types:
-
-### Start Events (what triggers the process)
-
-| Type | Symbol | Description | Example |
-|------|--------|-------------|---------|
-| None | ○ | Unspecified trigger | "Process begins" |
-| Message | ○ with envelope | Triggered by receiving a message | "Receive order request" |
-| Timer | ○ with clock | Triggered by time condition | "Every day at 00:00" |
-| Signal | ○ with triangle | Triggered by broadcast signal | "System alert received" |
-| Conditional | ○ with lines | Triggered when condition becomes true | "Stock drops below threshold" |
-
-### Intermediate Events (what happens during the process)
-
-| Type | Symbol | Description | Example |
-|------|--------|-------------|---------|
-| Message (catch) | ◎ with envelope | Wait for a message | "Wait for payment confirmation" |
-| Message (throw) | ◎ with filled envelope | Send a message | "Notify partner" |
-| Timer | ◎ with clock | Wait for time duration/date | "Wait 24 hours" |
-| Error (catch) | ◎ with lightning | Catch error from sub-process | "Handle payment failure" |
-| Signal (throw) | ◎ with filled triangle | Broadcast signal | "Announce completion" |
-
-### End Events (how the process terminates)
-
-| Type | Symbol | Description | Example |
-|------|--------|-------------|---------|
-| None | ● | Normal completion | "Process complete" |
-| Message | ● with envelope | Ends by sending a message | "Send confirmation email" |
-| Error | ● with lightning | Ends with error | "Process failed" |
-| Terminate | ● with X | Immediately stops all activities | "Abort all" |
 
 ---
 
@@ -154,41 +123,7 @@ Use when: the process waits for one of several possible events. First event wins
 
 ---
 
-## Task Types
-
-| Type | Marker | Description | Example |
-|------|--------|-------------|---------|
-| **User Task** | Person icon | Performed by a human | "Review uploaded list" |
-| **Service Task** | Gear icon | Automated by software | "Compute CBF from MongoDB" |
-| **Script Task** | Script icon | Executed as a script | "Run migration script" |
-| **Send Task** | Envelope (black) | Sends a message | "Publish NATS event" |
-| **Receive Task** | Envelope (white) | Waits for a message | "Wait for bloom.sync" |
-| **Manual Task** | Hand icon | Physical activity outside system | "Verify data in dashboard" |
-| **Business Rule Task** | Table icon | Decision table evaluation | "Apply scoring policy" |
-
-In DOT, represent task types with labels: `[label="<<Service Task>>\nCompute CBF"]`
-
----
-
 ## DOT Templates
-
-### Simple Linear Process
-
-```dot
-digraph BPMN_Simple {
-    graph [label="Process: Upload List" labelloc=t fontsize=16 fontname="Arial" rankdir=LR]
-    node [shape=box style="filled,rounded" fontname="Arial" fontsize=10 fillcolor="#B5FFFF"]
-    edge [fontname="Arial" fontsize=9]
-
-    start [label="" shape=circle fillcolor="#C9E7B7" width=0.4]
-    upload [label="<<User Task>>\nPartner uploads\nCSV file"]
-    save [label="<<Service Task>>\nSave entries\nto MongoDB"]
-    notify [label="<<Send Task>>\nPublish\nlist.updated"]
-    end_node [label="" shape=circle fillcolor="#FFB5B5" width=0.4 penwidth=3]
-
-    start -> upload -> save -> notify -> end_node
-}
-```
 
 ### Process with Exclusive Gateway
 
@@ -261,35 +196,6 @@ digraph BPMN_Parallel {
     receive_cbf -> hotswap
     hotswap -> ready
     ready -> end_node
-}
-```
-
-### Process with Error Handling
-
-```dot
-digraph BPMN_Error {
-    graph [label="Process: CBF Rebuild with Error Handling" labelloc=t fontsize=16 fontname="Arial" rankdir=TB]
-    node [shape=box style="filled,rounded" fontname="Arial" fontsize=10 fillcolor="#B5FFFF"]
-    edge [fontname="Arial" fontsize=9]
-
-    start [label="" shape=circle fillcolor="#C9E7B7" width=0.4]
-    read [label="<<Service Task>>\nRead list entries\nfrom MongoDB"]
-    gw_err [label="X" shape=diamond fillcolor="#FFFFB5" width=0.5]
-    compute [label="<<Service Task>>\nCompute CBF"]
-    publish [label="<<Send Task>>\nPublish bloom.sync"]
-    log_err [label="<<Service Task>>\nLog error +\nretain previous CBF"]
-    alert [label="<<Send Task>>\nSend alert"]
-    end_ok [label="" shape=circle fillcolor="#C9E7B7" width=0.4 penwidth=3]
-    end_err [label="" shape=circle fillcolor="#FFB5B5" width=0.4 penwidth=3]
-
-    start -> read
-    read -> gw_err
-    gw_err -> compute [label="success"]
-    gw_err -> log_err [label="error"]
-    compute -> publish
-    publish -> end_ok
-    log_err -> alert
-    alert -> end_err
 }
 ```
 

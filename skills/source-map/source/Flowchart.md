@@ -5,17 +5,6 @@
 
 ---
 
-## What is a Flowchart
-
-A flowchart is a diagram that represents a process, algorithm, or workflow as a sequence of steps connected by arrows. It is the simplest and most universally understood diagram type — readable by anyone without specialized notation training.
-
-Flowcharts predate UML, BPMN, and C4. They remain the best choice when:
-- The audience includes non-technical stakeholders
-- The process is algorithmic (step-by-step with decisions)
-- No formal notation is needed — just clarity
-
----
-
 ## When to Use
 
 | Situation | Use Flowchart? | Or Use Instead |
@@ -58,73 +47,6 @@ Flowcharts predate UML, BPMN, and C4. They remain the best choice when:
 | **Left to Right** (LR) | Wide flows with few branches. Horizontal processes. | `rankdir=LR` |
 
 **Rule**: Pick one direction and stick to it. Never mix horizontal and vertical flow in the same chart.
-
----
-
-## Decision Patterns
-
-### Binary Decision (Yes/No)
-
-The most common pattern. One diamond, two outgoing edges labeled "Yes" and "No".
-
-```
-         [Check condition]
-              /    \
-          Yes/      \No
-            /        \
-    [Do something] [Do other thing]
-```
-
-### Multi-Way Decision
-
-A single decision point with more than two outcomes. Use when selecting among 3+ options.
-
-```
-         [Evaluate type]
-          /    |    \
-      email   ip    card
-        /      |      \
-    [...]   [...]   [...]
-```
-
-### Loop (While / For)
-
-A decision that loops back to an earlier step.
-
-```
-    [Initialize]
-         |
-         v
-    [Check condition] --No--> [Exit]
-         |
-        Yes
-         |
-    [Process item]
-         |
-    [Advance counter]
-         |
-         +---(loop back to Check)
-```
-
-### Guard Pattern (Early Return)
-
-Sequential checks that exit early on failure. Common in Go error handling.
-
-```
-    [Receive request]
-         |
-    [Valid input?] --No--> [Return 400]
-         |
-        Yes
-         |
-    [Authorized?] --No--> [Return 401]
-         |
-        Yes
-         |
-    [Process request]
-         |
-    [Return 200]
-```
 
 ---
 
@@ -300,21 +222,6 @@ Flowcharts use the shared pastel palette, in common with UML and BPMN — see `D
 8. **Consistent shapes**. Always use diamond for decisions, rectangle for processes. Don't use rectangles for both.
 9. **Default path downward**. The happy path should flow straight down. Exceptions and errors branch to the side.
 10. **Don't duplicate what code already says**. A flowchart documents the LOGIC, not the implementation. `Validate input` is enough — don't list every field.
-
----
-
-## Flowchart vs Other Notations
-
-| Need | Flowchart | Better Alternative |
-|------|-----------|-------------------|
-| Simple algorithm with decisions | Best choice | — |
-| Go function error handling flow | Good choice | — |
-| Data pipeline steps | Good choice | — |
-| Multi-actor business process | Weak | BPMN (source/BPMN.md) |
-| Service-to-service interaction | Weak | UML Sequence (source/UML.md) |
-| Object lifecycle (states) | Wrong tool | UML State Machine (source/UML.md) |
-| System architecture overview | Wrong tool | C4 (source/C4.md) |
-| Complex workflow with events, timers, signals | Wrong tool | BPMN (source/BPMN.md) |
 
 ---
 
