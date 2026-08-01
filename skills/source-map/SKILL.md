@@ -1,6 +1,6 @@
 ---
 name: arcdlc-source-map
-description: Use when a user asks for architecture, architecture decision records or ADRs, engineering governance, delivery workflow, Jira decomposition, commit message conventions or Conventional Commits, Go architecture, Go best practices, clean code, KISS, simple design, modularity, DDD, SOLID, ECS, MDCA, TOGAF, ArchiMate, AIC, arc42, C4, UML, BPMN, flowcharts, Twelve-Factor App guidance, tech stack decisions, CTO methodology, or asks which ArcDLC source reference file to read.
+description: Use when a user asks for architecture, architecture decision records or ADRs, engineering governance, delivery workflow, commit message conventions or Conventional Commits, Go architecture, Go best practices, clean code, KISS, simple design, modularity, DDD, SOLID, ECS, MDCA, TOGAF, ArchiMate, AIC, arc42, C4, UML, BPMN, flowcharts, Twelve-Factor App guidance, tech stack decisions, CTO methodology, or asks which ArcDLC source reference file to read.
 ---
 
 # ArcDLC Source Map
@@ -65,7 +65,7 @@ when it is absent.
 | Diagrams                                                      | `source/C4.md`, `source/UML.md`, `source/BPMN.md`, `source/Flowchart.md`, `source/Diagram Conventions.md` |
 | Diagram file conventions or color palettes                    | `source/Diagram Conventions.md`                                                                           |
 | Delivery or workflow                                          | `source/Workflow Policy.md`, `source/tbd.md`                                                              |
-| Commit messages, changelogs, or semantic version bumps        | `source/Conventional Commits.md`                                                                          |
+| Commit messages or semantic version bumps                     | `source/Conventional Commits.md`                                                                          |
 | Executable plan format (docs/aics/<slug>/plan.md)             | `../plan/references/plan-format.md` (flat: `../arcdlc-plan/references/plan-format.md`)                    |
 | Engineering governance                                        | `source/Engineering Principles.md`, `source/Policy of Policies.md`, `source/Policy of Initiatives.md`     |
 | Create / author a policy (docs/policies/<name>.md)            | `/arcdlc:policy` skill, which applies `source/Policy of Policies.md`                                      |

@@ -97,7 +97,7 @@ TBD decouples **merge** from **release**. Pick the release model that fits your 
 - `v1.42.0` — first release on `release/v1.42`.
 - `v1.42.1` — patch (bug fix only).
 - `v1.43.0` — next minor (cut a new release branch).
-- `v2.0.0` — breaking change. **Requires `/v2` module path** per Go Modules SIV rule. See Go Library.md.
+- `v2.0.0` — breaking change. **Requires `/v2` module path** per the Go Modules semantic import versioning rule.
 
 ---
 
@@ -274,7 +274,7 @@ TBD does not eliminate review; it constrains it.
 ```
 
 - TBD on `main`.
-- Maintain `release/v1`, `release/v2`, etc., for **supported major versions only**. See Go Library.md SemVer rules.
+- Maintain `release/v1`, `release/v2`, etc., for **supported major versions only**, following the tag scheme above.
 
 ---
 

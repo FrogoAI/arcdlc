@@ -65,7 +65,6 @@ This policy operationalizes the following materials:
 - `source/Engineering Principles.md` (POL-ENG-001) for engineering, testing, review, deployment, branch, API, and NATS standards.
 - `source/AIC Template.md` for Architecture Inception Canvas structure.
 - `source/Tech Stack Canvas.md` for technology decision structure.
-- The organization's `<org>/k8s` repo, `proxy.md`, for current Kubernetes frontend migration and proxy deployment rules.
 - Trunk-Based Development reference: https://trunkbaseddevelopment.com/
 
 ## Definitions
@@ -80,13 +79,9 @@ This policy operationalizes the following materials:
 - **Feature flag**: A runtime switch that lets incomplete or risky behavior be merged without being
   exposed to users.
 - **Release candidate**: A tested version that is ready for environment deployment.
-- **Route takeover**: Moving a specific frontend route from legacy EC2 behavior to Kubernetes
-  frontend ownership.
+- **Route ownership**: Which platform serves a given frontend route, moved one route at a time
+  during an incremental cutover.
 - **Done**: Deployed to production, QA validated, and accepted against AC.
-- **Accountable (A)**: Owns the correct completion of the task.
-- **Responsible (R)**: Performs the work.
-- **Consulted (C)**: Provides required input before completion.
-- **Informed (I)**: Must be kept up to date.
 
 ## Core Workflow Principles
 

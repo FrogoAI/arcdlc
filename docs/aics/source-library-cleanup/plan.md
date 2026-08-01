@@ -765,4 +765,4 @@ stay green.
   - GIVEN both plugin manifests WHEN their `version` fields are compared THEN they are equal and higher than `0.7.0`.
   - GIVEN the repo WHEN `go build ./... && go test ./... && gofmt -l . && go vet ./...` and `arctool sync --check` run THEN all succeed with no output from `gofmt`.
 - References: `docs/aics/source-library-cleanup/aic.md`, `AGENTS.md`.
-- Status: TODO.
+- Status: DONE.

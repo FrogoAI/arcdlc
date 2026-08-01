@@ -69,5 +69,5 @@ Two palettes are in use and they are **not interchangeable**. Choose by the **no
 ### Reading the overlap
 
 - Two hexes appear in both palettes with different meanings: `#C9E7B7` (C4: infrastructure node — shared: start/success) and `#FFB5B5` (C4: deprecated — shared: error/failure). Interpret them in the palette of the diagram's notation.
-- One deliberate crossover: UML use-case and deployment diagrams color external actors with the C4 person and external-system hexes (`#08427B`, `#999999`) so actors read the same across notations — see the DOT templates in `UML.md`.
+- One deliberate crossover: UML use-case diagrams color external actors with the C4 person and external-system hexes (`#08427B`, `#999999`) so actors read the same across notations — see the DOT template in `UML.md`.
 - ArchiMate diagrams use a third, layer-based palette that stays with its notation in `TOGAF.md` (`## ArchiMate Diagram Conventions`).
