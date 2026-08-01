@@ -284,16 +284,7 @@ digraph Flowchart {
 
 ## Color Scheme
 
-Consistent with other diagram notations in this workspace:
-
-| Element | Color | Hex | Usage |
-|---------|-------|-----|-------|
-| Start / Success | Pale green | `#C9E7B7` | Entry points, successful outcomes |
-| Process step | Pale cyan | `#B5FFFF` | Normal processing steps |
-| Decision | Pale yellow | `#FFFFB5` | Decision diamonds |
-| Error / End (failure) | Pale red | `#FFB5B5` | Error states, failure exits |
-| Data store | Pale cyan | `#B5FFFF` | Database, file storage |
-| Annotation | White | `#FFFFFF` | Comments, notes |
+Flowcharts use the shared pastel palette, in common with UML and BPMN — see `Diagram Conventions.md`, section `## Color Palettes`.
 
 ---
 
@@ -327,17 +318,6 @@ Consistent with other diagram notations in this workspace:
 
 ---
 
-## File Convention
+## Diagram Conventions
 
-All flowcharts follow the initiative `images/` convention:
-
-1. Write DOT source: `images/flow_<name>.dot`
-2. Compile: `dot -Tpng images/flow_<name>.dot -o images/flow_<name>.png`
-3. Embed in docs: `![Flow: <Name>](images/flow_<name>.png)`
-
-**Naming examples**:
-- `images/flow_request_validation.dot` / `.png`
-- `images/flow_cbf_rebuild.dot` / `.png`
-- `images/flow_list_entry_routing.dot` / `.png`
-- `images/flow_migration_procedure.dot` / `.png`
-- `images/flow_error_handling.dot` / `.png`
+Flowcharts follow the shared DOT → PNG workflow and the `images/flow_<name>` naming rule — see `Diagram Conventions.md`.

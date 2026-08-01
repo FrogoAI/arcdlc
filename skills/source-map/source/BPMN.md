@@ -326,10 +326,6 @@ digraph BPMN_Error {
 
 ---
 
-## File Convention
+## Diagram Conventions
 
-All BPMN diagrams follow the initiative `images/` convention:
-
-1. Write DOT source: `images/bpmn_<process_name>.dot`
-2. Compile: `dot -Tpng images/bpmn_<process_name>.dot -o images/bpmn_<process_name>.png`
-3. Embed in docs: `![BPMN: Process Name](images/bpmn_<process_name>.png)`
+BPMN diagrams follow the shared DOT → PNG workflow, the `images/bpmn_<process_name>` naming rule, and the shared pastel palette — see `Diagram Conventions.md`.

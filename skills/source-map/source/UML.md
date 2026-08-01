@@ -401,19 +401,6 @@ What do you need to show?
 
 ---
 
-## File Convention
+## Diagram Conventions
 
-All diagrams follow the initiative `images/` convention:
-
-1. Write DOT source: `images/<type>_<name>.dot`
-2. Compile: `dot -Tpng images/<type>_<name>.dot -o images/<type>_<name>.png`
-3. Embed in docs: `![Title](images/<type>_<name>.png)`
-
-**Naming examples**:
-- `images/component_lists.dot` / `.png`
-- `images/sequence_upload.dot` / `.png` (or ASCII inline)
-- `images/state_list_sync.dot` / `.png`
-- `images/deployment_k8s.dot` / `.png`
-- `images/usecase_lists.dot` / `.png`
-- `images/class_domain.dot` / `.png`
-- `images/activity_cbf_rebuild.dot` / `.png`
+UML diagrams follow the shared DOT → PNG workflow, the `images/<type>_<name>` naming rule, and the shared pastel palette — see `Diagram Conventions.md`.

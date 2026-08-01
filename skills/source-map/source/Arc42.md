@@ -360,21 +360,4 @@ The domain and technical terms stakeholders use when discussing the system, defi
 
 ## Diagram Conventions
 
-All diagrams live in the `images/` folder inside the initiative directory.
-
-**Dual format** (always both):
-- Raw source: `images/<name>.dot`
-- Compiled image: `images/<name>.png`
-- Compile: `dot -Tpng images/<name>.dot -o images/<name>.png`
-- Embed in docs: `![Title](images/<name>.png)`
-
-**Naming**: lowercase, underscores, descriptive:
-- `c4_context.dot` / `.png` — system in its environment
-- `c4_container.dot` / `.png` — services/modules decomposition
-- `archimate_business.dot` / `.png` — ArchiMate business layer
-- `deployment.dot` / `.png` — infrastructure mapping
-- `sequence_<flow>.dot` / `.png` — runtime scenario (or ASCII inline for simple flows)
-
-**Tooling**:
-- **Primary**: Graphviz DOT for C4, ArchiMate, component, deployment diagrams
-- **Fallback**: Markdown ASCII for simple sequence flows (inline in docs, no image file needed)
+Diagrams embedded in an arc42 document follow the shared DOT → PNG workflow, `images/` naming rule, tooling, and palettes — see `Diagram Conventions.md`.

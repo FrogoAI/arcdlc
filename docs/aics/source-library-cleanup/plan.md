@@ -539,7 +539,7 @@ stay green.
   - GIVEN each of the five documents WHEN its tail is read THEN it points to `Diagram Conventions.md`.
   - GIVEN `skills/source-map/SKILL.md` WHEN its routing table is read THEN `source/Diagram Conventions.md` has a row.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-21: Trim C4.md and UML.md
 

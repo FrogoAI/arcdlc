@@ -46,28 +46,29 @@ when it is absent.
 
 ## Source Map
 
-| User request                                                  | Reference files                                                                                       |
-|---------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
-| AIC or Architecture Inception Canvas                          | `source/AIC Template.md`                                                                              |
-| ADR or architecture decision record                           | `source/ADR.md`                                                                                       |
-| Architecture documentation                                    | `source/Arc42.md`                                                                                     |
-| Enterprise architecture, TOGAF, or ArchiMate                  | `source/TOGAF.md`                                                                                     |
-| Tech stack decisions                                          | `source/Tech Stack Canvas.md`                                                                         |
-| Go server architecture                                        | `source/Go Server.md`                                                                                 |
-| Go client architecture                                        | `source/Go Client.md`                                                                                 |
-| Go libraries                                                  | `source/Go Library.md`                                                                                |
-| Go best practices or clean code                               | `source/Go Best Practice.md`, `source/Clean Code.md`                                                  |
-| KISS, simple design, modularity, or avoiding over-engineering | `source/KISS.md`, `source/Clean Code.md`, `source/Go Best Practice.md`                                |
-| MDCA                                                          | `source/mdca.md`                                                                                      |
-| DDD                                                           | `source/ddd.md`                                                                                       |
-| SOLID                                                         | `source/solid.md`                                                                                     |
-| ECS                                                           | `source/ECS.md`                                                                                       |
-| Diagrams                                                      | `source/C4.md`, `source/UML.md`, `source/BPMN.md`, `source/Flowchart.md`                              |
-| Delivery or workflow                                          | `source/Workflow Policy.md`, `source/tbd.md`                                                          |
-| Commit messages, changelogs, or semantic version bumps        | `source/Conventional Commits.md`                                                                      |
-| Executable plan format (docs/aics/<slug>/plan.md)             | `../plan/references/plan-format.md` (flat: `../arcdlc-plan/references/plan-format.md`)               |
-| Engineering governance                                        | `source/Engineering Principles.md`, `source/Policy of Policies.md`, `source/Policy of Initiatives.md` |
-| Create / author a policy (docs/policies/<name>.md)            | `/arcdlc:policy` skill, which applies `source/Policy of Policies.md`                                 |
-| App methodology                                               | `source/Twelve-Factor App.md`                                                                         |
-| CTO or operating model                                        | `source/CTO Methodology Guide.md`                                                                     |
-| Leadership, Human-Behavior, Philosophie, Conflict-Solving     | `source/stoic.md`                                                                                     |
+| User request                                                  | Reference files                                                                                           |
+|---------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| AIC or Architecture Inception Canvas                          | `source/AIC Template.md`                                                                                  |
+| ADR or architecture decision record                           | `source/ADR.md`                                                                                           |
+| Architecture documentation                                    | `source/Arc42.md`                                                                                         |
+| Enterprise architecture, TOGAF, or ArchiMate                  | `source/TOGAF.md`                                                                                         |
+| Tech stack decisions                                          | `source/Tech Stack Canvas.md`                                                                             |
+| Go server architecture                                        | `source/Go Server.md`                                                                                     |
+| Go client architecture                                        | `source/Go Client.md`                                                                                     |
+| Go libraries                                                  | `source/Go Library.md`                                                                                    |
+| Go best practices or clean code                               | `source/Go Best Practice.md`, `source/Clean Code.md`                                                      |
+| KISS, simple design, modularity, or avoiding over-engineering | `source/KISS.md`, `source/Clean Code.md`, `source/Go Best Practice.md`                                    |
+| MDCA                                                          | `source/mdca.md`                                                                                          |
+| DDD                                                           | `source/ddd.md`                                                                                           |
+| SOLID                                                         | `source/solid.md`                                                                                         |
+| ECS                                                           | `source/ECS.md`                                                                                           |
+| Diagrams                                                      | `source/C4.md`, `source/UML.md`, `source/BPMN.md`, `source/Flowchart.md`, `source/Diagram Conventions.md` |
+| Diagram file conventions or color palettes                    | `source/Diagram Conventions.md`                                                                           |
+| Delivery or workflow                                          | `source/Workflow Policy.md`, `source/tbd.md`                                                              |
+| Commit messages, changelogs, or semantic version bumps        | `source/Conventional Commits.md`                                                                          |
+| Executable plan format (docs/aics/<slug>/plan.md)             | `../plan/references/plan-format.md` (flat: `../arcdlc-plan/references/plan-format.md`)                    |
+| Engineering governance                                        | `source/Engineering Principles.md`, `source/Policy of Policies.md`, `source/Policy of Initiatives.md`     |
+| Create / author a policy (docs/policies/<name>.md)            | `/arcdlc:policy` skill, which applies `source/Policy of Policies.md`                                      |
+| App methodology                                               | `source/Twelve-Factor App.md`                                                                             |
+| CTO or operating model                                        | `source/CTO Methodology Guide.md`                                                                         |
+| Leadership, Human-Behavior, Philosophie, Conflict-Solving     | `source/stoic.md`                                                                                         |
