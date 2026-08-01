@@ -367,7 +367,7 @@ type ReadWriter interface {
 |------|---------|
 | Cheap to create | Stacks start small (~2KB), grow as needed. No thread-per-goroutine. |
 | Launch with `go` | `go func() { ... }()` -- note the `()` to invoke. |
-| Closures capture variables | Be careful with loop variables -- capture by parameter, not by closure. |
+| Closures capture variables | Loop variables are per-iteration since Go 1.22, so `go func(){ use(v) }()` is safe. Pre-1.22 code must pass the value as a parameter. |
 | Always ensure goroutines terminate | Leaked goroutines = leaked memory. Use `context.Context` for cancellation. |
 
 ### Channels

@@ -5,7 +5,7 @@ This document covers architecture, patterns, and conventions specific to
 NOT a microservice mesh. This is a desktop/mobile application with a game loop,
 a render pipeline, and direct user interaction.
 
-See `instruction.md` for general architecture (MDCA, DDD, Event-Driven, Go best
+See `Go Server.md` for general architecture (MDCA, DDD, Event-Driven, Go best
 practices). This document extends it with client-specific concerns.
 
 ---

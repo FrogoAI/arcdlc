@@ -282,11 +282,21 @@ func (s *spyRepo) SaveRecord(r model.Record) error {
 version: "2"
 linters:
   enable:
-    - errcheck, govet, staticcheck, gosec, revive
-    - misspell, lll, forbidigo, mnd, wsl_v5
+    - errcheck
+    - govet
+    - staticcheck
+    - gosec
+    - revive
+    - misspell
+    - lll
+    - forbidigo
+    - mnd
+    - wsl_v5
 formatters:
   enable:
-    - gofmt, goimports, gci
+    - gofmt
+    - goimports
+    - gci
 ```
 
 ### Import order (enforced by `gci`)

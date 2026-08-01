@@ -173,5 +173,5 @@ When running the full queue (no task-ID argument), finish with a whole-project c
 
 ## Report
 
-Summarize per task: what changed, validation results, and the commit. Suggest `/arcdlc:archive` when several `DONE`
-blocks have accumulated in the plan.
+Summarize per task: what changed, validation results, and the commit. Suggest `/arcdlc:archive <slug>` when several
+`DONE` blocks have accumulated in the plan.

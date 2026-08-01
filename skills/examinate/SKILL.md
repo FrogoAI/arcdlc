@@ -101,4 +101,4 @@ gap:
 ## Step 5 — Report
 
 Summarize: policy audited, rules checked, gaps found by status (MISSING/PARTIAL/DRIFT) with severity, and how many
-tasks were added to the plan. Suggest `/arcdlc:execute` to start closing them.
+tasks were added to the plan. Suggest `/arcdlc:execute <slug>` to start closing them.

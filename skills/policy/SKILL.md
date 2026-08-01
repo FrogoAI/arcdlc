@@ -10,7 +10,10 @@ Author a governance policy the same way ArcDLC builds software: a controlled pro
 straight generation. This is the governance track of the delivery pipeline — it produces a policy
 document that `/arcdlc:examinate` can then audit code or process against:
 
-`/arcdlc:policy` → `/arcdlc:examinate docs/policies/<name>.md` → `/arcdlc:execute`
+`/arcdlc:policy <name>` → `/arcdlc:examinate <slug> docs/policies/<name>.md` → `/arcdlc:execute <slug>`
+
+The audit and execution steps run against an initiative folder, so they take an initiative slug as
+their first argument — the policy path is the **second** argument of `/arcdlc:examinate`, never the first.
 
 There is no plan step here: the policy is the rules, and `/arcdlc:examinate` already files each
 violation as a `TODO` task in `docs/aics/<slug>/plan.md` for `/arcdlc:execute` to close. A policy with no
@@ -50,7 +53,8 @@ Never write the policy straight from the request. A policy encodes real decision
 approver, the actual rules), so interview first — this mirrors `/arcdlc:aic`.
 
 - Invoke the `grill-with-docs` skill (which runs a `grilling` session).
-- If `grill-with-docs` is not installed, run the same discipline inline: interview the user
+- If `grill-with-docs` cannot be used here — not installed, or installed but not model-invocable (e.g. marked
+  `disable-model-invocation`, in which case ask the user to run it) — run the same discipline inline: interview the user
   relentlessly, one question at a time, each with your recommended answer; explore the codebase or
   existing policies to answer questions instead of asking when you can.
 
@@ -120,7 +124,7 @@ A policy is not effective until it is discoverable. Register it in three places:
    the index (`docs/policies/README.md`). Do not duplicate the policy body; link to it.
 
 3. **`AGENTS.md`** — add or extend a `## Policies` note stating the policy is binding on agents
-   working in this repo and can be audited with `/arcdlc:examinate docs/policies/<name>.md`. List
+   working in this repo and can be audited with `/arcdlc:examinate <slug> docs/policies/<name>.md`. List
    the policy with its Unique ID and path.
 
 Keep all three in sync: the index row, the README link, and the AGENTS entry must reference the same
@@ -131,5 +135,5 @@ ID and path.
 - Walk the user through the draft; iterate until approved. Remind them the policy is `Draft` until a
   Policy Approver signs off (per the framework, it may auto-activate two weeks after approval if
   reviewers do not respond).
-- Suggest the next step: `/arcdlc:examinate docs/policies/<name>.md` to audit the codebase or
+- Suggest the next step: `/arcdlc:examinate <slug> docs/policies/<name>.md` to audit the codebase or
   process against the new policy, feeding any gaps into `docs/aics/<slug>/plan.md` for `/arcdlc:execute`.

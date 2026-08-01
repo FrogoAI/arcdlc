@@ -3,7 +3,10 @@
 The [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) specification, reproduced from
 [conventionalcommits.org](https://github.com/conventional-commits/conventionalcommits.org/blob/master/content/v1.0.0/index.md).
 ArcDLC applies it to every commit made by `/arcdlc:execute`; the concrete recipe (type selection, scope, footers)
-lives in that skill — see `skills/execute/SKILL.md`, section "Commit message: Conventional Commits".
+lives in that skill — see `../../execute/SKILL.md` (flat installs: `../../arcdlc-execute/SKILL.md`), section
+"Commit message: Conventional Commits". Where this spec leaves room, ArcDLC narrows it: the scope is always the
+initiative slug, `Refs:` and `#AI-assisted` footers are required, and one task produces exactly one commit — the
+FAQ advice below to split a commit that spans two types does **not** apply, the dominant type wins.
 
 ## Summary
 

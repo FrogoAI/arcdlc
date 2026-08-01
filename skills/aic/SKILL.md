@@ -56,7 +56,8 @@ Never write the architecture document straight from the request. Run the `grill-
 point of `/arcdlc:aic` is that the process is controlled: interview, then document.
 
 - Invoke the `grill-with-docs` skill (which runs a `grilling` session using the `domain-modeling` skill).
-- If `grill-with-docs` is not installed in this environment, run the same discipline inline:
+- If `grill-with-docs` cannot be used here — not installed, or installed but not model-invocable (e.g. marked
+  `disable-model-invocation`, in which case ask the user to run it) — run the same discipline inline:
   - Interview the user relentlessly about every aspect of the initiative — one question at a time, with your
     recommended answer for each.
   - If a question can be answered by exploring the codebase, explore instead of asking.
