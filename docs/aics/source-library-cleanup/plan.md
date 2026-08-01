@@ -468,7 +468,7 @@ stay green.
   - GIVEN the file WHEN `grep -nE "^## (Monthly Themes|Daily Stoic Routine|Compact Reminders|Glossary|One-Page Daily Card)" skills/source-map/source/stoic.md` runs THEN it returns no matches.
   - GIVEN the file WHEN `## Agent Response Guide` and `## Agent Checklist Before Sending an Answer` are read THEN both are present unchanged.
   - GIVEN the file WHEN the six protocol sections are read THEN all six are present.
-  - GIVEN the file WHEN `grep -c "" skills/source-map/source/stoic.md` runs THEN the line count is below 350 (was 680).
+  - GIVEN the file WHEN `grep -c "" skills/source-map/source/stoic.md` runs THEN the line count is below 420 (was 680). (Corrected 2026-08-01: the ceiling was 350, which is unreachable — the nine delete-list sections total exactly 268 lines, so the mandated keep list leaves 412. SLC-17 blocked on it, correctly, rather than cutting protocol content to hit a number.)
 - References: `docs/aics/source-library-cleanup/aic.md`.
 - Status: TODO.
 
