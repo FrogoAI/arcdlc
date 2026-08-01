@@ -27,25 +27,7 @@ This policy applies to all employees and contractors across the company's depart
 
 **Personnel Covered**
 
-This policy applies to all company personnel, particularly those responsible for drafting, reviewing, approving, implementing, or managing governance documents. This includes, but is not limited to, the following roles:
-
-* CEO
-* CTO
-* Cloud Architect
-* Software Architect
-* Delivery Manager
-* Product Manager
-* Engineering Manager
-* Product Owner
-* System Analyst
-* Tech Manager
-* Team Lead QA
-* Team Lead Backend
-* Team Lead Frontend
-* Team Lead R&D
-* Team Lead Data Science
-* Team Lead DevOps
-* Engineer
+This policy applies to all company personnel, and bears most directly on anyone who drafts, reviews, approves, implements, or manages a governance document.
 
 **Documents Covered**
 
@@ -91,9 +73,8 @@ The lifecycle begins when a need for a new or revised policy is identified. Regu
 
 During this stage, the designated Policy Writer drafts the new policy in collaboration with subject matter experts.
 
-* Every new policy **must** use the official Policy Template.
+* Every new policy **must** use the official Policy Template below and **must** contain every section it lists.
 * The document's header **must** include a policy name, author, and creation date. It **must** also include a Unique ID, Status, Effective Date, Approval Date, and Next Review Date.
-* The policy document **must** be structured according to the standard policy template. It **must** include all mandatory sections, such as Purpose, Policy Statement, Scope, Procedures, and Responsibilities.
 * All policies **must** be written in simple, direct language using an active voice. Ambiguous terms, jargon, and passive voice **should** be avoided.
 
 **Stage 3: Review and Approval**
@@ -139,48 +120,88 @@ When a policy is no longer needed or is superseded, it is formally retired. This
 
 Clear accountability is essential for the policy framework to function effectively.
 
-**General Roles in the Policy Lifecycle**
-
 * **Policy Owner**: A senior leader ultimately accountable for a policy's content, relevance, and effectiveness. Champions the policy and ensures it is reviewed and updated.
 * **Policy Writer**: Subject matter expert(s) tasked with creating and revising policy content.
 * **Policy Reviewer**: Cross-functional stakeholders who review drafts for practicality, clarity, and alignment with business needs.
 * **Policy Approver**: The executive with final authority to approve and enact a policy. Always one of the C-level members.
 * **Policy Administrator**: The individual or team responsible for managing the policy portal, facilitating lifecycle workflows, and maintaining official records.
 
-**RACI Matrix**
-
-| Rule/Step RACI | A | R | C | I |
-| :---- | :---- | :---- | :---- | :---- |
-| Adherence to the "Policy of Policies" | CTO | Eng Manag. / Prod. Manag. / Sys. Analyst / Software Arch. / Cloud Arch. / CTO / DM | CTO | CEO |
-| Policy Administrator | CTO | Sys. Analyst | CEO | |
-| Policy Approver | CEO | CTO / CEO | Sys. Analyst | |
-| Policy Writer | CTO | Eng Manag. / Prod. Manag. / Sys. Analyst / Software Arch. / Cloud Arch. / CTO / DM | CEO | |
+Each policy names the people holding these roles and maps its own key steps to them in a RACI matrix (see the template below). The meanings of Accountable, Responsible, Consulted, and Informed are given in **Definitions** above.
 
 ---
 
-## Allowed & Prohibited Conduct
+## Policy Template
 
-### Allowed
+This is the official Policy Template that Stage 2 mandates. Copy the block below into
+`docs/policies/<name>.md`; it is the entire file — nothing goes above the H1. Every section is
+mandatory: a section that does not apply is still written, stating why it does not apply, rather
+than being dropped.
 
-* Use the official, most current Policy Template when drafting any new policy or procedure.
-* Follow all defined stages of the policy lifecycle, from needs analysis through to implementation and review.
-* Ensure all new policies contain all mandatory sections as defined in the official template.
-* Submit any changes to an existing policy for a full re-approval cycle, which will create a new version of the document.
-* Diligently track all changes and their rationale in the "Revision History" section.
-* Actively participate in the scheduled semi-annual review of any policy you own.
+  ```markdown
+  # <Policy Name> (<POL-CLASS>-NNN)
 
-### Prohibited
+  | Field | Value |
+  | :---- | :---- |
+  | Policy Name | <Policy Name> |
+  | Unique ID | <POL-CLASS>-NNN |
+  | Author | <name> |
+  | Creation Date | YYYY-MM-DD |
+  | Status | Draft |
+  | Effective Date | <date, or "After <approver> approval"> |
+  | Approval Date | TBD |
+  | Next Review Date | <Creation Date + 6 months> |
 
-* Do not create, enforce, or distribute any policy or procedure that has not been formally approved through the process defined herein.
-* Do not bypass any stage of the required review and approval workflow.
-* Do not make changes to an approved policy without creating a new version and resubmitting it for full approval.
-* Do not use outdated or unofficial templates when creating governance documents.
-* Do not publish or store official policies outside the central, approved repository.
+  ## Purpose
 
----
+  Why this policy exists: the problem, risk, or gap it addresses.
 
-## Consequences of Non-Compliance
+  ## Policy Statement
 
-Failure to adhere to this "Policy of Policies" can expose the company to significant legal, financial, and operational risks. Any violation is considered a serious matter.
+  The binding rule, in one or two sentences, plus a note that it supersedes informal prior practice
+  on this topic.
 
-Employees who fail to comply may be subject to disciplinary action. Consequences will be determined on a case-by-case basis, ranging from coaching and retraining to formal disciplinary measures.
+  ## Scope
+
+  Personnel covered, documents and systems covered, and explicit exclusions.
+
+  ## Definitions
+
+  Key terms used by this policy. Reuse the role definitions from the Policy of Policies where they
+  apply instead of redefining them.
+
+  ## Procedures
+
+  The step-by-step lifecycle or process this policy governs, as numbered stages or steps.
+
+  ## Roles & Responsibilities
+
+  Name the Policy Owner, Policy Approver, Policy Writer, and Policy Reviewers, then map the policy's
+  key steps to them:
+
+  | Rule/Step | A | R | C | I |
+  | :---- | :---- | :---- | :---- | :---- |
+  | <key step> | <accountable> | <responsible> | <consulted> | <informed> |
+
+  ## Allowed & Prohibited Conduct
+
+  ### Allowed
+
+  * <Concrete, auditable behavior this policy permits or requires.>
+
+  ### Prohibited
+
+  * <Concrete, auditable behavior this policy forbids.>
+
+  ## Consequences of Non-Compliance
+
+  What happens when the policy is breached, and who decides.
+
+  ## Revision History
+
+  | Version | Date | Author | Summary of changes |
+  | :---- | :---- | :---- | :---- |
+  | v1.0 | YYYY-MM-DD | <name> | Initial version. |
+  ```
+
+Fill `<POL-CLASS>` from the Unique ID Classification table above, and `NNN` with the next free number
+in that class.

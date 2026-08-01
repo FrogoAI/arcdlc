@@ -675,7 +675,7 @@ stay green.
   - GIVEN `Policy of Initiatives.md` WHEN `grep -n "epics and user stories" "skills/source-map/source/Policy of Initiatives.md"` runs THEN it returns no matches.
   - GIVEN `Policy of Initiatives.md` WHEN `grep -n "docs/aics/<slug>/" "skills/source-map/source/Policy of Initiatives.md"` runs THEN it returns at least one match.
 - References: `docs/aics/source-library-cleanup/aic.md`, `skills/policy/SKILL.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-27: Trim tbd.md
 

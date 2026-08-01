@@ -20,8 +20,8 @@ This policy applies to all full-time employees across all departments and locati
 
 ## Definitions
 
-* **Initiative**: A formal proposal for creating a new feature, system, or significant technical change. All initiatives are categorized as either a "Standard Initiative" or a "Technical Initiative."
-* **Architecture Inception Canvas (AIC)**: The mandatory document, based on the Arc42 framework, used to describe and define an initiative.
+* **Initiative**: A formal proposal for creating a new feature, system, or significant technical change. All initiatives are categorized as either a "Standard Initiative" or a "Technical Initiative." An initiative lives in its own folder, `docs/aics/<slug>/`, which holds its architecture document and the task plan derived from it.
+* **Architecture Inception Canvas (AIC)**: The mandatory document, based on the Arc42 framework, used to describe and define an initiative. It is written to `docs/aics/<slug>/aic.md`.
 * **Standard Initiative**: An initiative with a direct business impact, originating from either Business or Technical teams. It requires the full AIC documentation.
 * **Technical Initiative**: A small-scale initiative with no direct business impact (e.g., refactoring, service renaming). It follows a simplified documentation process.
 * **Initiator**: The individual who first proposes an initiative and is responsible for its initial documentation.
@@ -42,8 +42,8 @@ This policy applies to all full-time employees across all departments and locati
    * An initiative can be proposed by authorized personnel from either the Business or Technical teams.
      * **Business Initiators**: Engineering Manager, Product Owner, Delivery Manager, System Analyst, Business Analyst.
      * **Technical Initiators**: CTO, Product Owner, Software Architect, Cloud Architect, Team Lead, and Engineering Manager.
-   * The Initiator must create a new initiative document using the official AIC Template.
-   * The Initiator is responsible for completing the "Collect Business Requirements" sections, including the **Business Case**, **Functional Overview**, and **Quality Goals**. Quality Goals must be selected from the official Arc42 list.
+   * The Initiator must create a new initiative folder, `docs/aics/<slug>/`, and write its architecture document using the official AIC Template.
+   * The Initiator is responsible for completing the "Collect Business Requirements" sections, including the **Business Case**, **Functional Overview**, and **Quality Goals**. Quality Goals must be selected from the [official Arc42 list](https://docs.arc42.org/section-1/#12-quality-goals); custom or undefined Quality Goals are not permitted.
 
 2. **Technical Initiative Initiation**:
    * Any team member may propose a Technical Initiative.
@@ -59,52 +59,12 @@ This policy applies to all full-time employees across all departments and locati
 
 ### Stage 3: Review and Refinement
 
-1. The assigned Architect or Engineering Manager can schedule and lead a **Refinement** to gather additional information or a pre-preview of the initiative.
-2. The assigned Architect or Engineering Manager schedules and leads a **Grooming meeting** to present the completed AIC to the relevant development team(s). At least one representative from each chapter related to the initiative's context must be invited.
-3. The purpose of this meeting is to present the proposed architecture, gather feedback, and identify potential issues.
-4. For a Technical Initiative, the AIC must be reviewed and approved by at least one of: CTO, Software Architect, or Cloud Architect. This can occur asynchronously or in a meeting.
+1. The completed AIC is presented for review to the development team(s) whose context the initiative touches, so that feedback and open issues surface before implementation. The Architect refines the document until that feedback is resolved.
+2. For a Technical Initiative, the AIC must be reviewed and approved by at least one of: CTO, Software Architect, or Cloud Architect. This can occur asynchronously or in a meeting.
 
 ### Stage 4: Task Separation and Implementation
 
-1. Following the refinement meeting and incorporation of feedback, the initiative is considered architecturally approved.
-2. A Product Manager, Engineering Manager, or Delivery Manager is responsible for breaking down the approved initiative into detailed epics and user stories. Every Epic must have Acceptance Criteria.
-3. A Product Manager, Engineering Manager, or Delivery Manager must communicate and present epics to QA engineers.
+1. Once the review feedback is incorporated, the initiative is considered architecturally approved.
+2. The approved architecture document is then decomposed into an executable task queue: `/arcdlc:plan <slug>` turns `docs/aics/<slug>/aic.md` into task blocks in `docs/aics/<slug>/plan.md`.
+3. Every task block must carry its own Acceptance criteria, concrete enough for QA and for the executor to verify; the plan is the shared contract between architecture, implementation, and testing.
 4. The work then proceeds through the defined Initiative Stages (Genesis, Custom, Product).
-
----
-
-## Roles & Responsibilities
-
-| Rule/Step RACI | A | R | C | I |
-| :---- | :---- | :---- | :---- | :---- |
-| Identifying the need for an initiative and creating the initial AIC document with all the required business context. | Sys. Analyst | Sys. Analyst | CTO | Eng Manag. |
-| Overall integrity of the initiative process and the quality of all architectural solutions. | CEO | CTO | Cloud Arch. / Software Arch. | DM / Eng Manag. / Prod. Manag. |
-| Defining the technical solution and completing the architectural sections of the AIC. | CTO | Software Arch. / Cloud Arch. / CTO | CTO | Engineer |
-| Presenting it for review. | CTO | Eng Manag. / Software Arch. / Cloud Arch. / CTO | Team Lead | Engineer |
-| Decomposing the approved initiative into actionable development tasks (epics, stories). | CTO | Prod. Manag. / DM / Eng Manag. | Team Lead | Engineer |
-| Describe "How to test". | DM | Team Lead | Engineer | Engineer |
-
----
-
-## Allowed & Prohibited Conduct
-
-### Allowed
-
-* Always use the official AIC Template for any new initiative.
-* Follow all defined stages of the initiative lifecycle, from initiation to task separation.
-* Support architectural proposals with clear diagrams (e.g., C4, BPMN, Flowcharts) to enhance understanding.
-* For Standard Initiatives, select Quality Goals exclusively from the [predefined Arc42 list](https://docs.arc42.org/section-1/#12-quality-goals).
-* Use the simplified "Technical Initiative" process for changes with no business impact.
-
-### Prohibited
-
-* Do not begin development work on any initiative that does not have a formally reviewed AIC document.
-* Do not bypass the Architectural Definition or Review and Refinement stages.
-* Do not use custom or undefined Quality Goals in an AIC document.
-* Do not create, enforce, or distribute an initiative document using an outdated or unofficial template.
-
----
-
-## Consequences of Non-Compliance
-
-Failure to adhere to this policy may result in misaligned development efforts, increased technical debt, project delays, and wasted company resources. Violations are a serious matter and may subject the responsible employee(s) to disciplinary action, ranging from coaching to formal measures.
