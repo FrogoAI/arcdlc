@@ -630,7 +630,7 @@ stay green.
   - GIVEN the file WHEN it is read THEN it states the `docs/adr/NNNN-<kebab-title>.md` convention and lists the allowed status values.
   - GIVEN the file WHEN it is read THEN it contains one complete worked example ADR.
 - References: `docs/aics/source-library-cleanup/aic.md`, `skills/aic/SKILL.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-25: Fix the dangling reference in AIC Template.md
 
