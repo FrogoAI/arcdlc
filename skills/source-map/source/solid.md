@@ -3,22 +3,9 @@
 **Source**: Robert C. Martin, "Agile Software Development: Principles, Patterns, and Practices" (2002); refined in "Clean Architecture" (2017).
 **Adaptation**: Go-specific application — interfaces are structural, packages replace classes as the primary unit of cohesion. Aligned with Engineering Principles (POL-ENG-001), Clean Code (Go), Go Server / Go Library / Go Client architecture instructions, and MDCA / DDD.
 
----
-
-## Philosophy
-
-SOLID is a set of five design principles for managing **dependencies between modules**. Their goal is to keep software **changeable**: easy to extend, easy to replace, easy to test in isolation.
-
-**Core beliefs:**
-- Bad design is detected by its symptoms — **rigidity** (hard to change), **fragility** (changes break unrelated parts), **immobility** (cannot be reused), **viscosity** (the wrong thing is easier than the right thing).
-- The goal of SOLID is to manage **source-code dependencies** so that change in one place does not ripple into others.
-- SOLID is not a checklist. It's a tool for evaluating whether a design absorbs change gracefully.
-
-**Go-specific framing:**
-- Go has no inheritance. SOLID in Go is about **interfaces, composition, and package boundaries** — not class hierarchies.
-- Interfaces in Go are **structural** (duck-typed). This makes DIP and ISP easier to apply than in nominally-typed languages.
-- The unit of cohesion in Go is the **package**, not the type. SRP and OCP apply at both type and package level.
-- Prefer **small interfaces defined by the consumer**, not large interfaces defined by the producer ("accept interfaces, return structs").
+Every rule in the five `### Rules` tables carries a stable identifier, numbered continuously across the whole
+document (`SOLID-1` … `SOLID-21`). Cite it in a gap block (`SOLID-12`) rather than the principle name; identifiers
+are never reused or renumbered, and new rules are appended.
 
 ---
 
@@ -30,12 +17,12 @@ A "reason to change" is a **stakeholder** or **axis of variation** — pricing r
 
 ### Rules
 
-| Rule | Go Adaptation |
-|------|---------------|
-| **One reason to change per type** | A `User` struct that knows its own DB schema AND its JSON shape AND its bcrypt hashing has three reasons to change. Split. |
-| **One reason to change per package** | `pkg/user` should not also handle email delivery. Move email to `pkg/notify`. |
-| **Cohesion over convenience** | Don't pile helpers into `util`/`common`/`shared`. These packages are SRP violations by definition. |
-| **Separate policy from mechanism** | Business rules (policy) live in the domain layer. I/O, serialization, frameworks (mechanism) live at the edges. See Go Server.md layering. |
+| ID | Rule | Go Adaptation |
+|----|------|---------------|
+| `SOLID-1` | **One reason to change per type** | A `User` struct that knows its own DB schema AND its JSON shape AND its bcrypt hashing has three reasons to change. Split. |
+| `SOLID-2` | **One reason to change per package** | `pkg/user` should not also handle email delivery. Move email to `pkg/notify`. |
+| `SOLID-3` | **Cohesion over convenience** | Don't pile helpers into `util`/`common`/`shared`. These packages are SRP violations by definition. |
+| `SOLID-4` | **Separate policy from mechanism** | Business rules (policy) live in the domain layer. I/O, serialization, frameworks (mechanism) live at the edges. See Go Server.md layering. |
 
 ### Smell List
 
@@ -93,12 +80,12 @@ You should be able to add new behavior by **adding new code**, not by editing ex
 
 ### Rules
 
-| Rule | Go Adaptation |
-|------|---------------|
-| **Depend on abstractions for varying behavior** | If a new payment provider is likely, define `PaymentProvider` interface. Add a new struct that implements it; don't edit the dispatcher. |
-| **Use the strategy pattern for swappable algorithms** | Pass a function or a small interface, not a `switch` over an enum that grows every release. |
-| **Prefer composition over modification** | Wrap an existing implementation with a decorator (`LoggingRepository`, `CachingRepository`) instead of editing the original. |
-| **Closed against what?** | OCP is always relative. Identify the **likely axis of change** and design around it. Don't speculatively abstract everything (YAGNI wins ties). |
+| ID | Rule | Go Adaptation |
+|----|------|---------------|
+| `SOLID-5` | **Depend on abstractions for varying behavior** | If a new payment provider is likely, define `PaymentProvider` interface. Add a new struct that implements it; don't edit the dispatcher. |
+| `SOLID-6` | **Use the strategy pattern for swappable algorithms** | Pass a function or a small interface, not a `switch` over an enum that grows every release. |
+| `SOLID-7` | **Prefer composition over modification** | Wrap an existing implementation with a decorator (`LoggingRepository`, `CachingRepository`) instead of editing the original. |
+| `SOLID-8` | **Closed against what?** | OCP is always relative. Identify the **likely axis of change** and design around it. Don't speculatively abstract everything (YAGNI wins ties). |
 
 ### Anti-Patterns
 
@@ -109,12 +96,17 @@ You should be able to add new behavior by **adding new code**, not by editing ex
 ### Example
 
 ```go
+// Money is the value object from ddd.md — a struct (Amount decimal.Decimal, Currency string),
+// not a number — so a rate is built with a constructor, never by multiplying a weight.
+// Order.Weight is a decimal.Decimal (kg).
+func usd(amount decimal.Decimal) Money { return Money{Amount: amount, Currency: "USD"} }
+
 // BAD: every new shipper requires editing Calculate
 func Calculate(order Order, shipper string) Money {
     switch shipper {
-    case "ups":   return order.Weight * 2
-    case "fedex": return order.Weight*2 + 5
-    case "dhl":   return order.Weight * 3 // added last week
+    case "ups":   return usd(order.Weight.Mul(decimal.NewFromInt(2)))
+    case "fedex": return usd(order.Weight.Mul(decimal.NewFromInt(2)).Add(decimal.NewFromInt(5)))
+    case "dhl":   return usd(order.Weight.Mul(decimal.NewFromInt(3))) // added last week
     // case "...": added next week, and the week after...
     }
 }
@@ -125,10 +117,12 @@ type RateCalculator interface {
 }
 
 type UPS struct{}
-func (UPS) Rate(o Order) Money { return o.Weight * 2 }
+func (UPS) Rate(o Order) Money { return usd(o.Weight.Mul(decimal.NewFromInt(2))) }
 
 type FedEx struct{}
-func (FedEx) Rate(o Order) Money { return o.Weight*2 + 5 }
+func (FedEx) Rate(o Order) Money {
+    return usd(o.Weight.Mul(decimal.NewFromInt(2)).Add(decimal.NewFromInt(5)))
+}
 
 // New shipper = new file, new struct. Calculate never changes.
 func Calculate(order Order, c RateCalculator) Money { return c.Rate(order) }
@@ -149,13 +143,13 @@ Go has no subclassing, so LSP applies to **interface implementations**: every ty
 
 ### Rules
 
-| Rule | Go Adaptation |
-|------|---------------|
-| **Honor the contract, not just the signature** | A `Repository.Save` that silently drops writes when the cache is full violates LSP even though it compiles. |
-| **Don't strengthen preconditions** | If `io.Writer.Write` accepts any byte slice, your implementation cannot reject empty slices with an error. |
-| **Don't weaken postconditions** | If `Reader.Read` guarantees `n` bytes were read on success, your implementation cannot return success with `n=0` unless `len(p)==0`. |
-| **Don't surprise the caller** | A `Logger.Info` implementation that blocks on network I/O for 30 seconds violates the implicit "logging is fast" contract. |
-| **Errors are part of the contract** | Document which sentinel errors a method can return (`io.EOF`, `sql.ErrNoRows`). Implementations must respect this. |
+| ID | Rule | Go Adaptation |
+|----|------|---------------|
+| `SOLID-9` | **Honor the contract, not just the signature** | A `Repository.Save` that silently drops writes when the cache is full violates LSP even though it compiles. |
+| `SOLID-10` | **Don't strengthen preconditions** | If `io.Writer.Write` accepts any byte slice, your implementation cannot reject empty slices with an error. |
+| `SOLID-11` | **Don't weaken postconditions** | If `Reader.Read` guarantees `n` bytes were read on success, your implementation cannot return success with `n=0` unless `len(p)==0`. |
+| `SOLID-12` | **Don't surprise the caller** | A `Logger.Info` implementation that blocks on network I/O for 30 seconds violates the implicit "logging is fast" contract. |
+| `SOLID-13` | **Errors are part of the contract** | Document which sentinel errors a method can return (`io.EOF`, `sql.ErrNoRows`). Implementations must respect this. |
 
 ### Smell List
 
@@ -209,12 +203,12 @@ Many small, role-based interfaces are better than one large interface with every
 
 ### Rules
 
-| Rule | Go Adaptation |
-|------|---------------|
-| **Define interfaces at the point of use** | "Accept interfaces, return structs." A consumer declares the minimum interface it needs, not what the producer offers. |
-| **Prefer 1–3 method interfaces** | `io.Reader`, `io.Writer`, `io.Closer`, `fmt.Stringer`. Compose with embedding (`io.ReadWriter`) when needed. |
-| **No `XxxService` god interfaces** | A 12-method `UserService` interface forces every test mock to stub all 12. Split by use case. |
-| **Don't expose more than callers need** | If your handler needs only `GetUser`, it should depend on `interface{ GetUser(ctx, id) (User, error) }`, not the full repository. |
+| ID | Rule | Go Adaptation |
+|----|------|---------------|
+| `SOLID-14` | **Define interfaces at the point of use** | "Accept interfaces, return structs." A consumer declares the minimum interface it needs, not what the producer offers. |
+| `SOLID-15` | **Prefer 1–3 method interfaces** | `io.Reader`, `io.Writer`, `io.Closer`, `fmt.Stringer`. Compose with embedding (`io.ReadWriter`) when needed. |
+| `SOLID-16` | **No `XxxService` god interfaces** | A 12-method `UserService` interface forces every test mock to stub all 12. Split by use case. |
+| `SOLID-17` | **Don't expose more than callers need** | If your handler needs only `GetUser`, it should depend on `interface{ GetUser(ctx, id) (User, error) }`, not the full repository. |
 
 ### Smell List
 
@@ -272,12 +266,12 @@ The direction of the **source-code dependency** should be the opposite of the **
 
 ### Rules
 
-| Rule | Go Adaptation |
-|------|---------------|
-| **Domain defines interfaces; infra implements them** | The `domain/order` package defines `Repository`. The `infra/postgres` package imports `domain/order` and implements it. Never the reverse. |
-| **Inject dependencies at construction** | `func NewService(repo Repository, log *slog.Logger) *Service`. No package-level singletons. No global `db`. |
-| **Wire at the edges** | `main.go` (or a `cmd/...` entry point) constructs concrete implementations and injects them downward. The center of the app sees only interfaces. |
-| **No imports from inner layers to outer layers** | `domain → application → infra → cmd`. Imports point inward. Enforce with a linter (e.g., `go-arch-lint`, `depguard`). |
+| ID | Rule | Go Adaptation |
+|----|------|---------------|
+| `SOLID-18` | **Domain defines interfaces; infra implements them** | The `domain/order` package defines `Repository`. The `infra/postgres` package imports `domain/order` and implements it. Never the reverse. |
+| `SOLID-19` | **Inject dependencies at construction** | `func NewService(repo Repository, log *slog.Logger) *Service`. No package-level singletons. No global `db`. |
+| `SOLID-20` | **Wire at the edges** | `main.go` (or a `cmd/...` entry point) constructs concrete implementations and injects them downward. The center of the app sees only interfaces. |
+| `SOLID-21` | **No imports from inner layers to outer layers** | `domain → application → infra → cmd`. Imports point inward. Enforce with a linter (e.g., `go-arch-lint`, `depguard`). |
 
 ### Smell List
 
@@ -348,24 +342,6 @@ func main() {
 
 ---
 
-## SOLID and MDCA / DDD
-
-SOLID supports — and is supported by — the architectural conventions in **Go Server.md**, **Go Client.md**, and **Go Library.md**:
-
-| MDCA / DDD Concept | SOLID Principle Enforced |
-|--------------------|--------------------------|
-| Bounded context = package | SRP at package level |
-| Domain layer has no infra imports | DIP |
-| Aggregate root with focused methods | SRP at type level |
-| Repository interface in domain, impl in infra | DIP + ISP |
-| Domain events handled by registered subscribers | OCP |
-| Replaceable adapters (NATS, Postgres, Redis) | LSP + DIP |
-| Use case (application service) depends on small role interfaces | ISP |
-
-If you find yourself violating SOLID, you are likely also violating MDCA layering. Fix the layering — SOLID compliance follows.
-
----
-
 ## Quick Self-Check
 
 Before merging a change, ask:
@@ -382,19 +358,10 @@ Before merging a change, ask:
 
 | Anti-Pattern | Principle Violated | Fix |
 |--------------|--------------------|-----|
-| `util` / `common` / `helpers` package | SRP | Move each helper to the package that owns its concept. |
-| Interface defined in producer package, only used externally | ISP, DIP | Move interface to consumer; producer returns concrete struct. |
-| `switch x.(type)` over a closed set of types in business code | OCP | Replace with method dispatch on an interface. |
-| Global `var DB *sql.DB` | DIP | Inject through constructors. |
-| 15-method `*Service` struct | SRP | Split by use case (one struct per command/query group). |
-| Mocks that `panic("not implemented")` for half their methods | ISP | The interface is too big — split it. |
-| `init()` that opens DB connections, reads env, starts goroutines | DIP, SRP | Move to `main`. `init` is for registering codecs and pure setup only. |
-
----
-
-## Further Reading
-
-- Robert C. Martin — "Clean Architecture" (2017), Chapters 7–11.
-- Dave Cheney — "SOLID Go Design" (2016) blog post — the canonical Go-specific treatment.
-- Standard library: `io`, `net/http`, `database/sql/driver` — exemplary ISP and DIP in production Go.
-- Cross-references in this workspace: **Clean Code.md**, **Engineering Principles.md**, **Go Server.md**, **Go Library.md**, **Go Client.md**, **Go Best Practice.md**.
+| `util` / `common` / `helpers` package | SRP (`SOLID-3`) | Move each helper to the package that owns its concept. |
+| Interface defined in producer package, only used externally | ISP (`SOLID-14`), DIP (`SOLID-18`) | Move interface to consumer; producer returns concrete struct. |
+| `switch x.(type)` over a closed set of types in business code | OCP (`SOLID-6`) | Replace with method dispatch on an interface. |
+| Global `var DB *sql.DB` | DIP (`SOLID-19`) | Inject through constructors. |
+| 15-method `*Service` struct | SRP (`SOLID-1`) | Split by use case (one struct per command/query group). |
+| Mocks that `panic("not implemented")` for half their methods | ISP (`SOLID-16`) | The interface is too big — split it. |
+| `init()` that opens DB connections, reads env, starts goroutines | DIP (`SOLID-20`), SRP (`SOLID-4`) | Move to `main`. `init` is for registering codecs and pure setup only. |

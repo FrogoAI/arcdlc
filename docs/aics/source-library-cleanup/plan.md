@@ -354,7 +354,7 @@ stay green.
   - GIVEN the file WHEN the SRP example is read THEN its `Money` usage matches the struct definition in `ddd.md`.
   - GIVEN the file WHEN the five principle sections are read THEN each still contains its `### Example` block.
 - References: `docs/aics/source-library-cleanup/aic.md`, `skills/source-map/source/ddd.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-13: Fence ECS.md's project-specific half and add rule IDs
 
