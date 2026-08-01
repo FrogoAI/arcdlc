@@ -330,7 +330,7 @@ stay green.
   - GIVEN the file WHEN `grep -n "togaf.md\|arc42.md" skills/source-map/source/ddd.md` runs THEN every match is prefixed `docs/aics/<slug>/`.
   - GIVEN the file WHEN `## Strategic DDD` and `## Tactical DDD` are read THEN both are still present in full.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-12: Trim solid.md and add citable rule IDs
 

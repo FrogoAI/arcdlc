@@ -5,20 +5,6 @@
 
 ---
 
-## Philosophy
-
-DDD organizes software around the **business domain**, not technical layers. The premise: most complex software fails not because of bad code but because the code does not faithfully model the business. Code that mirrors the domain is easier to change, easier to discuss with non-engineers, and easier to extend without breaking unrelated parts.
-
-**Core beliefs:**
-- The hardest part of software is **understanding the problem**. DDD invests in that understanding.
-- Code is a **model** of the business. The model and the code must evolve together — when the business changes, the code does; when the code reveals a contradiction, the business model is wrong.
-- The model is shared between developers and domain experts via **ubiquitous language** — the same terms in conversation, in code, in tests, in docs.
-- DDD is a **toolkit, not a checklist**. Use the patterns that pay for themselves; skip the rest.
-
-**MDCA's stance:** apply DDD **pragmatically**. The patterns that consistently earn their keep in this workspace are: bounded contexts, ubiquitous language, entities, value objects, domain events, repositories. Patterns that are more often ceremony than value: aggregates with strict invariant enforcement, specifications, factories, complex domain services. Adopt only on demand.
-
----
-
 ## Strategic DDD
 
 Strategic DDD is about **what to model** and **where the boundaries go**. It is the most underused and most valuable half of DDD.
@@ -62,7 +48,7 @@ The same word can mean different things in different contexts. "Customer" in the
 
 > A diagram of how bounded contexts relate, and what that relationship costs.
 
-Document context relationships explicitly in the initiative's AIC and (for bigger systems) in `togaf.md` or `arc42.md`. Common patterns:
+Document context relationships explicitly in the initiative's AIC and (for bigger systems) in the initiative's generated `docs/aics/<slug>/togaf.md` or `docs/aics/<slug>/arc42.md`. Common patterns:
 
 | Pattern | Meaning | When |
 |---------|---------|------|
@@ -246,7 +232,7 @@ type Repository interface {
 - Defined as an interface in the domain package.
 - Returns and accepts **domain types**, never DTOs and never DB rows.
 - Implemented in `internal/repository/` (server) or equivalent adapter package.
-- One repository per **aggregate root**, not per table. If `Order` has line items, both load and save through the order repository.
+- One repository per **aggregate root** — or per **entity**, where the bounded context has no aggregate — never one per table. If `Order` has line items, both load and save through the order repository.
 - Hide query language. Domain code calls `repo.ListByUser(ctx, id, filter)`, not `repo.Query("SELECT ...")`.
 
 **Sentinel errors at the boundary:**
@@ -293,28 +279,9 @@ type OrderPlaced struct {
 - A separate publisher reads the outbox and publishes to NATS, marking rows shipped.
 - Prevents "state change committed, event lost" and "event published, state change rolled back."
 
-### Factories (rarely needed in Go)
-
-In Go, a constructor function (`NewOrder`, `NewMoney`) is the factory. A separate `OrderFactory` type is justified only when:
-1. Construction requires significant logic (lookups, multi-step assembly).
-2. Multiple alternative construction paths benefit from grouping.
-
-Otherwise: just write a `New...` function in the package.
-
-### Specifications (almost never needed in Go)
-
-A predicate object that encapsulates a business rule. In Go, a function literal or a small interface is almost always clearer:
-
-```go
-// Don't do this:
-type EligibleForDiscountSpec struct{ /* ... */ }
-func (s EligibleForDiscountSpec) IsSatisfiedBy(o Order) bool { /* ... */ }
-
-// Do this:
-func IsEligibleForDiscount(o Order) bool { /* ... */ }
-```
-
-Reach for specifications only if the predicate composes (`AND`, `OR`, `NOT`) with many others in a query DSL — and even then, prefer the database to express it.
+> **Factories and specifications** are not sections here: in Go both are anti-patterns by default —
+> a constructor function is the factory, a predicate function is the specification. See `DDD-15` and
+> `DDD-16` in *Smells and Anti-Patterns*, which state the narrow cases where a dedicated type is justified.
 
 ---
 
@@ -333,73 +300,63 @@ Reach for specifications only if the predicate composes (`AND`, `OR`, `NOT`) wit
 | Factory | Domain | `New<Type>` function in `domain/<feature>/` |
 | ACL | Infrastructure | Adapter package wrapping external SDK |
 
-> Domain code imports nothing from infrastructure. Infrastructure imports domain. Imports flow inward (see `mdca.md` Dependency Rule and `solid.md` DIP).
-
----
-
-## DDD in Go vs. DDD in Java/C#
-
-| Convention | Java/C# DDD | Go MDCA-DDD |
-|------------|-------------|--------------|
-| Class hierarchies | Common (abstract entity, base aggregate) | Avoided. Plain structs. Composition via embedding. |
-| Interface position | Often in domain, with implementations elsewhere | Same — interfaces in domain, but **defined by the consumer** (small, role-based) |
-| Annotations / decorators | Heavy (`@Entity`, `@Repository`) | None. Struct tags for marshaling only. |
-| Reflection-driven mappers | ORMs everywhere | Explicit mapping in repositories. `sqlx`, `pgx`, hand-written. |
-| Aggregate enforcement | Often via framework | Manual. Unexported fields + receiver methods. |
-| Event dispatching | Spring events / MediatR | Explicit publisher injection; NATS subjects. |
-| DDD ceremony | High | Low. Pattern earns its place. |
+> Domain code imports nothing from infrastructure. Infrastructure imports domain. Imports flow inward (see `mdca.md` principle `P3` — Dependency Inversion, clauses `P3.1`–`P3.3` — and its §7.1 layer table and purity test; and `solid.md` §5, the Dependency Inversion Principle).
 
 ---
 
 ## Pragmatic Adoption Checklist
 
-For any new bounded context, work through this list. Stop when patterns stop adding value.
+For any new bounded context, work through this list. Stop when patterns stop adding value. Apply DDD
+**pragmatically**: bounded contexts, ubiquitous language, entities, value objects, domain events, and
+repositories consistently earn their keep; strict aggregate enforcement, specifications, factories, and
+standalone domain services are more often ceremony. Adopt those on demand.
+
+**Tier semantics.** The marker is a verdict rule, not decoration — an auditor uses it to decide whether an
+item is a violation:
+
+| Tier | Meaning | Audit verdict |
+|------|---------|---------------|
+| ✅ | Expected in every bounded context; unconditional. | **Fail** when absent. File a gap. |
+| ⚠️ | Conditional — required when its trigger holds, wrong when it does not. Each item below names its trigger. | **Fail** in two directions: the trigger holds and the pattern is missing, or the pattern is present with no trigger. State which direction in the gap. |
+| ❓ | Judgment call; either choice is defensible. | **Never a fail.** Record as an observation at most. |
+| ❌ | Discouraged — its presence is the violation. | **Fail** when present, unless the exception named in the linked smell row applies and is recorded. |
 
 1. ✅ **Ubiquitous language** — types and methods named in business terms.
 2. ✅ **Bounded context** — one package, no cross-context type sharing.
 3. ✅ **Entities + value objects** — primitives wrapped, IDs typed.
 4. ✅ **Repository interface** — defined in domain, implemented in infra.
 5. ✅ **Domain events** — published when state changes that other contexts care about.
-6. ⚠️ **Aggregates** — only if there is a real cross-entity invariant under concurrent access.
-7. ⚠️ **Anticorruption Layer** — required for any external SDK; don't let third-party types leak in.
+6. ⚠️ **Aggregates** — trigger: a real cross-entity invariant that concurrent updates could violate. No trigger ⇒ plain entities and value objects (`DDD-12`).
+7. ⚠️ **Anticorruption Layer** — trigger: the context integrates an external SDK or vendor API. Then it is required; third-party types must not leak in (`DDD-14`).
 8. ❓ **Domain service** — only if the operation has a name in the business but spans entities.
-9. ❌ **Specifications** — almost never. Use functions.
-10. ❌ **Factories as types** — almost never. Use `New...` constructors.
+9. ❌ **Specifications** — almost never. Use predicate functions (`DDD-16`).
+10. ❌ **Factories as types** — almost never. Use `New...` constructors (`DDD-15`).
 
 ---
 
 ## Smells and Anti-Patterns
 
-| Smell | Why it's wrong | Fix |
-|-------|----------------|-----|
-| Anemic domain model | Structs with public fields and zero methods; logic lives in services | Move behavior onto the entity. If the type has no methods, the model is anemic. |
-| Primitive obsession | `func Transfer(from, to string, amount float64)` | Wrap in value objects: `AccountID`, `Money`. |
-| Setters everywhere | `o.SetStatus(s)` invites invariant violations | Replace with domain operations: `o.Cancel()`, `o.Approve()`. |
-| Shared types across contexts | Coupled change reasons; ripple on edit | Each context defines its own struct. |
-| `domain/common/` package | Loss of bounded context boundaries | Delete; move types to the context that owns them. |
-| Repository returning DTOs | Couples persistence to transport | Repositories return domain models. |
-| Repository per table | Loses aggregate atomicity | One repository per aggregate root. |
-| Generic `Save(any)` repository | Erases types and invariants | Type-specific repositories. |
-| Domain importing `database/sql` | Inverted dependency | Define a port; move SQL to an adapter. |
-| Events named in present tense (`PlaceOrder`) | Confuses commands with facts | Past tense (`OrderPlaced`). |
-| Events carrying entire entities | Couples consumers to internal model | Carry only what consumers need. |
-| Aggregate with 10+ entity types | Too coarse; transactions become contention | Split into smaller aggregates. |
-| God service (`OrderService.DoEverything`) | SRP violation; tests need 8+ mocks | Split by use case; multiple narrow services or methods on the entity. |
-| External SDK types in domain signatures | Missing ACL | Wrap upstream in an adapter that translates to local types. |
+Each row carries a stable identifier. Cite it in a gap block (`DDD-4`) rather than the section name; identifiers
+are never reused or renumbered, and new smells are appended.
 
----
-
-## DDD and the Workspace Methodologies
-
-| Methodology | Interaction with DDD |
-|-------------|----------------------|
-| **MDCA** (`mdca.md`) | DDD provides the domain modeling vocabulary; MDCA defines the layering and module structure. They are co-designed in this workspace. |
-| **SOLID** (`solid.md`) | DDD's repository pattern is DIP. ISP keeps repository interfaces small. SRP keeps bounded contexts focused. |
-| **Clean Code** | Ubiquitous language is the foundation of intention-revealing names. |
-| **Twelve-Factor App** | Domain stays unaware of config, backing services, and processes — those live at the edges. |
-| **TBD** (`tbd.md`) | Bounded contexts are small enough to ship in 1–2 day branches; new behaviors land within their context behind feature flags. |
-| **Event-Driven Design** | Domain events are the primary cross-context communication. Subjects follow naming convention (Engineering Principles). |
-| **Arc42 / TOGAF** | Bounded contexts and context maps are first-class artifacts in the architecture documentation. |
+| ID | Smell | Why it's wrong | Fix |
+|----|-------|----------------|-----|
+| `DDD-1` | Anemic domain model | Structs with public fields and zero methods; logic lives in services | Move behavior onto the entity. If the type has no methods, the model is anemic. |
+| `DDD-2` | Primitive obsession | `func Transfer(from, to string, amount float64)` | Wrap in value objects: `AccountID`, `Money`. |
+| `DDD-3` | Setters everywhere | `o.SetStatus(s)` invites invariant violations | Replace with domain operations: `o.Cancel()`, `o.Approve()`. |
+| `DDD-4` | Shared types across contexts | Coupled change reasons; ripple on edit | Each context defines its own struct. |
+| `DDD-5` | `domain/common/` package | Loss of bounded context boundaries | Delete; move types to the context that owns them. |
+| `DDD-6` | Repository returning DTOs | Couples persistence to transport | Repositories return domain models. |
+| `DDD-7` | Repository per table | Loses aggregate atomicity; a table is a storage detail, not a domain unit | One repository per aggregate root — or per entity, where the context has no aggregate. |
+| `DDD-8` | Generic `Save(any)` repository | Erases types and invariants | Type-specific repositories. |
+| `DDD-9` | Domain importing `database/sql` | Inverted dependency | Define a port; move SQL to an adapter. |
+| `DDD-10` | Events named in present tense (`PlaceOrder`) | Confuses commands with facts | Past tense (`OrderPlaced`). |
+| `DDD-11` | Events carrying entire entities | Couples consumers to internal model | Carry only what consumers need. |
+| `DDD-12` | Aggregate with 10+ entity types | Too coarse; transactions become contention | Split into smaller aggregates. |
+| `DDD-13` | God service (`OrderService.DoEverything`) | SRP violation; tests need 8+ mocks | Split by use case; multiple narrow services or methods on the entity. |
+| `DDD-14` | External SDK types in domain signatures | Missing ACL | Wrap upstream in an adapter that translates to local types. |
+| `DDD-15` | Factory *type* (`OrderFactory`) for ordinary construction | Ceremony imported from Java/C#; in Go the constructor function already is the factory | Write `NewOrder(...) (Order, error)` in the domain package. A factory type is justified **only** when construction needs significant logic (lookups, multi-step assembly) or several alternative construction paths benefit from grouping. |
+| `DDD-16` | Specification object (`EligibleForDiscountSpec.IsSatisfiedBy(o)`) | Wraps a one-line predicate in a type and hides the rule behind an interface | Write a predicate function: `func IsEligibleForDiscount(o Order) bool`. Justified **only** when predicates must compose (`AND`, `OR`, `NOT`) with many others in a query DSL — and even then, prefer expressing it in the database. |
 
 ---
 
@@ -412,7 +369,7 @@ Before merging a change to a domain package:
 3. **Behavior on the model** — Do entities expose domain operations, or only data + getters/setters?
 4. **Value objects** — Are domain concepts (Money, Email, IDs) typed, or are they raw primitives?
 5. **Invariants at construction** — Can an invalid entity or value object be constructed? It must not.
-6. **Repository scope** — Is the repository per aggregate root, returning domain models?
+6. **Repository scope** — Is the repository per aggregate root (or per entity, where no aggregate exists) rather than per table, returning domain models?
 7. **Events** — Are events past-tense facts, published after persistence, carrying minimal payload?
 8. **No leakage** — Does the domain import any infrastructure type? It must not.
 
@@ -429,13 +386,3 @@ DDD is overhead. Skip it when:
 - The "business rules" are entirely the database's (e.g., a reporting service that aggregates other services' data) — favor query models and read-side projections.
 
 Document any deliberate skip in the initiative's AIC under *Architectural hypotheses* and (if applicable) the service's `CONTEXT.md`.
-
----
-
-## Further Reading
-
-- Eric Evans — *Domain-Driven Design: Tackling Complexity in the Heart of Software* (2003) — the original "blue book."
-- Vaughn Vernon — *Implementing Domain-Driven Design* (2013) — the practical "red book."
-- Vaughn Vernon — *Domain-Driven Design Distilled* (2016) — short overview.
-- Eric Evans — *DDD Reference* (free PDF, domainlanguage.com) — pattern summary.
-- Cross-references in this workspace: **mdca.md**, **solid.md**, **Go Server.md**, **Go Client.md**, **Go Library.md**, **Clean Code.md**, **Engineering Principles.md**, **Twelve-Factor App.md**, **tbd.md**.
