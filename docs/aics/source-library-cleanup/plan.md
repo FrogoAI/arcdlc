@@ -379,7 +379,7 @@ stay green.
   - GIVEN the file WHEN `grep -n "mdca.md" skills/source-map/source/ECS.md` runs THEN it returns at least one match.
   - GIVEN the file WHEN the text under the H1 is read THEN a source attribution is present.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-14: Fence Go Client.md as a reference implementation
 
