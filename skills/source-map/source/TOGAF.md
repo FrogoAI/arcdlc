@@ -2,54 +2,15 @@
 
 **Source**: TOGAF Standard (The Open Group), ArchiMate 3.2 Specification
 **Purpose**: Offline instruction for generating TOGAF Architecture Development Method documentation with ArchiMate diagrams. No internet connection required.
+**Consumed by**: `/arcdlc:aic <slug> togaf`, which generates `docs/aics/<slug>/togaf.md` from this template. TOGAF is **not** one of the standards `/arcdlc:examinate` audits code against — this is a generator template, not an audit target.
 
 ---
 
 ## When to Use
 
-Generate `togaf.md` ONLY when explicitly requested, or recommend it when:
-- Enterprise-wide or cross-domain initiative (multiple business units affected)
-- Migration from legacy systems with multiple phases
-- Compliance-heavy systems (SOC2, PCI-DSS, GDPR-critical)
-- When arc42 feels insufficient for the organizational scope
-- When stakeholders require formal enterprise architecture artifacts
-
----
-
-## TOGAF ADM Phases
-
-The Architecture Development Method is an iterative cycle with 8 phases:
-
-```
-                    Preliminary
-                        |
-                        v
-              +---> Architecture Vision (Phase A)
-              |         |
-              |         v
-              |    Business Architecture (Phase B)
-              |         |
-              |         v
-              |    Information Systems Architecture (Phase C)
-              |    (Data + Application)
-              |         |
-              |         v
-              |    Technology Architecture (Phase D)
-              |         |
-              |         v
-              |    Opportunities & Solutions (Phase E)
-              |         |
-              |         v
-              |    Migration Planning (Phase F)
-              |         |
-              |         v
-              |    Implementation Governance (Phase G)
-              |         |
-              |         v
-              +--- Architecture Change Management (Phase H)
-
-              Requirements Management (center, continuous)
-```
+Generate `togaf.md` only on explicit request, or recommend it when the initiative is enterprise-wide or
+cross-domain (multiple business units affected), spans a phased legacy migration, or is compliance-heavy
+(SOC2, PCI-DSS, GDPR) — i.e. when arc42's scope is too narrow and stakeholders require formal EA artifacts.
 
 ---
 
@@ -241,9 +202,9 @@ Show dependencies between migration work packages. Which must complete before ot
 
 | Principle | Compliance Check | Status |
 |-----------|-----------------|--------|
-| Performance by Design | Benchmark results for hot paths | Pending |
-| KISS | Code review checklist item | Active |
-| Event-Driven | All internal comms via NATS | Active |
+| Performance by Design | Benchmark results for hot paths | *status* |
+| KISS | Code review checklist item | *status* |
+| Event-Driven | All internal comms via NATS | *status* |
 
 #### 7.2 Decision Log
 

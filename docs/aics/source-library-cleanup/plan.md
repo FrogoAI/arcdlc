@@ -606,7 +606,7 @@ stay green.
   - GIVEN the file WHEN the text under the H1 is read THEN it states the document is a generator template and not an audit target.
   - GIVEN the file WHEN its ArchiMate tables and DOT template are read THEN they are present unchanged.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-24: Make ADR.md usable on its own
 
