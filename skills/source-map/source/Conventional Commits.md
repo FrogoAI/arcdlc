@@ -1,12 +1,11 @@
 # Conventional Commits 1.0.0
 
-The [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) specification, reproduced from
-[conventionalcommits.org](https://github.com/conventional-commits/conventionalcommits.org/blob/master/content/v1.0.0/index.md).
-ArcDLC applies it to every commit made by `/arcdlc:execute`; the concrete recipe (type selection, scope, footers)
-lives in that skill — see `../../execute/SKILL.md` (flat installs: `../../arcdlc-execute/SKILL.md`), section
-"Commit message: Conventional Commits". Where this spec leaves room, ArcDLC narrows it: the scope is always the
-initiative slug, `Refs:` and `#AI-assisted` footers are required, and one task produces exactly one commit — the
-FAQ advice below to split a commit that spans two types does **not** apply, the dominant type wins.
+**Source**: The [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) specification, reproduced from [conventionalcommits.org](https://github.com/conventional-commits/conventionalcommits.org/blob/master/content/v1.0.0/index.md).
+**Attribution**: The Conventional Commits specification is published by the Conventional Commits project under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). The summary, specification clauses, examples, and FAQ below are reproduced from that source (sections addressed to maintainers of other projects removed); the ArcDLC notes are this bundle's own.
+**Consumed by**: `/arcdlc:execute`, which applies the convention to every commit it makes. The concrete recipe (type selection, scope, footers) lives in that skill — see `../../execute/SKILL.md` (flat installs: `../../arcdlc-execute/SKILL.md`), section "Commit message: Conventional Commits".
+**ArcDLC narrowing**: Where this spec leaves room, ArcDLC narrows it: the scope is always the initiative slug, `Refs:` and `#AI-assisted` footers are required, and one task produces exactly one commit — the FAQ advice below to split a commit that spans two types does **not** apply, the dominant type wins.
+
+---
 
 ## Summary
 
@@ -128,20 +127,7 @@ _BREAKING CHANGE: environment variables now take precedence over config files_.
 1. The units of information that make up Conventional Commits MUST NOT be treated as case-sensitive by implementors, with the exception of BREAKING CHANGE which MUST be uppercase.
 1. BREAKING-CHANGE MUST be synonymous with BREAKING CHANGE, when used as a token in a footer.
 
-## Why Use Conventional Commits
-
-* Automatically generating CHANGELOGs.
-* Automatically determining a semantic version bump (based on the types of commits landed).
-* Communicating the nature of changes to teammates, the public, and other stakeholders.
-* Triggering build and publish processes.
-* Making it easier for people to contribute to your projects, by allowing them to explore
-  a more structured commit history.
-
 ## FAQ
-
-### How should I deal with commit messages in the initial development phase?
-
-We recommend that you proceed as if you've already released the product. Typically *somebody*, even if it's your fellow software developers, is using your software. They'll want to know what's fixed, what breaks etc.
 
 ### Are the types in the commit title uppercase or lowercase?
 
@@ -162,26 +148,6 @@ Conventional Commits encourages us to make more of certain types of commits such
 ### How does this relate to SemVer?
 
 `fix` type commits should be translated to `PATCH` releases. `feat` type commits should be translated to `MINOR` releases. Commits with `BREAKING CHANGE` in the commits, regardless of type, should be translated to `MAJOR` releases.
-
-### How should I version my extensions to the Conventional Commits Specification, e.g. `@jameswomack/conventional-commit-spec`?
-
-We recommend using SemVer to release your own extensions to this specification (and
-encourage you to make these extensions!)
-
-### What do I do if I accidentally use the wrong commit type?
-
-#### When you used a type that's of the spec but not the correct type, e.g. `fix` instead of `feat`
-
-Prior to merging or releasing the mistake, we recommend using `git rebase -i` to edit the commit history. After release, the cleanup will be different according to what tools and processes you use.
-
-#### When you used a type *not* of the spec, e.g. `feet` instead of `feat`
-
-In a worst case scenario, it's not the end of the world if a commit lands that does not meet the Conventional Commits specification. It simply means that commit will be missed by tools that are based on the spec.
-
-### Do all my contributors need to use the Conventional Commits specification?
-
-No! If you use a squash based workflow on Git lead maintainers can clean up the commit messages as they're merged—adding no workload to casual committers.
-A common workflow for this is to have your git system automatically squash commits from a pull request and present a form for the lead maintainer to enter the proper git commit message for the merge.
 
 ### How does Conventional Commits handle revert commits?
 

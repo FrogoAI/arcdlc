@@ -714,6 +714,30 @@ stay green.
   - GIVEN the file WHEN its specification section is read THEN all sixteen numbered clauses are present.
   - GIVEN the file WHEN the revert section is read THEN the `revert:` recipe is present.
 - References: `docs/aics/source-library-cleanup/aic.md`, `skills/execute/SKILL.md`.
+- Status: DONE.
+
+### SLC-30: Restore the TBD applicability rule
+
+- WHAT: Restore the "when not to use trunk-based development" criteria that SLC-27 removed together with `tbd.md`'s `## Philosophy` section.
+- HOW:
+  SLC-27 deleted `## Philosophy` as a whole section, exactly as instructed. That section contained a
+  "When NOT to use TBD" subsection whose content is applicability criteria rather than narrative —
+  notably the open-source fork-and-pull-request case, where contributors have no write access and the
+  short-lived-branch rule cannot apply. Recover the wording from
+  `git show 4aa6df0^:"skills/source-map/source/tbd.md"` and re-add it as a short
+  `## When Not to Use TBD` section (at most 8 lines) placed after `## Two Variants`.
+  Keep only the applicability criteria. Do not restore the philosophy, the core-beliefs list, or the
+  "TBD bargain" — those were correctly deleted.
+  Out of scope: every other section of `tbd.md`; SLC-27 settled them and its result stands.
+- WHERE:
+  Docs: `skills/source-map/source/tbd.md`.
+- WHY: Without the applicability criteria the document reads as unconditional, so an agent would apply TBD to a repository where it does not fit (no write access for contributors, regulated release gates).
+- Acceptance:
+  - GIVEN the file WHEN `grep -n "^## When Not to Use TBD" skills/source-map/source/tbd.md` runs THEN it returns exactly one match.
+  - GIVEN that section WHEN it is read THEN it names the open-source fork-and-pull-request case and states that TBD's short-lived-branch rule does not apply there.
+  - GIVEN the file WHEN `grep -nE "^## (Philosophy|The TBD Bargain|Adoption Path|Further Reading)" skills/source-map/source/tbd.md` runs THEN it returns no matches — the narrative stays deleted.
+  - GIVEN the file WHEN `grep -c "" skills/source-map/source/tbd.md` runs THEN the line count is at most 312.
+- References: `docs/aics/source-library-cleanup/aic.md`.
 - Status: TODO.
 
 ### SLC-29: Library consistency sweep and version bump
