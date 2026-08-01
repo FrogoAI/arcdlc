@@ -302,7 +302,7 @@ stay green.
   - GIVEN the file WHEN `grep -n "model/" "skills/source-map/source/Clean Code.md"` runs THEN no line claims a `model/` convention in `Go Server.md`.
   - GIVEN the file WHEN sections `## 1. Naming` through `## 9. Systems` are read THEN all nine are still present.
 - References: `docs/aics/source-library-cleanup/aic.md`, `skills/source-map/source/Go Server.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-11: Trim ddd.md and add citable rule IDs
 
