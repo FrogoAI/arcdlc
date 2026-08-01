@@ -251,7 +251,7 @@ stay green.
   - GIVEN the file WHEN its DDD example is read THEN no `domain/` file imports a `pkg/` infrastructure package or a third-party decimal type, and every publish call handles its error.
   - GIVEN the file WHEN `grep -n "mdca.md" "skills/source-map/source/Go Server.md"` runs THEN it returns at least one match.
 - References: `docs/aics/source-library-cleanup/aic.md`, `docs/adr/0008-domain-imports-judged-by-purity-not-folder.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-9: Resolve the interface contradiction and trim Go Best Practice.md
 

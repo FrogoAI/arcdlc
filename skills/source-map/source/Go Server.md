@@ -4,77 +4,11 @@ Architectural reference for any Go service following Modular Domain-Centric Arch
 
 ---
 
-## Table of Contents
-
-1. [Modular Domain-Centric Architecture (MDCA)](#modular-domain-centric-architecture-mdca)
-2. [Folder Structure](#folder-structure)
-3. [Section Responsibilities](#section-responsibilities)
-4. [Domain-Driven Design (DDD) in Go](#domain-driven-design-ddd-in-go)
-5. [Event-Driven Design](#event-driven-design)
-6. [Microservices in a Monorepository](#microservices-in-a-monorepository)
-7. [Go Best Practices](#go-best-practices)
-8. [How to Start a New Service](#how-to-start-a-new-service)
-
----
-
 ## Modular Domain-Centric Architecture (MDCA)
 
-### Preamble
+MDCA organizes a service around independent bounded-context modules and keeps infrastructure out of the domain: the domain declares the ports it needs, adapters implement them, and one composition root wires them together. It optimizes for performance efficiency, reliability, and maintainability, and introduces an abstraction only once a second concrete need for it exists.
 
-Why do we make an application? To solve business needs.
-
-Software architecture is a tool that helps us reach those business needs. It is not about where to put files or how many interfaces to create. It is about efficiently solving a given business need.
-
-The [Quality Goal](https://quality.arc42.org/home-new) is one of the Software Architecture characteristics we define for each initiative. Deciding on which architecture to choose is not something we decide once and forever for all applications. If the quality goals are efficiency, reliability, and maintainability, high coupling is acceptable. If the goals are flexibility, testability, and modifiability, it becomes a problem.
-
-MDCA is about **balance and mindset**. It helps follow principles and balance different quality goals well. It keeps a similar structure for services with different architectures and even different technologies, helping build applications faster and avoid overcomplication.
-
-### Purpose
-
-Domain-centric architecture revolves around the business domain, modeling a company's actual workflows and behaviors. The architecture mirrors business operations and simplifies communication between development teams and business stakeholders.
-
-The main principle of MDCA is to create an efficient and maintainable system based on **independent domain modules**. These modules solve exact business needs and allow easy code maintenance without increasing complexity. Each service should solve the exact problem using the actual technology.
-
-MDCA separates infrastructure from domain modules while ensuring simplicity. However, some logic may live inside handlers because moving it behind an interface does not always make sense. The business does not change communication parties frequently. If it does, we usually must rewrite the entire service, and an additional abstraction layer does not help. That abstraction can cost more time ensuring compatibility than simply rewriting the component.
-
-### Core Philosophy
-
-- Business domain centricity -- model actual business workflows
-- Domain-Driven Design (DDD) principles at the core
-- Add functionality/flexibility only when it is needed
-- Do not add abstraction before you need it
-
-### Quality Goals
-
-**Prefer:**
-- Performance efficiency
-- Reliability
-- Maintainability
-
-**Over:**
-- Flexibility
-- Transferability
-- Compatibility
-
-### Key Principles
-
-| Principle | Description |
-|-----------|-------------|
-| **KISS** | Keep It Simple and Smart: efficient, smart, readable - not simplistic |
-| **DDD** | Domain-Driven Design |
-| **DRY** | Don't Repeat Yourself |
-
-### Advantages
-
-- Easy to learn
-- Suitable for many microservices inside one monorepository
-- Fast to develop
-- Easy to upgrade and maintain
-- Perfectly fits microservices and event-driven architectures
-
-### Disadvantages
-
-- Housing multiple services in a single repository risks developers incorrectly importing internal packages across service boundaries
+The normative definition lives in **`mdca.md`** — principles `P1`–`P10` (cite clauses as `P3.2`), the layering rules and the purity test for domain imports in §7, the tactical rules in §8, and the compliance checklist in §11. This document does not restate them; it describes how a Go **server** realizes MDCA. General Go coding rules live in **`Go Best Practice.md`**.
 
 ---
 
@@ -111,6 +45,8 @@ root/
 │   │       ├── repository/        # Data access implementations
 │   │       │   ├── featureA.go    # No _repo suffix — package provides context
 │   │       │   └── featureB.go
+│   │       ├── event/             # Messaging adapters implementing domain ports
+│   │       │   └── featureA.go    # Wraps pkg/messaging; the domain never imports it
 │   │       └── handler/           # Presentation layer (HTTP, gRPC, events)
 │   │           ├── featureA.go    # Request handlers (uses DTOs, never models)
 │   │           ├── meta.go        # Swagger/OpenAPI annotations
@@ -185,7 +121,7 @@ Each domain feature directory follows a consistent pattern:
 | File | Purpose |
 |------|---------|
 | `model.go` | DB entities with `db:""` struct tags only. **Never** `json:""` tags — those belong in DTOs. Domain-specific value objects and enums. |
-| `port.go` | Interfaces (ports) that define what the domain needs from infrastructure. Typically a Repository interface. Includes `//go:generate` directives for mock generation. |
+| `port.go` | Interfaces (ports) that define what the domain needs from infrastructure — typically a Repository, plus any outbound port such as a Publisher. Includes `//go:generate` directives for mock generation. |
 | `service.go` | Business logic + DTO↔Model converter functions (`NewXResponse`, `NewXFromRequest`). Orchestrates calls to ports and applies domain rules. Each public method represents a use case. |
 | `service_test.go` | Unit tests using generated mocks. Tests business logic in isolation from infrastructure. |
 | `mocks/` | Auto-generated mock implementations (mockgen, moq, etc.). |
@@ -230,21 +166,29 @@ func NewServices(db *sqlx.DB, bus messaging.Publisher) *Services {
     orderRepo := repository.NewOrderRepo(db)
     paymentRepo := repository.NewPaymentRepo(db)
     return &Services{
-        Order:   order.NewService(orderRepo, bus),
+        // The broker is wrapped in an adapter satisfying order.Publisher,
+        // so the domain package never sees pkg/messaging.
+        Order:   order.NewService(orderRepo, event.NewOrderPublisher(bus)),
         Payment: payment.NewService(paymentRepo),
     }
 }
 ```
 
+The composition root is the one place allowed to name concrete infrastructure. Everything it hands to a domain service is a domain-declared port.
+
 ### internal/domain/{feature}/ -- Domain Layer
 
 The heart of the application. Each feature (bounded context) gets its own package containing model, port, service, and tests.
 
-**Domain packages must have ZERO infrastructure imports** -- no database drivers, no HTTP libraries, no message queue clients. They depend only on the Go standard library and their own port interfaces.
+**Domain packages must have ZERO infrastructure imports** -- no database drivers, no HTTP libraries, no message queue clients, no vendor SDKs. They depend on the Go standard library, their own port interfaces, and only such other packages as pass the purity test in `mdca.md` §7.1: a package is importable by the domain only when its own imports are standard-library-only (transitively) and it performs no I/O and holds no mutable global state. The folder a package lives in is not the test — a `pkg/` package may qualify, and a package anywhere may fail.
 
 ### internal/repository/ -- Data Access Layer
 
 Implementations of `port.Repository` interfaces. Each file corresponds to one domain feature. Repositories own SQL queries, data mapping, and database-specific concerns. They accept `context.Context` for cancellation and return domain models (not ORM objects).
+
+### internal/event/ -- Messaging Adapters
+
+Implementations of the domain's outbound messaging ports. Each adapter wraps the broker client from `pkg/messaging` (infrastructure: it opens network connections, so the domain must not import it) and translates domain events into broker topics and payloads. This is the anticorruption boundary for the message bus.
 
 ### internal/handler/ -- Presentation Layer
 
@@ -281,9 +225,9 @@ Each domain feature package is a bounded context. It has its own models, its own
 ```go
 // domain/order/model.go -- Order's view of a product
 type OrderItem struct {
-    ProductID   string
-    Quantity    int
-    UnitPrice   decimal.Decimal
+    ProductID string
+    Quantity  int
+    UnitPrice Money // order's own Money value object
 }
 
 // domain/catalog/model.go -- Catalog's view of a product
@@ -291,10 +235,12 @@ type Product struct {
     ID          string
     Name        string
     Description string
-    Price       decimal.Decimal
+    Price       Money // catalog's own Money value object
     Stock       int
 }
 ```
+
+Each context owns its `Money` type too (see below). Reaching for a shared third-party money or decimal package would both couple the contexts and pull a vendor type into the domain.
 
 ### Entities and Value Objects
 
@@ -317,23 +263,26 @@ func (o *Order) Cancel() error {
     return nil
 }
 
-// Value Object -- defined by attributes, immutable
+// Value Object -- defined by attributes, immutable, domain-owned.
+// Amounts are held in the currency's minor unit (cents) as an int64: exact
+// arithmetic without a third-party decimal type, so the package keeps
+// standard-library-only imports.
 type Money struct {
-    Amount   decimal.Decimal
-    Currency string
+    Minor    int64  // e.g. 1099 == 10.99 USD
+    Currency string // ISO 4217 code
 }
 
 func (m Money) Add(other Money) (Money, error) {
     if m.Currency != other.Currency {
         return Money{}, ErrCurrencyMismatch
     }
-    return Money{Amount: m.Amount.Add(other.Amount), Currency: m.Currency}, nil
+    return Money{Minor: m.Minor + other.Minor, Currency: m.Currency}, nil
 }
 ```
 
 ### Ports and Adapters (Hexagonal Architecture)
 
-**Ports** are interfaces defined in the domain layer. **Adapters** are implementations in the repository or handler layer. The domain depends on abstractions, not concrete infrastructure.
+**Ports** are interfaces defined in the domain layer. **Adapters** are implementations in the repository, event, or handler layer. The domain depends on abstractions it declares itself, not on concrete infrastructure.
 
 ```go
 // domain/order/port.go
@@ -342,6 +291,13 @@ type Repository interface {
     GetByID(ctx context.Context, id string) (Order, error)
     Save(ctx context.Context, order Order) error
     ListByUser(ctx context.Context, userID string, filter Filter) ([]Order, error)
+}
+
+// Publisher is the domain's outbound port for announcing what happened.
+// It speaks domain events declared in this package, not broker topics, so
+// the domain never imports pkg/messaging -- which fails the purity test.
+type Publisher interface {
+    PublishOrderPlaced(ctx context.Context, evt OrderPlaced) error
 }
 ```
 
@@ -365,33 +321,59 @@ func (r *OrderRepo) GetByID(ctx context.Context, id string) (order.Order, error)
 }
 ```
 
+The same shape applies to non-database ports. `order.Publisher` is implemented by an adapter over `pkg/messaging`; the dependency points inward, from adapter to domain:
+
+```go
+// event/order.go — adapter implementing order.Publisher
+var _ order.Publisher = (*OrderPublisher)(nil)
+
+type OrderPublisher struct {
+    bus messaging.Publisher
+}
+
+func NewOrderPublisher(bus messaging.Publisher) *OrderPublisher {
+    return &OrderPublisher{bus: bus}
+}
+
+func (p *OrderPublisher) PublishOrderPlaced(ctx context.Context, evt order.OrderPlaced) error {
+    if err := p.bus.Publish(ctx, "order.placed", newOrderPlacedPayload(evt)); err != nil {
+        return fmt.Errorf("publish order.placed: %w", err)
+    }
+    return nil
+}
+```
+
 ### Domain Services
 
 Domain services contain business logic that does not naturally belong to a single entity. They orchestrate repositories and apply domain rules. Each public method is a use case.
 
 ```go
-// domain/order/service.go
+// domain/order/service.go -- depends only on ports declared in this package
 type Service struct {
     repo      Repository
-    publisher messaging.Publisher
+    publisher Publisher
 }
 
-func NewService(repo Repository, pub messaging.Publisher) *Service {
+func NewService(repo Repository, pub Publisher) *Service {
     return &Service{repo: repo, publisher: pub}
 }
 
 func (s *Service) PlaceOrder(ctx context.Context, req PlaceOrderRequest) (Order, error) {
-    order := NewOrder(req.UserID, req.Items)
-    if err := order.Validate(); err != nil {
+    o := NewOrder(req.UserID, req.Items)
+    if err := o.Validate(); err != nil {
         return Order{}, fmt.Errorf("validate order: %w", err)
     }
-    if err := s.repo.Save(ctx, order); err != nil {
+    if err := s.repo.Save(ctx, o); err != nil {
         return Order{}, fmt.Errorf("save order: %w", err)
     }
-    s.publisher.Publish(ctx, "order.placed", OrderPlacedEvent{OrderID: order.ID})
-    return order, nil
+    if err := s.publisher.PublishOrderPlaced(ctx, OrderPlaced{OrderID: o.ID}); err != nil {
+        return Order{}, fmt.Errorf("publish order placed: %w", err)
+    }
+    return o, nil
 }
 ```
+
+The publish error is handled, never discarded -- a swallowed publish leaves the rest of the system unaware of a state change that already happened. When the order must survive a broker outage, persist the event with the order instead and let a relay publish it (see the Outbox Pattern below).
 
 ---
 
@@ -423,17 +405,22 @@ type Event struct {
     Payload       any       // Event-specific data
 }
 
+// Wire payload -- built by the adapter from the domain event, so vendor and
+// transport concerns stay outside the domain package.
 type OrderPlacedPayload struct {
     OrderID    string
     UserID     string
-    TotalPrice decimal.Decimal
+    TotalMinor int64  // total in the currency's minor unit
+    Currency   string // ISO 4217 code
     ItemCount  int
 }
 ```
 
 ### Publisher/Subscriber Pattern
 
-Define publisher and subscriber as interfaces in `pkg/` so domain services depend on abstractions. Implementations can use NATS, Kafka, RabbitMQ, or even in-process channels -- the domain does not care.
+`pkg/messaging` defines the broker-facing interfaces used by the application and infrastructure layers. Implementations can use NATS, Kafka, RabbitMQ, or even in-process channels -- the rest of the system does not care.
+
+Domain services do **not** depend on these interfaces: `pkg/messaging` ships a broker client, so it fails the purity test and is off-limits to the domain. The domain declares its own port (`order.Publisher` above) and an adapter in `internal/event/` bridges the two.
 
 ```go
 // pkg/messaging/publisher.go
@@ -455,8 +442,8 @@ type Subscriber interface {
 Event subscribers are registered alongside HTTP routes in the handler layer. Each handler translates the raw event into a domain service call.
 
 ```go
-func RegisterEventHandlers(sub messaging.Subscriber, svc *app.Services) {
-    sub.Subscribe(ctx, "order.placed", func(ctx context.Context, data []byte) error {
+func RegisterEventHandlers(ctx context.Context, sub messaging.Subscriber, svc *app.Services) error {
+    return sub.Subscribe(ctx, "order.placed", func(ctx context.Context, data []byte) error {
         var evt OrderPlacedPayload
         if err := json.Unmarshal(data, &evt); err != nil {
             return fmt.Errorf("unmarshal order.placed: %w", err)
@@ -534,252 +521,9 @@ A monorepository hosts multiple independently deployable services that share inf
 
 ---
 
-## Go Best Practices
+## Go Coding Rules
 
-Conventions derived from [Effective Go](https://go.dev/doc/effective_go) that apply to all Go code.
-
-### Formatting
-
-Use `gofmt` (or `go fmt`) to format all code. All code must pass `gofmt` without changes. Tabs for indentation. No manual alignment of comments -- `gofmt` handles it.
-
-Opening braces must be on the same line as the control structure:
-
-```go
-// Correct
-if err != nil {
-    return err
-}
-
-// Wrong -- semicolon will be inserted before the brace
-if err != nil
-{
-    return err
-}
-```
-
-### Naming
-
-**Package names:** single lowercase word, no underscores, no mixedCaps. Short, concise, and evocative. The package name is part of the qualified name -- avoid stuttering (e.g., use `order.Service`, not `order.OrderService`).
-
-```go
-package order     // good
-package orderSvc  // bad -- mixedCaps
-package order_svc // bad -- underscore
-```
-
-**Exported names:** PascalCase (MixedCaps). **Unexported names:** camelCase (mixedCaps). Never use underscores in Go names.
-
-```go
-type OrderStatus string  // exported
-var defaultTimeout int   // unexported
-```
-
-**Getters:** do NOT use "Get" prefix. If the field is `owner`, the getter is `Owner()`, and the setter is `SetOwner()`.
-
-```go
-func (o *Order) Status() OrderStatus    { return o.status }  // getter -- no "Get"
-func (o *Order) SetStatus(s OrderStatus) { o.status = s }    // setter -- "Set" prefix
-```
-
-**Interfaces:** one-method interfaces are named by the method plus an `-er` suffix. Use canonical names: `Reader`, `Writer`, `Closer`, `Formatter`, `Stringer`.
-
-```go
-type Publisher interface {
-    Publish(ctx context.Context, topic string, event any) error
-}
-```
-
-### Error Handling
-
-Always check errors. Use the multi-value return idiom. Wrap errors with context using `fmt.Errorf` and `%w` for the wrapping verb. This preserves the error chain for `errors.Is` and `errors.As`.
-
-```go
-result, err := doSomething()
-if err != nil {
-    return fmt.Errorf("do something: %w", err)
-}
-```
-
-Define **sentinel errors** for known failure conditions. Use **custom error types** when callers need to extract structured information.
-
-```go
-var ErrNotFound = errors.New("not found")
-var ErrConflict = errors.New("conflict")
-
-type ValidationError struct {
-    Field   string
-    Message string
-}
-
-func (e *ValidationError) Error() string {
-    return fmt.Sprintf("validation: %s -- %s", e.Field, e.Message)
-}
-```
-
-Do not panic in library or service code. Panic is reserved for truly unrecoverable situations (e.g., programmer errors during initialization). Use `recover` only in top-level middleware to prevent one request from crashing the process.
-
-### Control Structures
-
-Omit unnecessary `else` when the `if` body ends in `return`, `break`, `continue`, or `goto`. This reduces nesting and improves readability (the "happy path" stays left-aligned).
-
-```go
-// Good -- early return, no else
-if err != nil {
-    return err
-}
-// continue with happy path
-
-// Bad -- unnecessary else
-if err != nil {
-    return err
-} else {
-    // happy path buried in else
-}
-```
-
-Use initialization statements in `if` for scoped variables:
-
-```go
-if err := validate(req); err != nil {
-    return fmt.Errorf("validate: %w", err)
-}
-```
-
-Switch on `true` for cleaner if-else-if chains. No automatic fall-through -- use comma-separated cases instead.
-
-### Functions
-
-Use multiple return values, especially `(result, error)`. Name return parameters only when it improves documentation -- avoid bare returns in non-trivial functions.
-
-Use `defer` for cleanup (closing files, releasing locks, finishing spans). Deferred calls execute in LIFO order. Arguments are evaluated when `defer` executes, not when the deferred function runs.
-
-```go
-func ReadConfig(path string) (Config, error) {
-    f, err := os.Open(path)
-    if err != nil {
-        return Config{}, fmt.Errorf("open config: %w", err)
-    }
-    defer f.Close()
-    // ... f is guaranteed to close on all return paths
-}
-```
-
-### Interfaces
-
-**Accept interfaces, return structs.** Define interfaces at the consumer side (in domain packages), not at the implementation side (in repository packages). Keep interfaces small -- one to three methods. Large interfaces are harder to implement and mock.
-
-```go
-// Defined where it is USED (domain), not where it is IMPLEMENTED (repository)
-type Repository interface {
-    GetByID(ctx context.Context, id string) (Order, error)
-    Save(ctx context.Context, order Order) error
-}
-```
-
-Use compile-time interface checks to verify implementations:
-
-```go
-var _ order.Repository = (*OrderRepo)(nil)
-```
-
-### Concurrency
-
-> Do not communicate by sharing memory; share memory by communicating.
-
-Use channels for coordination between goroutines. Use `sync.Mutex` only for protecting simple shared state within a single struct.
-
-Goroutines are cheap but not free. Always ensure goroutines can terminate -- pass `context.Context` and select on `ctx.Done()`. Never launch goroutines that run forever without a shutdown path.
-
-```go
-func (s *Scheduler) Run(ctx context.Context) error {
-    ticker := time.NewTicker(30 * time.Second)
-    defer ticker.Stop()
-    for {
-        select {
-        case <-ctx.Done():
-            return ctx.Err()
-        case <-ticker.C:
-            s.processJobs(ctx)
-        }
-    }
-}
-```
-
-### Data Structures
-
-Prefer `make` for slices, maps, and channels. Use `new` sparingly -- composite literals are more idiomatic. Design structs so the **zero value is useful**.
-
-```go
-users := make([]User, 0, 100)            // slice with capacity hint
-index := make(map[string]int)             // initialized map
-done := make(chan struct{})                // signal channel
-cfg := &Config{Timeout: 30 * time.Second} // composite literal
-```
-
-Slices are references to underlying arrays. Passing a slice to a function does not copy the data. Arrays are values and are rarely used directly -- prefer slices.
-
-### Commentary
-
-Document all exported types, functions, and methods with doc comments. The comment begins with the name of the thing being documented. Line comments (`//`) are the norm.
-
-```go
-// Order represents a customer purchase with one or more line items.
-type Order struct { ... }
-
-// PlaceOrder validates and persists a new order, then publishes an OrderPlaced event.
-func (s *Service) PlaceOrder(ctx context.Context, req PlaceOrderRequest) (Order, error) {
-```
-
-Do not comment obvious code. Comments should explain **WHY**, not **WHAT**.
-
-### Constants and Enums
-
-Use `iota` for enumerated constants. Start with an explicit zero value or use blank identifier to skip zero.
-
-```go
-type OrderStatus string
-
-const (
-    StatusPending   OrderStatus = "pending"
-    StatusConfirmed OrderStatus = "confirmed"
-    StatusShipped   OrderStatus = "shipped"
-    StatusCancelled OrderStatus = "cancelled"
-)
-```
-
-### Init Functions
-
-Use `init()` sparingly -- only for verifying program state or registering side effects (e.g., database drivers). Do not use `init()` for complex initialization that can fail at runtime. Prefer explicit initialization in `main()`.
-
-### Embedding
-
-Use struct embedding for **composition**, not inheritance. Embedded types promote their methods to the outer type. The receiver remains the inner type.
-
-```go
-type Base struct {
-    ID        string
-    CreatedAt time.Time
-    UpdatedAt time.Time
-}
-
-type Order struct {
-    Base
-    Status OrderStatus
-    Items  []OrderItem
-}
-```
-
-### Testing
-
-Test files live next to the code they test: `service_test.go` alongside `service.go`. Use **table-driven tests** for multiple scenarios. Use generated mocks for interface dependencies. Tag integration tests with build constraints.
-
-```go
-//go:build integration
-
-func TestOrderRepo_GetByID(t *testing.T) { ... }
-```
-
-Unit tests must not depend on external systems (databases, APIs, message brokers). Integration tests verify adapter implementations against real infrastructure.
+General Go rules — formatting, naming, errors, control structures, `defer`, interfaces, concurrency, data structures, comments, constants, `init`, embedding, and testing — live in **`Go Best Practice.md`**; this document covers server architecture only.
 
 ---
 
@@ -789,9 +533,9 @@ Unit tests must not depend on external systems (databases, APIs, message brokers
 2. **Define Module Boundaries** -- one package per feature under `domain/`.
 3. **Establish Domain Models** -- define DB entities in `domain/{feature}/model.go` with `db:""` tags only.
 4. **Define DTOs** -- request/response types in `dto/{feature}/request.go` and `response.go` with `json:""` tags only.
-5. **Define Ports** -- write Repository and other interfaces in `domain/{feature}/port.go`.
+5. **Define Ports** -- write the Repository and any outbound interfaces (e.g. Publisher) in `domain/{feature}/port.go`.
 6. **Implement Domain Service** -- business logic + DTO↔Model converters in `service.go`, tests in `service_test.go`.
-7. **Implement Repository** -- data access in `repository/{feature}.go` (no `_repo` suffix — package name provides context).
+7. **Implement Adapters** -- data access in `repository/{feature}.go` (no `_repo` suffix — package name provides context), messaging in `event/{feature}.go`.
 8. **Implement Handlers** -- HTTP/event handlers in `handler/{feature}.go` (bind DTOs, call service, return DTOs).
 9. **Wire Everything** -- DI in `app/app.go`, routes in `handler/router.go`.
 10. **Create Entry Point** -- minimal `main.go`: config -> infra -> DI -> serve.
