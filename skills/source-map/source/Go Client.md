@@ -5,30 +5,24 @@ This document covers architecture, patterns, and conventions specific to
 NOT a microservice mesh. This is a desktop/mobile application with a game loop,
 a render pipeline, and direct user interaction.
 
-See `Go Server.md` for general architecture (MDCA, DDD, Event-Driven, Go best
-practices). This document extends it with client-specific concerns.
+See `Go Server.md` for the server-side counterpart this document contrasts with — how a Go server
+realizes MDCA, plus its DDD and Event-Driven Design sections. The normative MDCA definition itself
+(principles `P1`–`P10`, layering, tactical rules; Appendix B names the client realization described
+here) lives in `mdca.md`, and general Go coding rules — formatting, naming, errors, concurrency —
+live in `Go Best Practice.md`. The Registry / Systems / assemblage vocabulary used throughout comes
+from `ECS.md`, whose conformance rules `ECS-C1`–`ECS-E1` govern component and system design inside a
+scene. This document extends all of them with client-specific concerns.
 
----
+## Reference Implementation (example only — not a conformance requirement)
 
-## Table of Contents
-
-1. [Client vs Server — Mindset Shift](#client-vs-server--mindset-shift)
-2. [Game Loop Architecture](#game-loop-architecture)
-3. [Application Shell](#application-shell)
-4. [Rendering Pipeline](#rendering-pipeline)
-5. [Coordinate Systems](#coordinate-systems)
-6. [Input Handling](#input-handling)
-7. [HiDPI and Scaling](#hidpi-and-scaling)
-8. [Asset Management](#asset-management)
-9. [Scene and State Management](#scene-and-state-management)
-10. [Camera](#camera)
-11. [UI Primitives and Theming](#ui-primitives-and-theming)
-12. [Window Management](#window-management)
-13. [Platform Abstraction](#platform-abstraction)
-14. [Configuration and Persistence](#configuration-and-persistence)
-15. [Mobile Builds](#mobile-builds)
-16. [Performance Budget](#performance-budget)
-17. [Client Anti-Patterns](#client-anti-patterns)
+This document is written against **one specific Ebiten/Go client codebase**. Its architecture is
+normative — the layering, the Update/Draw/Layout contract, the scene lifecycle, resource ownership,
+and the coordinate discipline apply to any Go client. Its **symbols are not**: `ui.S()`,
+`ui.DrawRoundedRect`, `resources.NewManager()`, `core.NewCamera`, `shapes.NewBox`,
+`scene.GetCursorPos()`, and `systems.Zone` are **that project's own packages**, not Ebiten APIs. In
+a new project they are contracts to build, not imports to call — **an audit MUST NOT file a gap
+against a project for lacking these packages, types, or function names**, and an agent MUST NOT
+import them.
 
 ---
 
@@ -504,18 +498,6 @@ ui.SetTheme(ui.ThemeDark)
 // Now ui.ColorBgPrimary, ui.ColorTextPrimary, etc. are dark-theme values
 ```
 
-| Variable | Purpose |
-|---|---|
-| `ColorBgPrimary` | Main background |
-| `ColorBgSecondary` | Card/panel background |
-| `ColorTextPrimary` | Primary text |
-| `ColorTextSecond` | Secondary/muted text |
-| `ColorAccentFocus` | Primary action color |
-| `ColorAccentBreak` | Secondary action color |
-| `ColorAccentDanger` | Destructive action color |
-| `ColorWindowBg` | Window background (with transparency) |
-| `ColorCardBg` | Card background (with transparency) |
-
 ### Transparency
 
 ```go
@@ -548,20 +530,6 @@ const (
 
 Client applications manage their own window — this is fundamentally different
 from server processes.
-
-### Window Properties
-
-| Property | Set At | Via |
-|---|---|---|
-| Size | Startup / runtime | `ebiten.SetWindowSize(w, h)` |
-| Title | Startup | `ebiten.SetWindowTitle(title)` |
-| Decoration | Startup | `ebiten.SetWindowDecorated(bool)` |
-| Resizable | Startup | `ebiten.SetWindowResizingMode(mode)` |
-| Fullscreen | Startup / runtime | `ebiten.SetFullscreen(bool)` |
-| Transparency | Startup | `RunGameOptions{ScreenTransparent: true}` |
-| Icon | Startup | `ebiten.SetWindowIcon([]image.Image)` |
-| Close handling | Startup | `ebiten.SetWindowClosingHandled(true)` |
-| Position | Runtime | `ebiten.SetWindowPosition(x, y)` |
 
 ### Window Close Handling
 
@@ -748,22 +716,3 @@ Margin:  ~1.5ms  (framework overhead, GC)
 | Global mutable state | Race conditions, hidden dependencies | Components in Registry, events via Bus |
 | One giant Draw function | Unmaintainable, no reuse | Multiple focused systems |
 | HTTP/REST patterns in client code | Wrong paradigm entirely | Game loop + ECS + Event Bus |
-
----
-
-## Quick Reference
-
-| Area | Client Pattern |
-|---|---|
-| Main loop | Update() → Draw() → Layout() at 60 FPS |
-| Input | RTree spatial queries, Zone-based dispatch |
-| Rendering | Two-pass: World (camera) + Screen (overlays) |
-| Coordinates | World space for storage, screen space for drawing |
-| Scaling | `ui.S()` for all measurements, auto-scaled fonts |
-| Assets | `resources.Manager` with async loading + progress |
-| State | Components in Registry, transitions via StateSystem |
-| Navigation | Scene Manager for top-level, state machines within |
-| Communication | Event Bus between modules, direct calls within |
-| Config | Local JSON files, defaults on error, separate from state |
-| Platform | Build-tagged packages, never raw OS calls in scenes |
-| Performance | 16.6ms budget, no allocs in Draw, no blocking I/O |

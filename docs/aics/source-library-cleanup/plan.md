@@ -403,7 +403,7 @@ stay green.
   - GIVEN the file WHEN `grep -n "ECS.md" "skills/source-map/source/Go Client.md"` runs THEN it returns at least one match.
   - GIVEN the file WHEN its architecture sections are read THEN the layering and scene-lifecycle guidance is unchanged.
 - References: `docs/aics/source-library-cleanup/aic.md`, `skills/source-map/source/ECS.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-15: Trim Go Library.md
 
