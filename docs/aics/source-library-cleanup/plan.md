@@ -649,7 +649,7 @@ stay green.
   - GIVEN the file WHEN `grep -n "Engineering Principles" "skills/source-map/source/AIC Template.md"` runs THEN the match includes the path `source/Engineering Principles.md`.
   - GIVEN the file WHEN its headings are read THEN all eight canvas sections and their emoji markers are unchanged.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-26: Trim the two policy framework documents and supply the missing template
 

@@ -20,7 +20,7 @@ Any organizational requirement that limits the software architects' freedom of d
 
 ### 🟢 Technical Constraints
 
-Any technical requirement that restricts the software architects' freedom of decision (at least follow Engineering Principles).
+Any technical requirement that restricts the software architects' freedom of decision (at least follow `source/Engineering Principles.md`).
 
 ### 🟢 Business Context
 
