@@ -447,7 +447,7 @@ stay green.
   - GIVEN the file WHEN `## Quick Reference` is read THEN all twelve rows are present.
   - GIVEN the file WHEN `grep -c "" "skills/source-map/source/Twelve-Factor App.md"` runs THEN the line count is below 240.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-17: Trim stoic.md to its agent-usable core
 
