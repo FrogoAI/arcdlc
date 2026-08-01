@@ -738,7 +738,7 @@ stay green.
   - GIVEN the file WHEN `grep -nE "^## (Philosophy|The TBD Bargain|Adoption Path|Further Reading)" skills/source-map/source/tbd.md` runs THEN it returns no matches — the narrative stays deleted.
   - GIVEN the file WHEN `grep -c "" skills/source-map/source/tbd.md` runs THEN the line count is at most 312.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-29: Library consistency sweep and version bump
 

@@ -22,6 +22,13 @@
 
 ---
 
+## When Not to Use TBD
+
+- **Open-source projects with untrusted contributors.** Contributors have no write access to trunk, so TBD's short-lived-branch rule does not apply to them — a fork lives as long as review takes. Use a fork-and-pull-request variant and merge accepted PRs to trunk often; the branch-lifetime rule still binds maintainers.
+- **Regulated systems requiring formal pre-merge review of every line.** Combine TBD with short-lived branches (≤ 2 days) plus mandatory PR review.
+
+---
+
 ## Cadence and Rhythm
 
 | Cadence | Target |
