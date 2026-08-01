@@ -53,80 +53,11 @@ There is exactly one rule: **use `gofmt`**. No exceptions, no arguments.
 
 ---
 
-## 3. Control Structures
-
-### If
-
-```go
-// GOOD: init statement + early return, no else
-if err := file.Chmod(0664); err != nil {
-    return fmt.Errorf("chmod: %w", err)
-}
-// success path continues here, unindented
-
-// BAD: unnecessary else
-if err != nil {
-    return err
-} else {
-    process()
-}
-```
-
-**Rule**: When the `if` body ends with `return`, `break`, `continue`, or `goto`, drop the `else`. Error cases return early; the happy path runs down the page.
-
-### For
-
-```go
-// Three forms
-for i := 0; i < n; i++ { }    // C-like
-for condition { }               // while
-for { }                         // infinite
-
-// Range
-for key, value := range m { }  // both
-for key := range m { }         // key only
-for _, value := range m { }    // value only
-```
-
-**Rule**: Range over strings iterates runes (Unicode code points), not bytes. Erroneous UTF-8 produces `U+FFFD`.
-
-### Switch
-
-```go
-// No automatic fall-through (unlike C)
-// Comma-separated cases
-switch c {
-case ' ', '\t', '\n':
-    return true
-}
-
-// Expression-less switch = if-else chain
-switch {
-case x < 0:
-    return -1
-case x > 0:
-    return 1
-default:
-    return 0
-}
-```
-
-### Type Switch
-
-```go
-switch v := value.(type) {
-case string:
-    fmt.Println(v) // v is string here
-case int:
-    fmt.Println(v) // v is int here
-default:
-    fmt.Printf("unexpected type %T\n", v)
-}
-```
-
----
-
 ## 4. Functions
+
+### Early Return
+
+**Rule**: When the `if` body ends with `return`, `break`, `continue`, or `goto`, drop the `else`. Error cases return early; the happy path runs down the page, unindented.
 
 ### Multiple Returns
 
@@ -216,23 +147,6 @@ defer mu.Unlock()
 
 ## 5. Data
 
-### new vs make
-
-| Function | Creates | Returns | Initializes |
-|----------|---------|---------|-------------|
-| `new(T)` | Any type | `*T` (pointer to zero value) | Zeros memory |
-| `make(T)` | Slice, map, channel ONLY | `T` (not pointer) | Initializes internal structure |
-
-```go
-s := make([]int, 10, 100)  // slice: len=10, cap=100
-m := make(map[string]int)  // map: empty, ready to use
-ch := make(chan int, 5)     // channel: buffered, cap=5
-
-p := new(bytes.Buffer)     // *bytes.Buffer, zero value = empty buffer, ready to use
-```
-
-**Rule**: Design types so the zero value is useful without constructors. `sync.Mutex{}` is unlocked. `bytes.Buffer{}` is an empty buffer. `[]int(nil)` is a valid empty slice.
-
 ### Slices
 
 | Rule | Practice |
@@ -252,23 +166,6 @@ p := new(bytes.Buffer)     // *bytes.Buffer, zero value = empty buffer, ready to
 | Nil map reads return zero values | But writing to a nil map panics -- always `make` or use literal |
 | Maps as sets | `seen := map[string]bool{}; seen[x] = true` |
 
-### Composite Literals
-
-```go
-// Struct with named fields (order doesn't matter, missing fields zero-valued)
-return &File{fd: fd, name: name}
-
-// Slice literal
-primes := []int{2, 3, 5, 7, 11}
-
-// Map literal
-m := map[string]int{
-    "one":   1,
-    "two":   2,
-    "three": 3,
-}
-```
-
 ---
 
 ## 6. Methods
@@ -286,6 +183,10 @@ m := map[string]int{
 - If ANY method has a pointer receiver, ALL methods should use pointer receiver (consistency).
 - Methods can be defined on any named type, not just structs.
 
+### String() Method
+
+**Danger**: Never call `Sprintf` with `%s` on the receiver inside `String()` -- infinite recursion. Convert to the base type first: `fmt.Sprintf("%s", string(t))`.
+
 ---
 
 ## 7. Interfaces
@@ -297,7 +198,6 @@ m := map[string]int{
 | Small interfaces | 1-2 methods ideal. `io.Reader`, `io.Writer`, `error`. |
 | Accept interfaces, return structs | Parameters = abstract, returns = concrete. |
 | Define at the consumer | The package that USES the behavior defines the interface it needs. Not the provider. |
-| Don't export the type if it only implements an interface | Export the interface, return it from constructors. Hide the concrete type. |
 | Implicit satisfaction | No `implements` keyword. A type satisfies an interface by having the methods. |
 
 ### Type Assertions
@@ -510,33 +410,6 @@ Design types so the zero value is useful:
 | Safe uses | Register drivers, set defaults, validate compile-time constants. |
 | Multiple init per file | Allowed, but keep it simple. |
 | Init order | Imported packages first, then package-level vars, then `init()`. |
-
----
-
-## 12. Printing
-
-### Format Verbs
-
-| Verb | Use |
-|------|-----|
-| `%v` | Default format for any value |
-| `%+v` | Struct fields with names |
-| `%#v` | Full Go syntax representation |
-| `%T` | Type of the value |
-| `%q` | Quoted string |
-| `%x` | Hex (works on strings, byte slices, ints) |
-| `%d` | Integer (signedness from type, not format) |
-| `%s` | String or `[]byte` |
-
-### String() Method
-
-```go
-func (t MyType) String() string {
-    return fmt.Sprintf("MyType{name: %s, value: %d}", t.name, t.value)
-}
-```
-
-**Danger**: Never call `Sprintf` with `%s` on the receiver inside `String()` -- infinite recursion. Convert to the base type first: `fmt.Sprintf("%s", string(t))`.
 
 ---
 

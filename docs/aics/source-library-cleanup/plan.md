@@ -275,7 +275,7 @@ stay green.
   - GIVEN the file WHEN `grep -c "zero value is useful" "skills/source-map/source/Go Best Practice.md"` (case-insensitive) runs THEN the count is 1.
   - GIVEN the file WHEN `## 2. Naming`, `## 7. Interfaces`, `## 9. Concurrency`, and `## 10. Errors` are read THEN each is still present in full.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-10: Trim Clean Code.md and fix its contradictions
 
