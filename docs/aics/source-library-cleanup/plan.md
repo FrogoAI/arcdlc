@@ -223,7 +223,7 @@ stay green.
   - GIVEN `skills/aic/SKILL.md` WHEN its format table is read THEN the `arc42` row's template cell names `Arc42.md` only.
   - GIVEN `du -sk skills/source-map/source` WHEN compared to before THEN it is at least 900 KB smaller.
 - References: `docs/aics/source-library-cleanup/aic.md`, `docs/adr/0009-arc42-source-is-self-sufficient.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-8: Deduplicate and correct Go Server.md
 

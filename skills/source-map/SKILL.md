@@ -50,7 +50,7 @@ when it is absent.
 |---------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
 | AIC or Architecture Inception Canvas                          | `source/AIC Template.md`                                                                              |
 | ADR or architecture decision record                           | `source/ADR.md`                                                                                       |
-| Architecture documentation                                    | `source/Arc42.md`, `source/arc42/arc42-template-EN.md`                                                |
+| Architecture documentation                                    | `source/Arc42.md`                                                                                     |
 | Enterprise architecture, TOGAF, or ArchiMate                  | `source/TOGAF.md`                                                                                     |
 | Tech stack decisions                                          | `source/Tech Stack Canvas.md`, `source/Tech Stack Canvas Original.md`                                 |
 | Go server architecture                                        | `source/Go Server.md`                                                                                 |

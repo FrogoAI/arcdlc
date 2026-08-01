@@ -34,7 +34,7 @@ the template through the sibling `source-map` skill of this bundle (from this fi
 | Argument | Output file | Template in `../source-map/source/` |
 | --- | --- | --- |
 | *(none)* or `aic` | `docs/aics/<slug>/aic.md` | `AIC Template.md` |
-| `arc42` | `docs/aics/<slug>/arc42.md` | `Arc42.md`, `arc42/arc42-template-EN.md` |
+| `arc42` | `docs/aics/<slug>/arc42.md` | `Arc42.md` |
 | `togaf` | `docs/aics/<slug>/togaf.md` | `TOGAF.md` |
 | `c4` | `docs/aics/<slug>/c4.md` | `C4.md` |
 | `adr` | `docs/adr/NNNN-<title>.md` (global) | `ADR.md` |
