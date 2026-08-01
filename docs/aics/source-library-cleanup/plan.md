@@ -55,7 +55,7 @@ stay green.
   - GIVEN the redacted file WHEN `grep -nE "\| (Ariel|Greg|Maxim|Kate|Petro|Galya|David|Vince|Mauricio) " "skills/source-map/source/Workflow Policy.md"` runs THEN it returns no matches.
   - GIVEN the redacted file WHEN its `## Scope` section is read THEN the nine roles are still listed and the section still states who the policy applies to.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-2: Delete Task Decomposition and Jira Sync.md
 

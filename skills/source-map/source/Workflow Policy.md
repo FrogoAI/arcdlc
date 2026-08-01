@@ -33,19 +33,17 @@ Work must not start unless the team understands the product outcome, acceptance 
 
 ## Scope
 
-This policy applies to the following team members and roles:
+This policy applies to the following team roles:
 
-| Name | Role |
-| :---- | :---- |
-| Ariel | CTO |
-| Greg | DevOps Engineer |
-| Maxim | Engineering Team Lead |
-| Kate | Fullstack Engineer |
-| Petro | AQA Engineer |
-| Galya | Project Manager |
-| David | Product Owner |
-| Vince | Frontend Engineer |
-| Mauricio | Backend Engineer |
+- CTO
+- DevOps Engineer
+- Engineering Team Lead
+- Fullstack Engineer
+- AQA Engineer
+- Project Manager
+- Product Owner
+- Frontend Engineer
+- Backend Engineer
 
 The policy applies to:
 
@@ -67,7 +65,7 @@ This policy operationalizes the following materials:
 - `source/Engineering Principles.md` (POL-ENG-001) for engineering, testing, review, deployment, branch, API, and NATS standards.
 - `source/AIC Template.md` for Architecture Inception Canvas structure.
 - `source/Tech Stack Canvas.md` for technology decision structure.
-- `github.com/MetricAid/k8s` repo, `proxy.md`, for current Kubernetes frontend migration and proxy deployment rules.
+- The organization's `<org>/k8s` repo, `proxy.md`, for current Kubernetes frontend migration and proxy deployment rules.
 - Trunk-Based Development reference: https://trunkbaseddevelopment.com/
 
 ## Definitions
@@ -554,10 +552,10 @@ Environment mapping:
 
 | Environment | Domain | Cluster |
 | :---- | :---- | :---- |
-| dev | `app.dev.metricaid.ca` | dev EKS cluster, `dev` namespace |
-| stage | `app.stg.metricaid.ca` | dev EKS cluster, `stage` namespace |
-| beta | `app.beta.metricaid.com` | prod EKS cluster, `beta` namespace |
-| prod | `app.metricaid.com` | prod EKS cluster, `prod` namespace |
+| dev | `app.dev.<domain>` | dev EKS cluster, `dev` namespace |
+| stage | `app.stg.<domain>` | dev EKS cluster, `stage` namespace |
+| beta | `app.beta.<domain>` | prod EKS cluster, `beta` namespace |
+| prod | `app.<domain>` | prod EKS cluster, `prod` namespace |
 
 Legacy upstream mapping:
 
@@ -565,8 +563,8 @@ Legacy upstream mapping:
 | :---- | :---- |
 | dev | `<IP-HERE>` until the DevOps Engineer provides the real IP |
 | stage | `<IP-HERE>` until the DevOps Engineer provides the real IP |
-| beta | `52.60.108.117` |
-| prod | `52.60.174.103` |
+| beta | `<beta-host>` |
+| prod | `<prod-host>` |
 
 Policy:
 
