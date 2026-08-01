@@ -491,7 +491,7 @@ stay green.
   - GIVEN the file WHEN its numbered sections are read THEN they run 1–7 with no gaps, and the Rumelt strategy, standardize-by-default, and values-quality-test content is present.
   - GIVEN the file WHEN `grep -nE "Hiring System|Onboarding|Culture Surveys|Hub Office|First 90 Days" "skills/source-map/source/CTO Methodology Guide.md"` runs THEN it returns no matches.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-19: Delete Tech Stack Canvas Original.md
 
