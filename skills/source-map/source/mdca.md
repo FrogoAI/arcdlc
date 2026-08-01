@@ -1,196 +1,378 @@
-# Modular Domain-Centric Architecture (MDCA)
+# Modular Domain-Centric Architecture (MDCA) — Standard
 
-**Source**: Internal architectural method developed for this workspace's Go services and clients. Synthesizes Domain-Driven Design (Eric Evans, 2003), Clean Architecture (Robert C. Martin, 2017), Hexagonal/Ports-and-Adapters (Alistair Cockburn, 2005), and Event-Driven Design — adapted for Go's package model and the workspace's monorepository convention.
-**Adaptation**: This document is the **canonical reference** for MDCA. Per-application specifics live in **Go Server.md**, **Go Client.md**, and **Go Library.md**. Aligned with Engineering Principles (POL-ENG-001), Clean Code, SOLID (`solid.md`), Twelve-Factor App, and Policy of Initiatives (POL-TECH-001).
-
----
-
-## Preamble
-
-Why do we make an application? **To solve business needs.**
-
-Software architecture is a tool that helps us reach those business needs. It is not about where to put files, how many interfaces to create, or how cleverly we abstract. It is about **efficiently solving a given business need**.
-
-The [Quality Goal](https://quality.arc42.org/home-new) is one of the architecture characteristics we define for each initiative. Choosing an architecture is not a one-time decision for all applications:
-
-- If quality goals are **efficiency, reliability, maintainability** → some coupling is acceptable.
-- If quality goals are **flexibility, testability, modifiability** → coupling becomes a problem.
-
-MDCA is about **balance and mindset**. It keeps a similar structure across services with different architectures and even different technologies, helping teams build applications faster without over-engineering.
+- Version: 1.0
+- Status: Active
 
 ---
 
-## Purpose
+## Abstract
 
-Domain-centric architecture revolves around the **business domain** — modeling a company's actual workflows and behaviors. The architecture mirrors business operations, simplifying communication between development teams and business stakeholders.
+This document defines **Modular Domain-Centric Architecture (MDCA)** — a software architecture standard for building business applications, optimized for Go services and clients but applicable to any modern statically-typed language. MDCA is a synthesis and refinement of three established schools of thought: **Domain-Driven Design (DDD)**, **Hexagonal Architecture (Ports and Adapters)**, and **Clean Architecture**. It distills their durable contributions, removes ceremony that does not pay for itself in practice, and prescribes a consistent module layout that scales across teams and microservices.
 
-The main principle of MDCA is to create an **efficient and maintainable system based on independent domain modules** that solve exact business needs and allow easy maintenance without compounding complexity.
-
-MDCA separates infrastructure from domain modules **while preserving simplicity**. Some logic may live inside handlers, repositories, or other adapters when introducing an interface offers no real value. The business does not change communication parties frequently; if it does, we usually rewrite the entire service, and an additional abstraction layer does not help. Speculative abstraction costs more time ensuring compatibility than rewriting the component when the change actually arrives.
-
-> MDCA = "domain-first, pragmatic, modular." It is not Clean Architecture maximalism. It is not framework-driven hexagonal purity. It is the **minimum structure that makes a domain testable, replaceable at the edges, and aligned with the business**.
+MDCA does not invent new ideas. It standardizes a pragmatic application of existing ones.
 
 ---
 
-## Core Philosophy
+## 1. Conformance and Requirement Levels
 
-1. **Business domain centricity** — model actual business workflows, not technical layers.
-2. **Domain-Driven Design at the core** — bounded contexts, ubiquitous language, entities, value objects, domain events.
-3. **Add functionality / flexibility only when it is needed** — YAGNI is not optional.
-4. **Do not add abstraction before you need it** — the second concrete need justifies the interface, not the first.
-5. **Independent modules** — each domain module is replaceable without touching the others.
-6. **Predictable structure across services** — consistency across the monorepo is a feature, not a constraint.
-7. **Edges are replaceable, the center is durable** — infrastructure changes; the domain endures.
+This document is the single normative source for MDCA. It uses the key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** as defined in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119), to indicate requirement levels.
+
+A codebase is **MDCA-conformant** if it satisfies all **MUST** clauses in §6 and §7. Codebases that satisfy the **SHOULD** clauses additionally are **MDCA-recommended**.
+
+Section, clause, and rule numbers are stable citation anchors: cite a principle clause as `P3.2` and a tactical rule as `§8.6`. §2, §5, and §14 were retired; their absence is intentional and the surviving numbers were not shifted.
 
 ---
 
-## Quality Goals
+## 3. Terminology
 
-| Prefer | Over |
-|--------|------|
-| Performance efficiency | Flexibility |
-| Reliability | Transferability |
-| Maintainability | Compatibility |
-
-> When a quality goal is contested, prefer the left column. If a real, present-day need shifts the balance, document it in the initiative's AIC and proceed.
-
----
-
-## Key Principles (priority order)
-
-| # | Principle | What it means in MDCA |
-|---|-----------|------------------------|
-| 1 | **Performance by Design** | Choose data shapes, transports, and storage that fit the workload. Don't optimize prematurely; don't pessimize structurally. |
-| 2 | **KISS** | Efficient, smart, readable — *not* simplistic. Solve the actual problem. |
-| 3 | **DRY** | Each piece of business knowledge has one authoritative representation. Mechanical duplication across layers (DTO/model/db) is fine; **conceptual duplication** is not. |
-| 4 | **MDCA** | Modular layout around bounded contexts. See **Building Blocks** below. |
-| 5 | **DDD** | Applied pragmatically — bounded contexts, entities, value objects, domain events. Skip aggregates / repositories / specifications when they add ceremony without value. |
-| 6 | **Clean Code** | Small functions, intention-revealing names, no commented-out code. See **Clean Code.md**. |
-| 7 | **Event-driven internal communication** | NATS for cross-service events inside the monorepo. |
-| 8 | **REST + backoff for external integrations** | Synchronous, resilient, well-versioned. |
+| Term | Definition |
+|------|------------|
+| **Domain** | The problem space — the business operations the software exists to support. |
+| **Bounded Context** | A delimited region of the domain in which a single ubiquitous language and model apply consistently. |
+| **Ubiquitous Language** | The vocabulary shared by domain experts and engineers, expressed identically in conversation, code, and documentation. |
+| **Module** | An independently replaceable unit of code that owns its data and exposes a stable contract. In MDCA, the canonical module is one bounded context. |
+| **Port** | An interface declared by the domain that names a capability it requires from infrastructure. |
+| **Adapter** | A concrete implementation of a port; lives outside the domain. |
+| **Composition Root** | The single location where concrete adapters are instantiated and injected into the domain. |
+| **Domain Event** | A past-tense fact about something that has occurred in the domain, immutable after publication. |
+| **Application Service** | A coordinator that translates external requests into domain operations and manages the boundaries of a single use case. |
 
 ---
 
-## Building Blocks
+## 4. Design Goals
 
-MDCA structures every Go application around five conceptual layers. Their physical realization differs between **server**, **client**, and **library** (see the per-target documents), but the layering is the same.
+MDCA-conformant systems prioritize, in order:
 
-### Layer 1 — Domain (Core)
+1. **Performance efficiency** — the architecture imposes no overhead the workload does not require.
+2. **Reliability** — the system behaves predictably under stress and failure.
+3. **Maintainability** — change in one place does not ripple into unrelated places.
 
-The heart. Contains:
-- **Models** (entities, value objects)
-- **Domain services** (business logic, use cases)
-- **Ports** (interfaces describing what the domain needs from infrastructure)
-- **Domain events** (facts about state changes)
-
-**Rules:**
-- Zero imports of infrastructure (no `database/sql`, no `net/http`, no broker SDKs, no logger libraries except standard `log/slog` if needed for structured fields).
-- Defines the interfaces it depends on (DIP — see `solid.md`).
-- Pure Go, easily unit-testable, deterministic.
-
-### Layer 2 — Application Wiring
-
-Composition root. A small set of structs and constructors that instantiate domain services with concrete adapters injected.
-- Server: `internal/app/app.go` — DI container.
-- Client: bootstrap in `cmd/<client>/main.go` plus runtime registration of plugins/systems.
-- Library: not applicable (libraries don't compose; consumers do).
-
-### Layer 3 — Adapters (Infrastructure)
-
-Implementations of the ports declared by the domain.
-- **Repositories** — persistence (Postgres, Redis, file).
-- **Publishers / subscribers** — event bus (NATS).
-- **External clients** — REST, gRPC.
-- **Notifiers** — email, push, SMS.
-
-**Rules:**
-- Adapters import the domain (to satisfy its interfaces). The domain does **not** import adapters. Imports point inward.
-- One adapter package per external concern. No `util`/`common`/`misc`.
-
-### Layer 4 — Presentation / Transport
-
-Translates external inputs (HTTP requests, message envelopes, UI events) into domain service calls and formats responses.
-- Server: handlers + DTOs.
-- Client: input systems, UI controllers.
-- Library: public API surface (`pkg/<lib>`).
-
-**Rules:**
-- Handlers receive DTOs, never models.
-- Repositories return models, never DTOs.
-- DTOs and models are **separate types**, even when fields look identical. They evolve on different cadences.
-
-### Layer 5 — Cross-Cutting (Shared)
-
-Infrastructure utilities that any service may use: logger, config loader, HTTP framework wrapper, DB connection helper.
-- Lives in `pkg/` for the monorepo.
-- Must be genuinely reused by ≥ 2 services.
-- No business logic.
+When tension arises between these goals and *flexibility*, *transferability*, or *compatibility*, the goals above prevail unless an architectural exception is documented in the initiative's design record.
 
 ---
 
-## The Dependency Rule
+## 6. Principles (Normative)
 
-> Imports flow **inward**: presentation → application → domain. Adapters import domain. Domain imports nothing from outer layers. `pkg/` is sideways and may be imported by anything except domain (ideally even domain avoids it).
+A conformant codebase **MUST** satisfy every clause in this section. Each clause carries a citable anchor of the form `P<principle>.<clause>`.
+
+### P1 — Domain Centricity
+
+| Clause | Requirement |
+|--------|-------------|
+| `P1.1` | Code **MUST** be organized around business capabilities, not technical layers. |
+| `P1.2` | Top-level groupings such as `controllers/`, `models/`, or a flat `services/` dump **MUST NOT** be the primary organizing structure. |
+| `P1.3` | The primary organizing unit **MUST** be the bounded context. |
+
+### P2 — Ubiquitous Language
+
+| Clause | Requirement |
+|--------|-------------|
+| `P2.1` | Types, methods, packages, and tests **MUST** use the vocabulary of domain experts. |
+| `P2.2` | When the business term is awkward in code, the awkward term **MUST** be preferred over a translated euphemism. |
+| `P2.3` | Generic names such as `Manager`, `Processor`, `Data`, `Info`, `Util` **MUST NOT** be used as type names within the domain. |
+
+### P3 — Dependency Inversion
+
+| Clause | Requirement |
+|--------|-------------|
+| `P3.1` | Source-code dependencies **MUST** flow inward: presentation depends on application, application depends on domain. |
+| `P3.2` | The domain layer **MUST NOT** import infrastructure. Whether a given package counts as infrastructure is decided by the purity test in §7.1, not by the folder it lives in. |
+| `P3.3` | Adapters **MUST** import the domain to satisfy its ports; the reverse is forbidden. |
+
+### P4 — Modular Independence
+
+| Clause | Requirement |
+|--------|-------------|
+| `P4.1` | Each bounded context **MUST** be replaceable without modification to other bounded contexts. |
+| `P4.2` | Cross-context type sharing **MUST NOT** occur — when two contexts model "the same" concept, each defines its own struct. |
+
+### P5 — Pragmatic Abstraction
+
+| Clause | Requirement |
+|--------|-------------|
+| `P5.1` | Abstractions **MUST NOT** be introduced before a second concrete need exists. |
+| `P5.2` | An interface with a single implementation **SHOULD** be deleted, with the concrete type used directly, until a second implementation appears. |
+
+### P6 — Explicit Composition
+
+| Clause | Requirement |
+|--------|-------------|
+| `P6.1` | Concrete adapters **MUST** be instantiated in a single composition root (in Go services: `cmd/<svc>/main.go` and `internal/app/`). |
+| `P6.2` | Service locators, global containers, and `init()`-based dependency wiring **MUST NOT** be used. |
+
+### P7 — Event-Driven Internal Communication
+
+| Clause | Requirement |
+|--------|-------------|
+| `P7.1` | Within a system of services, cross-context communication **SHOULD** occur via domain events on a message broker (NATS in the reference implementation). |
+| `P7.2` | Synchronous cross-context calls **MAY** be used where latency or atomicity demands them, but **MUST** be documented in the initiative's design record. |
+
+### P8 — Anticorruption at External Boundaries
+
+| Clause | Requirement |
+|--------|-------------|
+| `P8.1` | External integrations (third-party SDKs, vendor APIs) **MUST** be encapsulated in adapter packages that translate between vendor types and domain types. |
+| `P8.2` | Vendor types **MUST NOT** appear in domain signatures. |
+
+### P9 — DTO/Model Separation
+
+| Clause | Requirement |
+|--------|-------------|
+| `P9.1` | Types crossing the transport boundary (HTTP, gRPC, events) **MUST** be distinct from domain entities and value objects. |
+| `P9.2` | DTOs **MUST NOT** carry persistence tags (`db:""`); domain models **MUST NOT** carry transport tags (`json:""`, protobuf tags). |
+
+### P10 — Quality-Goal Discipline
+
+| Clause | Requirement |
+|--------|-------------|
+| `P10.1` | When a design choice trades the goals in §4 against flexibility/transferability/compatibility, the §4 goals **MUST** prevail unless a deliberate exception is recorded in the initiative's Architecture Inception Canvas. |
+
+---
+
+## 7. Layering and Layout (Normative)
+
+### 7.1 Layers
+
+A conformant codebase **MUST** distinguish the following layers:
+
+| Layer | Contents | Imports allowed |
+|-------|----------|-----------------|
+| **Domain** | Entities, value objects, ports, domain events, domain services | Pure packages only — see the purity test below |
+| **Application** | Composition root, dependency wiring, use-case orchestration when not collapsed onto domain methods | Domain, infrastructure adapters |
+| **Infrastructure** | Repository implementations, brokers, external clients, ACLs | Domain (to satisfy ports), shared infra packages |
+| **Presentation** | Handlers, DTOs, routers, UI input systems | Application, domain (read-only) |
+| **Shared Infrastructure** | Cross-cutting utilities (logger, config, HTTP framework wrapper) | No business logic; no service-internal imports |
+
+**Purity test for domain imports** (referenced by `P3.2`). A package is importable by the domain when **both** hold:
+
+1. its own imports are confined to the standard library, transitively — no third-party SDK, and no other project package that itself fails this test; and
+2. it performs no I/O and holds no mutable global state — no network, no filesystem, no `database/sql`, no process or environment access.
+
+The folder a package lives in is not the test. A package under `pkg/` **MAY** be imported by the domain when it passes both conditions, and a package anywhere **MUST NOT** be imported by the domain when it fails either. Purity is transitive and **MUST** be re-checked when an imported package's own import list changes: a pure package that later grows an HTTP client becomes an illegal domain import.
+
+**Controllable time.** A domain that needs controllable time **MUST** declare a clock port and receive an implementation from the composition root. Importing a concrete clock package that passes the purity test is a testability decision, not a layering violation.
+
+### 7.2 Reference Layout (Go Server)
 
 ```
-     ┌──────────────────────────────────────────┐
-     │         Presentation / Transport         │
-     │   handlers, DTOs, routers, UI systems    │
-     └──────────────────────────────────────────┘
-                       │ depends on ↓
-     ┌──────────────────────────────────────────┐
-     │         Application / Wiring             │
-     │   DI container, composition root         │
-     └──────────────────────────────────────────┘
-                       │ depends on ↓
-     ┌──────────────────────────────────────────┐
-     │              DOMAIN (Core)               │
-     │   models, services, ports, events        │
-     │              (no infra imports)          │
-     └──────────────────────────────────────────┘
-                       ↑ depends on
-     ┌──────────────────────────────────────────┐
-     │           Adapters (Infra)               │
-     │   repositories, publishers, ext. clients │
-     └──────────────────────────────────────────┘
+services/<svc>/
+  cmd/<svc>/main.go               # composition root entry
+  internal/
+    app/                          # DI container
+    domain/<feature>/             # one bounded context per package
+      model.go                    # entities, value objects (db:"" only)
+      port.go                     # interfaces the domain requires
+      service.go                  # use cases
+      service_test.go
+      events.go                   # domain events
+    dto/<feature>/                # request.go, response.go (json:"" only)
+    repository/<feature>.go       # adapter implementing port
+    handler/<feature>.go          # presentation
+pkg/                              # shared infrastructure
 ```
 
-Enforce with package-import linters (`go-arch-lint`, `depguard`) where possible.
+Single-domain services **MAY** flatten the `<feature>/` subdirectory.
+
+### 7.3 Module Granularity
+
+The canonical module unit is **one bounded context per package**. A bounded context **MUST**:
+
+1. Own its data; expose access only via its public API or domain events.
+2. Be deletable, rewritable, or replaceable without touching unrelated contexts.
+3. Be testable without instantiating unrelated contexts.
+
+A package that fails any of these tests is not a valid bounded context.
 
 ---
 
-## Bounded Contexts
+## 8. Tactical Rules (Normative)
 
-A **bounded context** is a clearly delimited slice of the domain in which one ubiquitous language applies. In MDCA, **one bounded context = one domain package** (e.g., `domain/order`, `domain/billing`, `domain/scheduling`).
+### 8.1 Entities
 
-**Rules:**
-- Do not share models across bounded contexts. If `Order` and `Catalog` both reference a "product," each defines its own struct (`order.OrderItem`, `catalog.Product`).
-- Cross-context communication happens via:
-  - **Events** (preferred, asynchronous, decoupled) — published by the source context.
-  - **Application service calls** (synchronous, when latency or atomicity demands it).
-- Never reach into another bounded context's repository.
+- An entity **MUST** be identified by a typed ID field (e.g., `OrderID`, not bare `string`).
+- Methods that mutate state **MUST** use pointer receivers; methods that read state **SHOULD** use value receivers.
+- Entity methods **MUST** express domain operations (`Cancel`, `Approve`, `Reschedule`); naive setters (`SetStatus`) **MUST NOT** be exposed when they bypass invariants.
+- Construction outside the entity's package **MUST** go through a constructor (`New<Type>`) that enforces all invariants.
+
+### 8.2 Value Objects
+
+- Value objects **MUST** be immutable after construction.
+- Value objects **MUST** validate at construction; an invalid value object **MUST NOT** be representable.
+- Domain concepts represented as primitives in transport (Money, Email, ID) **SHOULD** be wrapped in value objects within the domain.
+
+### 8.3 Aggregates
+
+- Aggregates **SHOULD NOT** be introduced unless a cross-entity invariant exists that can be violated under concurrent updates.
+- When used, the aggregate **MUST** have one root entity, and external code **MUST** access inner entities only via the root.
+- Aggregates **MUST** reference other aggregates by ID, not by pointer.
+
+### 8.4 Repositories
+
+- Repository interfaces **MUST** be declared in the domain package alongside the type they persist.
+- Repositories **MUST** accept and return domain types. ORM rows, DB driver types, and DTOs **MUST NOT** appear in repository signatures.
+- One repository **SHOULD** correspond to one aggregate root (or one entity, if no aggregate exists).
+- Generic `Save(any)` repositories **MUST NOT** be used.
+
+### 8.5 Domain Events
+
+- Domain events **MUST** be named in the past tense (`OrderPlaced`, `PaymentCompleted`).
+- Events **MUST** be published only after the corresponding state change is durably persisted. The transactional outbox pattern **SHOULD** be used when delivery guarantees matter.
+- Event payloads **MUST** carry the minimum data consumers need; entire entities **MUST NOT** be embedded.
+- Breaking changes to event shape **MUST** be expressed as new event types (`OrderPlacedV2`).
+
+### 8.6 Application Services
+
+- Application services **MAY** be implemented as methods on a domain service struct when the use-case has a single coordinator.
+- Application services **MUST** be the only place where transactions are opened.
+- Application services **MUST NOT** contain business invariants that belong on entities.
+
+### 8.7 Anticorruption Layers
+
+- Every external SDK or vendor API **MUST** be wrapped in an adapter package that exposes only domain types.
+- The adapter package **MUST** be the only place that imports the vendor SDK.
 
 ---
 
-## Modules: What Counts as a Module?
+## 9. Examples (Informative)
 
-MDCA's "M" — modular — defines the unit of independence:
+### 9.3 Composition Root (Go)
 
-| Scope | Module Unit | Replaceable Without Touching |
-|-------|-------------|------------------------------|
-| Server | A bounded context (`domain/<feature>`) + its adapters + its handlers | Other bounded contexts in the same service |
-| Server | A whole microservice in the monorepo | Other services |
-| Client | A subsystem (ECS system, plugin) | Other subsystems |
-| Library | A package (`pkg/<name>`) | Other packages of the library |
+```go
+// cmd/orderapi/main.go
+func main() {
+    cfg := config.Load()
+    db  := postgres.MustOpen(cfg.PG)
+    bus := nats.MustConnect(cfg.NATS)
 
-A module is independent when:
-1. It owns its data and exposes it only via its public API or via events.
-2. It can be deleted, rewritten, or replaced without touching unrelated modules.
-3. Its tests run without spinning up unrelated modules.
+    repo   := repository.NewOrderRepo(db)
+    outbox := repository.NewOutbox(db)
+    tx     := postgres.NewTxRunner(db)
+    svc    := app.NewOrderService(tx, repo, outbox)
+
+    go messaging.NewOutboxRelay(outbox, messaging.NewPublisher(bus)).Run()
+
+    h := handler.NewOrder(svc)
+    httpserver.Run(cfg.HTTP, h.Routes())
+}
+```
+
+### 9.4 Domain Event with Outbox
+
+The entity enforces its invariants; the transaction boundary follows §8.6.
+
+```go
+// internal/app/order.go — application service
+func (s *OrderService) Place(ctx context.Context, req PlaceRequest) (order.Order, error) {
+    o, err := order.NewOrder(req.UserID, req.Items)
+    if err != nil {
+        return order.Order{}, err
+    }
+    err = s.tx.Run(ctx, func(ctx context.Context) error {
+        if err := s.orders.Save(ctx, o); err != nil {
+            return err
+        }
+        return s.outbox.Append(ctx, order.OrderPlaced{
+            OrderID: o.ID, UserID: o.UserID, Total: o.Total,
+        })
+    })
+    if err != nil {
+        return order.Order{}, fmt.Errorf("place order: %w", err)
+    }
+    return o, nil
+}
+```
 
 ---
 
-## Server, Client, Library — How MDCA Specializes
+## 10. How to Adopt MDCA (Informative)
+
+A team migrating to MDCA from a layered ("controllers/services/repositories") codebase **SHOULD** follow this sequence:
+
+1. **Identify bounded contexts.** Listen for language shifts in stakeholder conversations. Group existing types by which stakeholder cares about them. Each group is a candidate context.
+2. **Carve packages by context.** Move types into `domain/<context>/` packages. Resist the urge to share types across new packages.
+3. **Extract ports.** For each external dependency the domain has (DB, broker, vendor SDK), declare an interface in the domain package.
+4. **Move infrastructure outward.** Implement each port in a peer package (`internal/repository/`, `internal/messaging/`). Replace direct imports of `database/sql` etc. from the domain.
+5. **Establish a composition root.** Centralize all `New*` calls in `cmd/<svc>/main.go` plus `internal/app/`.
+6. **Separate DTOs from models.** Wherever a model is serialized for transport, introduce a DTO and a converter.
+7. **Add a dependency-direction lint** (`go-arch-lint`, `depguard`) to prevent regression.
+8. **Wrap external SDKs in ACLs.** No third-party type may appear in a domain signature.
+9. **Audit ceremony.** Remove abstractions with one implementation. Remove specifications and factories that have no real load. Collapse use-case interactors onto service methods where appropriate.
+
+---
+
+## 11. Compliance Checklist
+
+A reviewer **MUST** verify each item before declaring a change MDCA-conformant:
+
+- [ ] All new types and methods use ubiquitous language. (P2)
+- [ ] Every package the domain imports passes the purity test of §7.1, transitively re-checked against that package's current import list. (P3, P8)
+- [ ] No bounded context imports types from another bounded context. (P4)
+- [ ] No interface introduced has only one implementation without a documented second use case on the horizon. (P5)
+- [ ] All adapter wiring lives in the composition root. (P6)
+- [ ] Cross-context communication uses events unless an exception is documented. (P7)
+- [ ] Every external SDK is wrapped in an ACL package. (P8)
+- [ ] DTOs carry only transport tags; models carry only persistence tags. (P9)
+- [ ] Entity invariants are enforced at construction and via domain methods, not setters. (§8.1)
+- [ ] Repository signatures use domain types, not driver or DTO types. (§8.4)
+- [ ] Domain events are past-tense, persisted-then-published, with minimal payload. (§8.5)
+
+---
+
+## 12. Anti-Patterns (Informative)
+
+The following patterns are non-conformant. Each row identifies the violated principle and the corrective action.
+
+| Anti-Pattern | Violates | Fix |
+|--------------|----------|-----|
+| `domain/common/` package | P4 | Distribute types into the contexts that own them. |
+| Domain importing `database/sql` | P3 | Define a port; move SQL to a repository. |
+| Vendor SDK type in domain method signature | P8 | Wrap in ACL adapter; expose domain type. |
+| `Manager`, `Processor`, `Util` type names in domain | P2 | Rename in business vocabulary. |
+| Anemic entity (struct + getters/setters, no behavior) | P1 | Move behavior onto the entity; replace setters with operations. |
+| Handler reading a domain model directly, with no DTO | P9 | Convert through a DTO at the transport boundary. |
+| Repository returning DTOs | §8.4 | Repositories accept and return domain models. |
+| Repository per database table | §8.4 | Repository per aggregate root. |
+| Generic `Save(any)` repository | §8.4 | Type-specific repositories. |
+| Event named `PlaceOrder` (imperative) | §8.5 | Rename to `OrderPlaced` (past tense). |
+| Event published before persistence commits | §8.5 | Persist-then-publish; outbox pattern if guaranteed delivery is required. |
+| `internal/services/` holding many files of mixed concerns | P1 | Split by domain feature, each as its own package. |
+| Cross-service import of `services/<a>/internal/...` from `services/<b>` | P4 | Communicate via events; expose a stable contract when data is needed. |
+| Composition root that constructs dozens of services in one file | P6 | Group by bounded context; introduce a sub-container per area. |
+| Service locator / global container | P6 | Constructor injection from composition root. |
+| Speculative interface with one implementation | P5 | Delete; reintroduce when a second implementation exists. |
+| Model carrying both `db:""` and `json:""` tags | P9 | Split into model and DTO. |
+
+---
+
+## 13. Exceptions
+
+A codebase **MAY** deviate from a **SHOULD** clause when a documented quality goal demands it. Deviations **MUST** be recorded in the initiative's Architecture Inception Canvas under *Architectural hypotheses* and reviewed at the next architecture review.
+
+A codebase **MUST NOT** deviate from a **MUST** clause without explicit standard amendment.
+
+---
+
+## Appendix A — Glossary of Layer Imports (Go)
+
+| From → To | Allowed? |
+|-----------|----------|
+| `cmd/<svc>` → `internal/app` | Yes |
+| `cmd/<svc>` → `internal/repository` | Yes (composition only) |
+| `internal/app` → `internal/domain/...` | Yes |
+| `internal/handler` → `internal/domain/...` | Yes (read-only or via app) |
+| `internal/repository` → `internal/domain/...` | Yes (to implement ports) |
+| `internal/domain/...` → `internal/repository` | **No** |
+| `internal/domain/...` → `internal/handler` | **No** |
+| `internal/domain/<a>` → `internal/domain/<b>` | **No** (cross-context) |
+| `internal/domain/...` → `database/sql`, `net/http`, vendor SDK | **No** |
+| `internal/domain/...` → `pkg/...` | Allowed when the target package is pure (§7.1); forbidden otherwise |
+| `internal/repository` → `internal/handler` | **No** |
+
+---
+
+## Appendix B — Server, Client, and Library Realizations (Informative)
+
+MDCA is the same architecture in all three targets. Only the realization changes.
 
 | Aspect | Go Server | Go Client | Go Library |
 |--------|-----------|-----------|------------|
@@ -202,89 +384,9 @@ A module is independent when:
 | **Quality goals** | Reliability + maintainability dominate | Performance dominates (frame budget, input latency) | Stability of public API + minimal deps |
 | **Reference doc** | `Go Server.md` | `Go Client.md` | `Go Library.md` |
 
-MDCA is the same architecture in all three. Only the realization changes.
-
 ---
 
-## Pragmatic DDD: What MDCA Adopts and What It Skips
-
-**Adopt:**
-- Bounded contexts → packages.
-- Ubiquitous language → use business terms in code, even when they're awkward.
-- Entities and value objects → plain Go structs.
-- Domain events → published when state changes succeed.
-- Repository interfaces → defined by the domain, implemented by infra.
-
-**Skip unless they pay for themselves:**
-- Aggregates (large object graphs with strict consistency boundaries) — only when concurrent invariant enforcement requires it.
-- Specifications (predicate objects) — usually a function literal is clearer.
-- Domain Services (in the DDD sense, distinct from application services) — usually collapses into the application service.
-- Hexagonal "primary vs secondary ports" terminology — call them what they are.
-
-> The test: if a DDD pattern does not improve testability, replaceability, or domain expressiveness for *this* initiative, do not adopt it.
-
----
-
-## Inter-Module Communication
-
-Within a service:
-- **Direct call** when modules are part of the same use case and atomicity matters.
-- **Domain event** when modules are reacting to a fact (loose coupling).
-
-Across services (in the monorepo):
-- **NATS events** — the default. Subjects follow the standard naming convention (see Engineering Principles POL-ENG-001).
-- **REST** — only for synchronous, request/response semantics (UI-driven flows, external clients).
-
-External integrations:
-- **REST + exponential backoff + idempotency keys**.
-- Wrap in a dedicated adapter package; never let a third-party SDK leak into the domain.
-
----
-
-## Folder Structure (server, canonical)
-
-See **Go Server.md** for full detail. The shape is:
-
-```
-services/<svc>/
-  cmd/<svc>/main.go
-  internal/
-    app/                     # composition root
-    domain/<feature>/        # one bounded context per package
-      model.go               # entities, value objects (db:"" only)
-      port.go                # interfaces the domain needs
-      service.go             # business logic + use cases
-      service_test.go
-      mocks/
-    dto/<feature>/           # request.go, response.go (json:"" only)
-    repository/<feature>.go  # adapter for the domain's port
-    handler/<feature>.go     # HTTP/gRPC/event presentation
-pkg/                         # shared infrastructure (logger, config, postgres helper, ...)
-```
-
-Single-domain services use a flat layout (no `<feature>/` subdir). Multi-domain services use the subdirectory shape above. See **Go Server.md → Folder Structure**.
-
----
-
-## Anti-Patterns
-
-| Anti-Pattern | Why it breaks MDCA | Fix |
-|--------------|--------------------|-----|
-| Domain package imports `database/sql`, `net/http`, or a broker SDK | Inverts the dependency rule | Define a port; move infra to an adapter package. |
-| `util`, `common`, `helpers`, `shared` packages | No bounded context = no responsibility | Move each helper to the package that owns the concept. |
-| Shared model used by `domain/order` and `domain/billing` | Couples bounded contexts; one change ripples | Each context defines its own struct, even if fields look identical. |
-| Handler reads from a model directly (no DTO) | Couples transport to persistence | Always pass through DTO converters in the service layer. |
-| Repository returns DTOs | Same problem in reverse | Repositories return domain models. |
-| `internal/services/` with 15 files of mixed concerns | Loss of bounded-context boundaries | Split by domain feature, each as its own package. |
-| Cross-service import of `services/svcA/internal/...` from `svcB` | Violates microservice boundary inside the monorepo | Communicate via events; if data is needed, expose a stable contract. |
-| Speculative interface in front of one implementation | Abstract before need | Delete the interface; reintroduce when a second implementation appears. |
-| Big-ball-of-mud `app.go` that constructs 80 services | Composition root has become its own untested layer | Group by bounded context; introduce subcontainers per area. |
-| "Domain service" that opens a DB transaction directly | Mechanism leaked into policy | Move transaction control to an application service or adapter. |
-| Event published before the state change is persisted | Listeners react to a fact that may roll back | Persist first, then publish (transactional outbox if guarantee is needed). |
-
----
-
-## MDCA, SOLID, and Clean Code Alignment
+## Appendix C — MDCA, SOLID, and Clean Code Alignment (Informative)
 
 | Principle | MDCA realization |
 |-----------|-------------------|
@@ -296,42 +398,4 @@ Single-domain services use a flat layout (no `<feature>/` subdir). Multi-domain 
 | **KISS / DRY** | One authoritative model per concept *within* a bounded context; mechanical layer-to-layer duplication is acceptable. |
 | **Clean Code** | Stepdown ordering inside files; small functions; no dead code; intention-revealing names match ubiquitous language. |
 | **Twelve-Factor** | Config at the composition root; logs to stdout; processes are stateless; backing services are attached resources via adapters. |
-| **TBD** | Bounded contexts are small enough to ship in 1–2 day branches; new behaviors land behind feature flags inside their context. |
-
----
-
-## Quick Self-Check
-
-Before merging a change in an MDCA codebase:
-
-1. **Bounded context** — Does this change belong entirely to one domain package? If it spans two, are they communicating via events or a clearly defined application service?
-2. **Imports point inward** — Does the domain import any adapter or framework? It must not.
-3. **Ports** — Did I add a new dependency? It should be expressed as an interface in the domain's `port.go`, with the implementation in an adapter package.
-4. **DTO vs model** — Does any DTO carry `db:""` tags or any model carry `json:""` tags? Separate them.
-5. **No util/common** — Did I add a helper somewhere generic? Move it to the package that owns the concept.
-6. **Event semantics** — If I'm publishing an event, does it represent a fact that already happened (past tense, e.g., `OrderPlaced`), persisted before publish?
-7. **Pragmatism** — Did I introduce an abstraction with only one implementation today? If yes, delete it until the second implementation arrives.
-
-If any answer is wrong, stop and reshape the change before merging.
-
----
-
-## When to Deviate from MDCA
-
-MDCA is the default. Deviate consciously when:
-- **Throughput-critical paths** require collapsing layers (e.g., zero-copy parsing directly into a transport buffer). Document the deviation in the initiative's AIC under *Architectural hypotheses*.
-- **One-off scripts / data migrations** — flat `cmd/<tool>/main.go` is fine; full layering is overkill.
-- **Spike / prototype** — skip ports and adapters until the spike validates the idea. Then either rewrite to MDCA or throw it away.
-- **External vendor SDK constraints** force tight coupling to a framework. Isolate the coupling at one adapter; do not let it spread.
-
-Document any deliberate deviation in the initiative's AIC and (if applicable) in the service's `CONTEXT.md`.
-
----
-
-## Further Reading
-
-- Eric Evans — *Domain-Driven Design: Tackling Complexity in the Heart of Software* (2003).
-- Vaughn Vernon — *Implementing Domain-Driven Design* (2013).
-- Robert C. Martin — *Clean Architecture* (2017), Chapters 17–22.
-- Alistair Cockburn — *Hexagonal Architecture* (2005, alistair.cockburn.us).
-- Cross-references in this workspace: **Go Server.md**, **Go Client.md**, **Go Library.md**, **Engineering Principles.md**, **Clean Code.md**, **solid.md**, **tbd.md**, **Twelve-Factor App.md**, **AIC Template.md**.
+| **Trunk-Based Development** | Bounded contexts are small enough to ship in 1–2 day branches; new behaviors land behind feature flags inside their context. |

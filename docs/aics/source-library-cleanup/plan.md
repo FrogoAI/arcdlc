@@ -173,7 +173,7 @@ stay green.
   - GIVEN the merged file WHEN `grep -c "^| \`P[0-9]" skills/source-map/source/mdca.md` or the P-clause list is read THEN `P1`–`P10` each carry citable clause anchors.
   - GIVEN the repo WHEN `grep -rn "mdca_standard" skills/` runs THEN it returns no matches.
 - References: `docs/aics/source-library-cleanup/aic.md`, `docs/adr/0007-mdca-standard-is-normative-single-document.md`, `docs/adr/0008-domain-imports-judged-by-purity-not-folder.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-6: Make Arc42.md able to generate a full arc42 document alone
 

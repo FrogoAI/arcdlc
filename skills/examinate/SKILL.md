@@ -22,9 +22,8 @@ not exist yet (a fresh audit, e.g. `mdca-audit`), confirm the slug with the user
 
 - With a standard as the second argument (e.g. `/arcdlc:examinate <slug> MDCA`): look the policy up in the sibling `source-map` skill's table
   (from this file: `../source-map/source/` in the plugin layout, `../arcdlc-source-map/source/` in flat installs)
-  and read every listed reference in full — e.g. MDCA → `mdca.md` +
-  `mdca_standard.md`; DDD → `ddd.md`; SOLID → `solid.md`; Go architecture → `Go Server.md` / `Go Client.md` /
-  `Go Library.md`.
+  and read every listed reference in full — e.g. MDCA → `mdca.md`; DDD → `ddd.md`; SOLID → `solid.md`;
+  Go architecture → `Go Server.md` / `Go Client.md` / `Go Library.md`.
 - With a project policy path as the second argument (e.g. `/arcdlc:examinate <slug> docs/policies/log-retention.md`,
   typically one authored by `/arcdlc:policy`): read that policy in full and extract its Allowed/Prohibited rules as the
   checkable rule set.

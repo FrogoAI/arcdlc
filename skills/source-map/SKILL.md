@@ -58,7 +58,7 @@ when it is absent.
 | Go libraries                                                  | `source/Go Library.md`                                                                                |
 | Go best practices or clean code                               | `source/Go Best Practice.md`, `source/Clean Code.md`                                                  |
 | KISS, simple design, modularity, or avoiding over-engineering | `source/KISS.md`, `source/Clean Code.md`, `source/Go Best Practice.md`                                |
-| MDCA                                                          | `source/mdca.md`, `source/mdca_standard.md`                                                           |
+| MDCA                                                          | `source/mdca.md`                                                                                      |
 | DDD                                                           | `source/ddd.md`                                                                                       |
 | SOLID                                                         | `source/solid.md`                                                                                     |
 | ECS                                                           | `source/ECS.md`                                                                                       |
