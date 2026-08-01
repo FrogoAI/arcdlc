@@ -692,7 +692,7 @@ stay green.
   - GIVEN the file WHEN `grep -nE "^## (Philosophy|The TBD Bargain|Adoption Path|TBD and the Workspace Methodologies|Further Reading)" skills/source-map/source/tbd.md` runs THEN it returns no matches.
   - GIVEN the file WHEN its branching, feature-flag, and release sections are read THEN they are present unchanged.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-28: Trim Conventional Commits.md and carry its attribution
 

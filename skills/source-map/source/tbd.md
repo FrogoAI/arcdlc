@@ -5,26 +5,6 @@
 
 ---
 
-## Philosophy
-
-Trunk-Based Development (TBD) is a source-control branching model in which **all developers commit to a single branch** ("trunk", typically `main`) at high frequency, behind continuous integration. Long-lived branches are forbidden. Releases are cut from trunk, never developed on side branches.
-
-**Core beliefs:**
-- Long-lived branches are the single largest source of integration pain. The cost of merging grows quadratically with branch lifetime.
-- Code that is not integrated does not exist. Working in isolation hides conflicts, dead code, and stale assumptions.
-- The release cadence is decoupled from the merge cadence by **feature flags**, not by branches.
-- A green trunk is a shared, non-negotiable invariant. If trunk is broken, everyone stops to fix it.
-
-**The TBD Bargain:**
-- You give up: long feature branches, big-bang merges, "I'll integrate later."
-- You get: continuous integration in the literal sense, fast feedback, near-zero merge conflicts, releasable trunk at all times, and the ability to deploy any commit.
-
-**When NOT to use TBD:**
-- Open-source projects with untrusted contributors — use a fork-and-PR variant (still short-lived branches, still merge to trunk often).
-- Regulated systems requiring formal pre-merge review of every line — combine TBD with **short-lived branches** (≤ 2 days) plus mandatory PR review.
-
----
-
 ## The Two Variants
 
 | Variant | Team Size | Mechanism | When |
@@ -307,34 +287,6 @@ TBD does not eliminate review; it constrains it.
 
 ---
 
-## Adoption Path (for a team migrating from GitFlow / long branches)
-
-1. **Week 1** — Turn on branch protection for `main`: required CI, no force-push, no direct admin override.
-2. **Week 1** — Set a **branch lifetime ceiling** (start at 5 days, ratchet down weekly).
-3. **Week 2** — Cap PR size at 800 LOC, then 400.
-4. **Week 2–4** — Introduce a feature-flag library. First flag for the next non-trivial feature.
-5. **Week 4** — Eliminate `develop`. Cut releases from `main`.
-6. **Month 2** — Reduce CI runtime below 10 min. This usually requires test parallelization and removing slow integration tests from the pre-merge stage.
-7. **Month 2** — Begin "branch by abstraction" for the largest pending refactor.
-8. **Month 3** — Audit flags. Remove every flag whose feature shipped. Set per-developer flag cap.
-
-Measure: branch lifetime, time-to-merge, CI runtime, time-to-restore-trunk, flag count. These are the leading indicators.
-
----
-
-## TBD and the Workspace Methodologies
-
-| Cross-cutting concern | TBD interaction |
-|-----------------------|-----------------|
-| **Twelve-Factor App** | Build/release/run separation aligns with TBD: trunk produces immutable artifacts; releases are flag-toggle config swaps. |
-| **MDCA / DDD** | Bounded contexts → packages → independent CI subsets in monorepos. Smaller scopes → smaller PRs → easier TBD. |
-| **Engineering Principles (POL-ENG-001)** | DRY and KISS support short PRs. No speculative abstraction supports decomposing changes. |
-| **Policy of Initiatives (POL-TECH-001)** | An initiative's plan.md should be merged to trunk in stages, each gated by a flag where appropriate. No "initiative branch." |
-| **Clean Code** | Small functions and clear boundaries are what make 400-LOC PRs feasible. |
-| **SOLID** (`solid.md`) | OCP via interfaces makes "branch by abstraction" mechanical: define the interface, implement variants in parallel commits. |
-
----
-
 ## Quick Self-Check
 
 Before pushing to `main` (or merging a short-lived branch):
@@ -347,13 +299,3 @@ Before pushing to `main` (or merging a short-lived branch):
 6. Will trunk still be deployable to production after this commit?
 
 If any answer is no, you are not doing TBD. Fix the answer, not the rule.
-
----
-
-## Further Reading
-
-- [trunkbaseddevelopment.com](https://trunkbaseddevelopment.com/) — Paul Hammant's reference site (canonical source for this document).
-- *Accelerate* (Forsgren, Humble, Kim, 2018) — DORA research linking TBD to elite delivery performance.
-- *Continuous Delivery* (Humble, Farley, 2010) — the deployment-pipeline foundation TBD assumes.
-- Martin Fowler — "FeatureToggle" (martinfowler.com) — flag taxonomy and lifecycle.
-- Cross-references in this workspace: **Twelve-Factor App.md**, **Engineering Principles.md**, **Go Server.md**, **Go Library.md**, **Policy of Initiatives.md**, **Clean Code.md**, **solid.md**.
