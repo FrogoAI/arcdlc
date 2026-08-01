@@ -564,7 +564,7 @@ stay green.
   - GIVEN `UML.md` WHEN `## Diagram Types Overview` is read THEN no row is labelled "rarely needed" or "not applicable".
   - GIVEN both files WHEN their remaining diagram sections are read THEN every DOT template still compiles as valid DOT.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-22: Trim BPMN.md and Flowchart.md
 

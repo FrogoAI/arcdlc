@@ -7,7 +7,7 @@
 
 ## When to Use UML
 
-UML diagrams supplement architecture documents (aic.md, arc42.md, tsc.md, togaf.md) when C4 or ArchiMate notation is insufficient for the level of detail needed. Use UML when you need to show:
+UML diagrams supplement architecture documents (aic.md, arc42.md, togaf.md) when C4 or ArchiMate notation is insufficient for the level of detail needed. Use UML when you need to show:
 
 - Internal behavior of a component (sequence, activity, state)
 - Class/struct relationships within a service
@@ -20,7 +20,7 @@ UML diagrams supplement architecture documents (aic.md, arc42.md, tsc.md, togaf.
 
 ## Diagram Types Overview
 
-UML has 14 diagram types in two categories:
+UML defines 14 diagram types in two categories; the nine that earn their place in initiative documentation are:
 
 ### Structure Diagrams (static, what exists)
 
@@ -30,9 +30,6 @@ UML has 14 diagram types in two categories:
 | **Component** | High-level module decomposition | Arc42 Section 5 (Building Block View). Alternative to C4 Container. |
 | **Deployment** | Physical/infrastructure mapping | Arc42 Section 7 (Deployment View). K8s nodes, databases, networks. |
 | **Package** | Grouping of elements | Go package dependencies. Monorepo structure visualization. |
-| **Object** | Instance-level snapshot | Rarely needed. Use for debugging or data flow examples. |
-| **Composite Structure** | Internal structure of a class/component | Rarely needed. Use Component instead. |
-| **Profile** | Stereotype extensions | Not applicable for our use. |
 
 ### Behavior Diagrams (dynamic, what happens)
 
@@ -43,18 +40,12 @@ UML has 14 diagram types in two categories:
 | **State Machine** | Lifecycle of an entity | Order states, payment states, list sync states. |
 | **Use Case** | Actor-system interactions | Stakeholder communication. Requirements overview in arc42 Section 1. |
 | **Communication** | Object interactions (spatial) | Alternative to sequence when topology matters more than order. |
-| **Interaction Overview** | High-level flow of interactions | Complex scenarios combining multiple sequence diagrams. Rarely needed. |
-| **Timing** | Time-constrained interactions | Real-time systems. SLA visualization. Rarely needed. |
 
 ---
 
 ## Most Used Diagrams (Priority Order)
 
 ### 1. Sequence Diagram
-
-**When**: Show how components interact in a specific scenario. Best for API flows, NATS message chains, request/response patterns.
-
-**Use in**: Arc42 Section 6 (Runtime View), AIC key flows, TSC sequence flow.
 
 **Elements**:
 
@@ -96,10 +87,6 @@ Partner        policy-api       MongoDB        NATS         list-manager
 
 ### 2. Component Diagram
 
-**When**: Show high-level module decomposition, provided interfaces, required interfaces, and dependencies between components.
-
-**Use in**: Arc42 Section 5 (Building Block View). Alternative/complement to C4 Container diagram.
-
 **Elements**:
 
 | Element | Symbol | Description |
@@ -138,10 +125,6 @@ digraph Component {
 ---
 
 ### 3. Activity Diagram
-
-**When**: Show workflow, algorithm, or business process as a flow of activities with decisions and parallel branches. More detailed than BPMN for technical flows.
-
-**Use in**: Arc42 Section 6 (complex algorithms), migration procedures, data pipeline steps.
 
 **Elements**:
 
@@ -191,10 +174,6 @@ digraph Activity {
 
 ### 4. State Machine Diagram
 
-**When**: Show the lifecycle of an entity — all valid states and transitions between them.
-
-**Use in**: Entity lifecycle documentation (order states, payment states, list sync states). Arc42 Section 8 (cross-cutting concepts).
-
 **Elements**:
 
 | Element | Symbol | Description |
@@ -233,57 +212,12 @@ digraph StateMachine {
 
 ### 5. Deployment Diagram
 
-**When**: Show infrastructure topology — nodes, devices, execution environments, and how artifacts map to them.
-
-**Use in**: Arc42 Section 7 (Deployment View). Shows K8s clusters, database nodes, network zones.
-
-**Elements**:
-
-| Element | Symbol | Description |
-|---------|--------|-------------|
-| Node | 3D box | Physical or virtual machine, container, K8s pod |
-| Execution environment | Node with `<<execution environment>>` | Runtime (JVM, container, K8s namespace) |
-| Artifact | Rectangle with `<<artifact>>` | Deployable unit (Docker image, binary, config) |
-| Communication path | Line between nodes | Network connection (label with protocol) |
-| Deployment | Dashed arrow | Artifact deployed to node |
-
-**DOT template**:
-
-```dot
-digraph Deployment {
-    graph [label="Deployment: Lists Unification" labelloc=t fontsize=16 fontname="Arial" rankdir=TB]
-    node [shape=box3d style=filled fontname="Arial" fontsize=10 fillcolor="#C9E7B7"]
-    edge [fontname="Arial" fontsize=9]
-
-    subgraph cluster_k8s {
-        label="K8s Cluster" style=dashed
-
-        api_pod [label="<<pod>>\npolicy-api\n[Go + Fiber]" shape=box fillcolor="#B5FFFF"]
-        mgr_pod [label="<<pod>>\nlist-manager\n[Go]" shape=box fillcolor="#B5FFFF"]
-        est_pod [label="<<pod>>\nestimator\n[Go + CBF ~114.5MB]" shape=box fillcolor="#B5FFFF"]
-    }
-
-    mongo [label="<<node>>\nMongoDB\n(managed)"]
-    nats [label="<<node>>\nNATS JetStream\n(cluster)"]
-    lb [label="<<node>>\nLoad Balancer"]
-
-    lb -> api_pod [label="HTTPS"]
-    api_pod -> mongo [label="MongoDB driver"]
-    api_pod -> nats [label="publish"]
-    nats -> mgr_pod [label="subscribe"]
-    mgr_pod -> mongo [label="MongoDB driver"]
-    mgr_pod -> nats [label="bloom.sync"]
-    nats -> est_pod [label="subscribe"]
-}
-```
+Deployment topology — K8s clusters, database nodes, network zones — is documented once, in C4 notation.
+See `C4.md`, section `### Deployment Diagram`, for the elements and the DOT template.
 
 ---
 
 ### 6. Use Case Diagram
-
-**When**: Show what actors can do with the system at a high level. Best for stakeholder communication and requirements overview.
-
-**Use in**: Arc42 Section 1 (Requirements Overview). AIC functional overview.
 
 **Elements**:
 
@@ -334,9 +268,7 @@ digraph UseCase {
 
 ### 7. Class Diagram (Go Adaptation)
 
-**When**: Show struct/interface relationships in the domain model. Go has no classes — use structs, interfaces, and composition.
-
-**Use in**: Arc42 Section 8 (domain model), Go Server.md domain layer documentation.
+Go has no classes — use structs, interfaces, and composition.
 
 **Go-specific mapping**:
 
@@ -360,11 +292,11 @@ digraph ClassDiagram {
     node [shape=record style=filled fillcolor="#B5FFFF" fontname="Courier" fontsize=9]
     edge [fontname="Arial" fontsize=9]
 
-    List [label="{<<struct>>\nList|+ ID : string\n+ OrgSlug : string\n+ Kind : ListKind\n+ Name : string\n+ Summary : string\n+ CreatedAt : time.Time|+ Validate() error}"]
+    List [label="{\<\<struct\>\>\nList|+ ID : string\n+ OrgSlug : string\n+ Kind : ListKind\n+ Name : string\n+ Summary : string\n+ CreatedAt : time.Time|+ Validate() error}"]
 
-    Entry [label="{<<struct>>\nEntry|+ ID : string\n+ ListID : string\n+ Type : string\n+ Value : string\n+ CreatedAt : time.Time|}"]
+    Entry [label="{\<\<struct\>\>\nEntry|+ ID : string\n+ ListID : string\n+ Type : string\n+ Value : string\n+ CreatedAt : time.Time|}"]
 
-    Repository [label="{<<interface>>\nRepository|+ Save(List) error\n+ Get(id string) (List, error)\n+ ListEntries(listID, cursor, limit) ([]Entry, error)\n+ AddEntry(Entry) error\n+ RemoveEntry(listID, value) error}" fillcolor="#FFFFB5"]
+    Repository [label="{\<\<interface\>\>\nRepository|+ Save(List) error\n+ Get(id string) (List, error)\n+ ListEntries(listID, cursor, limit) ([]Entry, error)\n+ AddEntry(Entry) error\n+ RemoveEntry(listID, value) error}" fillcolor="#FFFFB5"]
 
     List -> Entry [label="1..*" arrowhead=diamond]
     Repository -> List [label="manages" style=dashed]
