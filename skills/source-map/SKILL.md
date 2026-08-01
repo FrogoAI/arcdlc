@@ -63,7 +63,7 @@ when it is absent.
 | SOLID                                                         | `source/solid.md`                                                                                     |
 | ECS                                                           | `source/ECS.md`                                                                                       |
 | Diagrams                                                      | `source/C4.md`, `source/UML.md`, `source/BPMN.md`, `source/Flowchart.md`                              |
-| Delivery, workflow, or Jira                                   | `source/Workflow Policy.md`, `source/Task Decomposition and Jira Sync.md`, `source/tbd.md`            |
+| Delivery or workflow                                          | `source/Workflow Policy.md`, `source/tbd.md`                                                          |
 | Commit messages, changelogs, or semantic version bumps        | `source/Conventional Commits.md`                                                                      |
 | Executable plan format (docs/aics/<slug>/plan.md)             | `../plan/references/plan-format.md` (flat: `../arcdlc-plan/references/plan-format.md`)               |
 | Engineering governance                                        | `source/Engineering Principles.md`, `source/Policy of Policies.md`, `source/Policy of Initiatives.md` |

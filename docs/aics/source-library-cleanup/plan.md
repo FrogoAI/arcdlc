@@ -76,7 +76,7 @@ stay green.
   - GIVEN the change WHEN `grep -rn "Task Decomposition and Jira Sync" .` runs (excluding `.git/` and `docs/aics/source-library-cleanup/`) THEN it returns no matches.
   - GIVEN `skills/source-map/SKILL.md` WHEN its routing table is read THEN the delivery/workflow row still routes to `source/Workflow Policy.md` and `source/tbd.md`.
 - References: `docs/aics/source-library-cleanup/aic.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-3: Trim Workflow Policy.md to its agent-relevant core
 
