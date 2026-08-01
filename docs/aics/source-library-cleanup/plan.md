@@ -201,7 +201,7 @@ stay green.
   - GIVEN the rewritten file WHEN `grep -n "CC BY-SA" skills/source-map/source/Arc42.md` runs THEN it returns at least one match.
   - GIVEN the rewritten file WHEN `grep -n "<img\|\.png" skills/source-map/source/Arc42.md` runs THEN it returns no matches (no content depends on an image).
 - References: `docs/aics/source-library-cleanup/aic.md`, `docs/adr/0009-arc42-source-is-self-sufficient.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-7: Delete the bundled arc42/ directory
 
