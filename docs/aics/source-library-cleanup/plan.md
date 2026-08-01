@@ -351,7 +351,7 @@ stay green.
 - Acceptance:
   - GIVEN the file WHEN the five `### Rules` tables are read THEN every rule carries a unique `SOLID-N` identifier.
   - GIVEN the file WHEN `grep -nE "^## (Philosophy|SOLID and MDCA|Further Reading)" skills/source-map/source/solid.md` runs THEN it returns no matches.
-  - GIVEN the file WHEN the SRP example is read THEN its `Money` usage matches the struct definition in `ddd.md`.
+  - GIVEN the file WHEN the OCP example is read THEN its `Money` usage matches the struct definition in `ddd.md`. (Corrected 2026-08-01: originally said "the SRP example"; the `Money` defect is in the OCP example — the SRP one never used `Money`.)
   - GIVEN the file WHEN the five principle sections are read THEN each still contains its `### Example` block.
 - References: `docs/aics/source-library-cleanup/aic.md`, `skills/source-map/source/ddd.md`.
 - Status: DONE.
