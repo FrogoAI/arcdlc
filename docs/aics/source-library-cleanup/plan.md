@@ -105,7 +105,7 @@ stay green.
   - GIVEN the trimmed file WHEN `grep -n "docs/aics/<slug>/plan.md" "skills/source-map/source/Workflow Policy.md"` runs THEN at least one match states that the plan task block is the executable unit of work.
   - GIVEN the trimmed file WHEN `## Core Workflow Principles`, `## Definitions`, and `## Deployment Policy` are read THEN each is still present with its generic rules intact.
 - References: `docs/aics/source-library-cleanup/aic.md`, `skills/plan/references/plan-format.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### SLC-4: Fix and scope Engineering Principles.md
 
