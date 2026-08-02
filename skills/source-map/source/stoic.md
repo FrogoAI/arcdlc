@@ -1,7 +1,10 @@
 # Stoic Operating Manual
 
 Source: a transformed summary of the local file
-`The-Daily-Stoic_-366-Meditations-on-Wisdom-Perseverance-and-the-Art-of-Living-PDFDrive.com-.docx`.
+`The-Daily-Stoic_-366-Meditations-on-Wisdom-Perseverance-and-the-Art-of-Living-PDFDrive.com-.docx`,
+plus the agent-usable material from a Ukrainian practice handbook (in git history at `a6bea25`).
+Passages attributed to Epictetus, Marcus Aurelius, and Seneca are cited by location and rendered
+as paraphrase, not as canonical translation — check the named passage before quoting it as text.
 
 This is a practical reference, not a replacement for the book. It is written for two uses:
 
@@ -32,6 +35,13 @@ The highest goods are the virtues:
 - Temperance: govern appetite, emotion, ego, speech, attention, and desire.
 
 Everything else is external. Health, money, praise, status, beauty, career, reputation, possessions, comfort, and even life itself can be preferred, but they are not the good. They are material for virtue.
+
+Two cautions follow, and both are practical. First, an external may never be pursued **against**
+virtue: health is neutral, stealing the medicine is not. Using "it is only an external" as
+permission is rationalization, and it is more dangerous than plain appetite because it wears the
+costume of philosophy. Second, restraint that becomes a lecture stops being a virtue — do not be
+tiresome to those who indulge, and do not advertise your own abstinence (*Enchiridion* 33.8). A
+practice the room can see has usually curdled into vanity.
 
 ## Control
 
@@ -104,6 +114,26 @@ Rules:
 - Simplicity is strength. Complexity often hides avoidance.
 - A mantra, rule, or short phrase can recall the mind when emotion scatters it.
 
+The chain:
+
+**impression → assent → passion → action.**
+
+The impression arrives on its own; you did not choose it. The passion appears only once you have
+**assented** to the impression. That gap between impression and assent is the only place freedom
+lives, and every discipline below is a way of widening it. To a harsh impression, say first: you are
+an impression, and not at all the thing you appear to be (Epictetus, *Discourses* II.18).
+
+First movements:
+
+The first jolt — pallor, racing heart, a flash of anger, tightness in the chest — runs ahead of
+reason and is not yet a passion (Seneca, *On Anger* II.2–4). Feeling fear, anger, appetite, or envy
+is therefore not a fault. Fault begins at assent and at action. This is not leniency; it is where
+responsibility actually starts: a wide zone of feeling, a narrow zone of fault.
+
+The marker of the moment of assent is usually a single thought: *"I will do this now, and it will be
+easier right now."* Once you catch that sentence, you are past impulse and at assent — that is the
+point to pause, not earlier and not later.
+
 Practice:
 
 - Facts: write the event in one plain sentence.
@@ -144,6 +174,9 @@ Rules:
 - When a bad habit appears, oppose it with a contrary action.
 - Perfection is not required for action. It is often the enemy of action.
 - Results matter, but never at the cost of character.
+- Attach the reserve clause: take up the work at full effort and add silently, "I will do this — if
+  nothing prevents." Full effort, outcome held loosely. This is what lets you act decisively and
+  still not be wrecked when it fails.
 - Let your work speak.
 
 Practice:
@@ -219,6 +252,19 @@ When someone offends, blocks, attacks, disappoints, or misunderstands you:
 - Say only what helps justice, repair, boundary, or clarity.
 - If action is needed, act firmly and without hatred.
 - If no action is needed, release it.
+
+Three questions that do most of the work:
+
+- **What would this person have had to believe for their action to seem reasonable to them?**
+  (Epictetus, *Enchiridion* 42.) This almost always removes the anger without requiring you to
+  excuse the act — the other party acted on a judgment, and if the judgment is false, the loss is
+  theirs.
+- **Which role am I in here — parent, lead, colleague, neighbour, citizen?** (*Enchiridion* 30.)
+  The role sets the duty, and it holds regardless of how the other side behaves. Nature paired you
+  with a father, not with a good father.
+- **Does this situation have a handle I can lift it by?** (*Enchiridion* 43.) Every matter has two
+  handles, one it can be carried by and one it cannot. "I was disrespected" is not a handle.
+  "This is my brother, and we grew up together" is.
 
 ## Failure Protocol
 
@@ -319,6 +365,23 @@ Stoicism is not:
 - Chasing an image of toughness.
 
 Stoicism is disciplined freedom: clear judgment, useful action, and willing acceptance.
+
+## Common Failures of the Practice
+
+These are the ways the practice goes wrong while still calling itself the practice.
+
+- **Philosophy as a topic.** Explaining a principle well and breaking it the same hour. The practice
+  is measured by a week of actions, not by the quality of the formulation.
+- **Shame instead of analysis.** "I am worthless" is another passion, not a correction. Look at the
+  error the way a doctor looks at a symptom. Judge yourself, yes; punish yourself, no.
+- **Suppression instead of control.** "I should not be feeling this." You may feel anything; the
+  only questions are assent and action.
+- **Moralizing.** Explaining to others how they should live. See *Enchiridion* 33.8 under The Stoic
+  Standard.
+- **The false dichotomy.** "Nothing depends on me." The division narrows the zone of responsibility;
+  it does not dissolve it. Whatever remains inside that zone is obligatory.
+- **The one-off heroic.** A single hard conversation in place of the daily small ones. Character is
+  built by volume, not by episodes.
 
 ## Agent Response Guide
 
