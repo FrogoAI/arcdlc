@@ -13,6 +13,18 @@ history is the archive — nothing is copied into a graveyard folder.
 Removal is **destructive** and always requires an explicit human confirmation. `arctool` itself has no
 delete command (it stays non-destructive); this skill does the deletion.
 
+## Talk simple and short
+
+While this skill runs, keep replies to the user simple and brief:
+
+- Plain English, common words (B2). Short sentences, one idea each.
+- Bullets over paragraphs. No filler, no praise, no repeating the request.
+- Say only what matters: what you did, what you found, what comes next.
+- Keep a technical term only when it is this project's own term.
+
+Brief talk, full content: never drop a rule, path, acceptance criterion, or decision
+to save words. Files this skill writes keep their required detail.
+
 ## Argument: initiative slug (required, first positional)
 
 The initiative slug is the **first positional argument** and is **required**: `/arcdlc:remove <slug>`.

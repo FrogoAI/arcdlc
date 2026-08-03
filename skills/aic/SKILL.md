@@ -11,6 +11,18 @@ Produce the architecture document that anchors the ArcDLC delivery pipeline:
 `/arcdlc:aic` → `/arcdlc:plan` → `/arcdlc:execute` → `/arcdlc:archive`, with `/arcdlc:examinate` feeding
 compliance gaps into the plan at any point.
 
+## Talk simple and short
+
+While this skill runs, keep replies to the user simple and brief:
+
+- Plain English, common words (B2). Short sentences, one idea each.
+- Bullets over paragraphs. No filler, no praise, no repeating the request.
+- Say only what matters: what you did, what you found, what comes next.
+- Keep a technical term only when it is this project's own term.
+
+Brief talk, full content: never drop a rule, path, acceptance criterion, or decision
+to save words. Files this skill writes keep their required detail.
+
 ## Argument: initiative slug (required, first positional)
 
 The initiative slug is the **first positional argument** and is **required**:

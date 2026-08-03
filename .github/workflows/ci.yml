@@ -45,6 +45,8 @@ jobs:
         run: |
           for skill in aic archive examinate execute plan policy remove source-map; do
             test -f "skills/$skill/SKILL.md" || { echo "missing skills/$skill/SKILL.md" >&2; exit 1; }
+            grep -q '^## Talk simple and short$' "skills/$skill/SKILL.md" \
+              || { echo "skills/$skill/SKILL.md is missing the 'Talk simple and short' block" >&2; exit 1; }
           done
 
       - name: shellcheck installer

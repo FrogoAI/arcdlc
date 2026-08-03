@@ -80,6 +80,11 @@ checks. Do not merge with a red pipeline.
 - One skill per directory under `skills/`, entry file always `SKILL.md`, YAML frontmatter with a
   `description` that names its triggers (the `/arcdlc:<name>` command and the `arcdlc-<name>`
   flat form).
+- **Every `SKILL.md` carries the same `## Talk simple and short` block**, verbatim, placed after the
+  intro and before the first step. It sets how the agent talks to the user while the skill runs
+  (plain B2 English, short sentences, no filler) without letting brevity drop rules, paths, or
+  acceptance criteria. CI greps for the heading in all eight skills; copy the block when adding a
+  skill, and change all eight together when editing its wording.
 - Reference documents belong in `skills/source-map/source/` and are routed via the table in
   `skills/source-map/SKILL.md` — add a row when adding a document.
 - Adding or renaming a sub-skill requires updating the `SUBSKILLS` list in `install.sh` and the

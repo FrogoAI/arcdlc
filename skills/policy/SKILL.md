@@ -22,6 +22,18 @@ code impact (or a clean audit) ends the track at the document.
 The governing framework is `source/Policy of Policies.md` in the sibling `source-map` skill. It is
 the contract for how every policy must be created, structured, and managed — read it before writing.
 
+## Talk simple and short
+
+While this skill runs, keep replies to the user simple and brief:
+
+- Plain English, common words (B2). Short sentences, one idea each.
+- Bullets over paragraphs. No filler, no praise, no repeating the request.
+- Say only what matters: what you did, what you found, what comes next.
+- Keep a technical term only when it is this project's own term.
+
+Brief talk, full content: never drop a rule, path, acceptance criterion, or decision
+to save words. Files this skill writes keep their required detail.
+
 ## Argument
 
 - `name` (**required**, first positional) — the policy topic/slug; the output file is

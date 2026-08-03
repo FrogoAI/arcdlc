@@ -13,6 +13,18 @@ Do not imagine, invent, or silently assume important architecture conclusions or
 
 If a project has its own `AGENTS.md`, `CLAUDE.md`, or README guidance, follow that project guidance together with this source map.
 
+## Talk simple and short
+
+While this skill runs, keep replies to the user simple and brief:
+
+- Plain English, common words (B2). Short sentences, one idea each.
+- Bullets over paragraphs. No filler, no praise, no repeating the request.
+- Say only what matters: what you did, what you found, what comes next.
+- Keep a technical term only when it is this project's own term.
+
+Brief talk, full content: never drop a rule, path, acceptance criterion, or decision
+to save words. Files this skill writes keep their required detail.
+
 ## Delivery Workflow Commands
 
 The delivery pipeline is handled by the sibling skills of this `arcdlc` bundle. On Claude Code they are plugin commands (`/arcdlc:<name>`); on Codex, OpenCode, Cursor, and Antigravity the same skills are installed flat as `arcdlc-<name>` (e.g. `arcdlc-aic`) — identical behavior, invoked by skill name instead of a slash command. ArcDLC is a universal delivery tool: it builds **applications** and authors **policies**, and both feed the same executable plan queue (`docs/aics/<slug>/plan.md`): architecture is decomposed into it, audit findings are filed into it, and `/arcdlc:execute` works it off task by task. When a user asks to design, plan, audit, implement, or govern an initiative end-to-end, route them through this pipeline instead of improvising:

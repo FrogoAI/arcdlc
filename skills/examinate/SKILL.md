@@ -9,6 +9,18 @@ argument-hint: "<slug> [MDCA|DDD|SOLID|...|policy-path]"
 Audit the existing codebase against a policy or design, register every gap as evidence, and feed the gaps into the
 executable plan so `/arcdlc:execute` can close them.
 
+## Talk simple and short
+
+While this skill runs, keep replies to the user simple and brief:
+
+- Plain English, common words (B2). Short sentences, one idea each.
+- Bullets over paragraphs. No filler, no praise, no repeating the request.
+- Say only what matters: what you did, what you found, what comes next.
+- Keep a technical term only when it is this project's own term.
+
+Brief talk, full content: never drop a rule, path, acceptance criterion, or decision
+to save words. Files this skill writes keep their required detail.
+
 ## Initiative selection
 
 The initiative slug is the **required first positional argument**: `/arcdlc:examinate <slug> [target]`.

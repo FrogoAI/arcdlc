@@ -135,6 +135,10 @@ argument (e.g. `/arcdlc:plan checkout`). Details and manual alternatives: [Insta
 | `/arcdlc:archive <slug>` | Move `DONE` task blocks into `docs/aics/<slug>/plan-archive.md`, keeping the plan small. | compacted plan + archive |
 | `source-map` skill | Routing table into the bundled architecture & engineering reference library (AIC, arc42, TOGAF, C4, ADR, DDD, SOLID, MDCA, Go guides, Twelve-Factor, Conventional Commits, …). | reference guidance |
 
+While any of these skills is running, the agent talks in plain, short English — short sentences,
+bullets, no filler. Brevity applies to the conversation only: the documents, plans, and gap registers
+it writes keep their full required detail.
+
 ### Initiatives live in folders
 
 Each initiative gets its own folder `docs/aics/<slug>/` (holding the architecture document, `plan.md`,
