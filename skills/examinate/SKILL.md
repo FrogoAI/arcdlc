@@ -42,8 +42,15 @@ not exist yet (a fresh audit, e.g. `mdca-audit`), confirm the slug with the user
 - With no second argument (no standard or policy path): audit against the initiative's own architecture — `docs/aics/<slug>/aic.md` (or other docs in
   that folder), `docs/adr/`, and `CONTEXT.md`. If none of these exist either, stop and ask which policy to audit
   against (or suggest `/arcdlc:aic` first).
-- Extract the concrete, checkable rules from the reference before looking at code, so findings cite a rule, not a
-  feeling.
+- **Precedence — project policy beats the bundled reference.** Before auditing against any `source/` file, check
+  whether the project redefines the same subject in `docs/policies/*.md`, `AGENTS.md` / `CLAUDE.md`, or `docs/adr/`.
+  Where it does, the project document is normative: audit against its rule and drop the bundled one for every rule
+  they both cover, keeping the bundled reference only for subjects the project leaves unspecified. Code that follows a
+  project rule is never a gap, even when the bundled reference says otherwise. Note the override once in the gap
+  register's intro (which document won, for which rule); if the conflict looks unintended, flag it to the user instead
+  of filing gaps either way.
+- Extract the concrete, checkable rules from the resolved rule set before looking at code, so findings cite a rule,
+  not a feeling.
 
 ## Step 2 — Examine the code
 

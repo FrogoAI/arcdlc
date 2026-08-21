@@ -39,6 +39,14 @@ This framework governs the creation and management of the following types of int
 * **Procedures & SOPs**: Detailed, step-by-step instructions that explain how to implement a policy.
 * **Supporting Documents**: Ancillary materials such as forms, guidelines, and checklists that support procedures.
 
+**Precedence over bundled references**
+
+A policy the organization writes and approves under this framework outranks any reference document
+shipped with a tooling bundle (for ArcDLC: the files under `skills/source-map/source/`). Bundled
+references are defaults for subjects the organization has not decided yet. Where an approved internal
+policy covers the same subject, it is the normative rule for audits, reviews, and tooling, and the
+bundled reference applies only to what the internal policy leaves unspecified.
+
 **Exclusions**
 
 This policy does not supersede external laws, regulations, or industry standards that govern the organization's activities. All internal documents created under this policy must comply with applicable external legal and regulatory frameworks.

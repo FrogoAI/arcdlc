@@ -76,7 +76,7 @@ when it is absent.
 | ECS                                                           | `source/ECS.md`                                                                                           |
 | Diagrams                                                      | `source/C4.md`, `source/UML.md`, `source/BPMN.md`, `source/Flowchart.md`, `source/Diagram Conventions.md` |
 | Diagram file conventions or color palettes                    | `source/Diagram Conventions.md`                                                                           |
-| Delivery or workflow                                          | `source/Workflow Policy.md`, `source/tbd.md`                                                              |
+| Delivery or workflow                                          | `source/tbd.md`, `source/Policy of Initiatives.md`                                                        |
 | Commit messages or semantic version bumps                     | `source/Conventional Commits.md`                                                                          |
 | Executable plan format (docs/aics/<slug>/plan.md)             | `../plan/references/plan-format.md` (flat: `../arcdlc-plan/references/plan-format.md`)                    |
 | Engineering governance                                        | `source/Engineering Principles.md`, `source/Policy of Policies.md`, `source/Policy of Initiatives.md`     |
@@ -84,3 +84,17 @@ when it is absent.
 | App methodology                                               | `source/Twelve-Factor App.md`                                                                             |
 | CTO or operating model                                        | `source/CTO Methodology Guide.md`                                                                         |
 | Leadership, Human-Behavior, Philosophie, Conflict-Solving     | `source/stoic.md`                                                                                         |
+
+## Precedence: project policies beat bundled references
+
+The `source/` library is the **default**, not the last word. A project's own governance always wins:
+
+1. **Project policies** — `docs/policies/*.md` (authored by `/arcdlc:policy`), plus `AGENTS.md` /
+   `CLAUDE.md` / `README.md` guidance and the project's ADRs in `docs/adr/`.
+2. **Bundled references** — the `source/` files in this skill.
+
+So before applying any bundled reference, check whether the project redefines the same subject. If it
+does, read and apply the project document **instead of** the bundled one for every rule they both
+cover, and keep the bundled reference only for the parts the project leaves unspecified. Never report
+a project rule as a violation of a bundled reference. When the two conflict on something material,
+say so once — name both documents — and follow the project's.
