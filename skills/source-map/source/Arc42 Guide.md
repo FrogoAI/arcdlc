@@ -327,8 +327,8 @@ Align with `Twelve-Factor App.md`: Factor X (Dev/Prod Parity) — document all e
 environments, computers and processors with the physical connections between them; **Motivation** —
 the justification for this deployment structure; **Quality and/or Performance Features** of the
 infrastructure (capacity, redundancy, inter-zone latency); and **Mapping of Building Blocks to
-Infrastructure**. For multiple environments or alternative deployments, copy and adapt this section
-per environment.
+Infrastructure** — which software artifacts (binaries, containers, jobs) land on which element. For
+multiple environments or alternative deployments, copy and adapt this section per environment.
 
 ### 7.2 Infrastructure Level 2
 
