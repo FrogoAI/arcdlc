@@ -1,7 +1,7 @@
 ---
 name: arcdlc-aic
-description: Build or update an initiative's architecture document under docs/aics/<slug>/. The initiative slug is the required first argument (e.g. /arcdlc:aic payments); an optional second argument picks the format (AIC by default, or arc42, TOGAF, C4, ADR — e.g. /arcdlc:aic payments arc42). Always starts with a mandatory grill-with-docs interview before any document is written. Use when the user runs /arcdlc:aic, invokes arcdlc-aic, or asks to create an architecture document for an initiative.
-argument-hint: "<slug> [aic|arc42|togaf|c4|adr]"
+description: Build or update an initiative's architecture document under docs/aics/<slug>/. The initiative slug is the required first argument (e.g. /arcdlc:aic payments); an optional second argument picks the format (AIC by default, or arc42, tsc, TOGAF, C4, ADR) and accepts a comma-separated list to produce several from one interview (e.g. /arcdlc:aic payments arc42,tsc). Always starts with a mandatory grill-with-docs interview before any document is written. Use when the user runs /arcdlc:aic, invokes arcdlc-aic, or asks to create an architecture document for an initiative.
+argument-hint: "<slug> [aic|arc42|tsc|togaf|c4|adr, comma-separated]"
 ---
 
 # ArcDLC AIC (/arcdlc:aic)
@@ -26,7 +26,8 @@ to save words. Files this skill writes keep their required detail.
 ## Argument: initiative slug (required, first positional)
 
 The initiative slug is the **first positional argument** and is **required**:
-`/arcdlc:aic <slug> [format]` (e.g. `/arcdlc:aic payments`, or `/arcdlc:aic payments arc42`).
+`/arcdlc:aic <slug> [formats]` (e.g. `/arcdlc:aic payments`, `/arcdlc:aic payments arc42`, or
+`/arcdlc:aic payments arc42,tsc`).
 
 - If no slug is given, **stop and report the error** — highlight that the slug is missing and list the
   existing initiatives under `docs/aics/` so the user can pick a name or reuse one. Do not guess or
@@ -37,20 +38,39 @@ The initiative slug is the **first positional argument** and is **required**:
 Write the architecture document — and later `plan.md` — inside that folder. ADRs stay **global** under
 `docs/adr/`; `CONTEXT.md` stays at the repo root (both are cross-cutting, not per-initiative).
 
-## Argument: document format
+## Argument: document format(s)
 
 The optional **second** positional argument selects the format (the first is the slug above). Resolve
 the template through the sibling `source-map` skill of this bundle (from this file:
 `../source-map/source/` in the plugin layout, `../arcdlc-source-map/source/` in flat installs):
 
-| Argument | Output file | Template in `../source-map/source/` |
+| Argument | Output file | Source in `../source-map/source/` |
 | --- | --- | --- |
 | *(none)* or `aic` | `docs/aics/<slug>/aic.md` | `AIC Template.md` |
-| `arc42` | `docs/aics/<slug>/arc42.md` | `Arc42.md` |
+| `arc42` | `docs/aics/<slug>/arc42.md` | `Arc42 Guide.md` (start here — the full instruction) and `arc42-template-EN.md` (the upstream skeleton it tells you to copy). Two files, no third source. |
+| `tsc` | `docs/aics/<slug>/tsc.md` | `Tech Stack Canvas.md` |
 | `togaf` | `docs/aics/<slug>/togaf.md` | `TOGAF.md` |
 | `c4` | `docs/aics/<slug>/c4.md` | `C4.md` |
 | `adr` | `docs/adr/NNNN-<title>.md` (global) | `ADR.md` |
 | anything else | `docs/aics/<slug>/<format>.md` | Look it up in the `source-map` table; if no matching source exists, tell the user and list available formats. |
+
+### Several formats at once
+
+The argument accepts a **comma-separated list** — `/arcdlc:aic payments arc42,tsc` — and then every
+named format is produced from the **same single interview**, in the order given:
+
+- Run Step 2 (the grilled interview) **once**, covering what all the requested formats need. Never
+  interview per format.
+- Write one file per format at its own output path, each with its own `# <Title>` and `> ` summary
+  line (Step 3). Same decisions, different lenses.
+- Where two formats cover the same ground (e.g. arc42 §5/§7 and the TSC *Solution* / *Infrastructure*
+  blocks), state it in full in one document and cross-link from the other with a relative link. Never
+  fork the wording — two divergent copies is the failure this rule exists to prevent.
+- The registry takes only one document per initiative. `arctool sync` picks it by precedence:
+  `aic.md`, `arc42.md`, `togaf.md`, `c4.md`, `tsc.md`, else the first `*.md` alphabetically. Make sure
+  the winning document's H1 and summary describe the whole initiative.
+- If any entry in the list is not a known format and has no `source-map` match, **write nothing**:
+  report the unknown name and list the supported formats.
 
 ## Step 1 — Gather existing context (before asking anything)
 
@@ -60,7 +80,7 @@ Read what already exists so the interview builds on it instead of repeating it:
 - `CONTEXT.md` / `CONTEXT-MAP.md` (domain glossary)
 - `docs/adr/` (prior decisions)
 - `AGENTS.md`, `CLAUDE.md`, `README.md` of the target project
-- The relevant template from the table above
+- The relevant template(s) from the table above — for `arc42`, both files, starting with `Arc42 Guide.md`
 
 ## Step 2 — MANDATORY: grill the design
 
@@ -83,7 +103,7 @@ The interview ends only when the user confirms shared understanding or explicitl
 
 ## Step 3 — Write the document
 
-- Fill the template section by section at the output path from the table.
+- Fill the template section by section at the output path from the table, once per requested format.
 - The document must open with a level-1 heading (`# <Title>`) and a one-line summary blockquote
   (`> …`) directly under it. This title and summary are a contract: `arctool sync` parses them into
   the initiative registry in `AGENTS.md`/`README.md`, so keep the summary to a single informative line.

@@ -2,7 +2,7 @@
 
 **Purpose**: The single home for how initiative diagrams are produced, named, and colored. Applies to every notation in this library — C4, UML, BPMN, flowcharts, and the diagrams embedded in an arc42 document.
 
-Each notation reference (`C4.md`, `UML.md`, `BPMN.md`, `Flowchart.md`, `Arc42.md`) points here instead of repeating these rules. Notation-specific content — symbols, templates, selection guidance — stays in those files.
+Each notation reference (`C4.md`, `UML.md`, `BPMN.md`, `Flowchart.md`, `Arc42 Guide.md`) points here instead of repeating these rules. Notation-specific content — symbols, templates, selection guidance — stays in those files.
 
 ---
 

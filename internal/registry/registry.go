@@ -26,7 +26,7 @@ const (
 
 // archDocPrecedence lists the recognised architecture-document filenames in the
 // order arctool prefers them when a folder holds more than one.
-var archDocPrecedence = []string{"aic.md", "arc42.md", "togaf.md", "c4.md"}
+var archDocPrecedence = []string{"aic.md", "arc42.md", "togaf.md", "c4.md", "tsc.md"}
 
 // nonArchDocs are initiative files that are never the architecture document, so
 // they are excluded from the alphabetical fallback in findArchDoc.

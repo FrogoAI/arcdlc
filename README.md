@@ -66,7 +66,7 @@ architecture interview to an audited, task-by-task implementation — so complex
 way they were designed.
 
 - **Design before you build** — a mandatory grilled interview produces the architecture document
-  (AIC, arc42, TOGAF, C4, or ADRs) *before* any code is written.
+  (AIC, arc42, Tech Stack Canvas, TOGAF, C4, or ADRs) *before* any code is written.
 - **Plans you can trust** — every task carries testable `Acceptance` criteria; the optional
   `arctool` CLI validates the contract and flips task status atomically. No hand-edited status lines.
 - **Audit what already exists** — `/arcdlc:examinate` measures real code against a named architecture
@@ -126,14 +126,14 @@ argument (e.g. `/arcdlc:plan checkout`). Details and manual alternatives: [Insta
 
 | Command | What it does | Output |
 | --- | --- | --- |
-| `/arcdlc:aic <slug> [aic\|arc42\|togaf\|c4\|adr]` | Build the initiative's architecture document (AIC by default). Always runs a grilled interview first. | `docs/aics/<slug>/<format>.md`, ADRs, `CONTEXT.md` |
+| `/arcdlc:aic <slug> [aic\|arc42\|tsc\|togaf\|c4\|adr]` | Build the initiative's architecture document (AIC by default). Always runs a grilled interview first. Formats combine: `arc42,tsc` writes both from one interview. | `docs/aics/<slug>/<format>.md`, ADRs, `CONTEXT.md` |
 | `/arcdlc:policy <name>` | Author a governance policy per the Policy of Policies framework — grilled interview first. | `docs/policies/<name>.md` + index |
 | `/arcdlc:plan <slug>` | Decompose the approved architecture document into the executable task queue. | `docs/aics/<slug>/plan.md` |
 | `/arcdlc:examinate <slug> [policy]` | Examine existing code for compliance with a named policy or design (`MDCA`, `DDD`, `SOLID`, …; default: the project's own AIC) and register gaps as plan tasks. | `docs/aics/<slug>/gap.md`, new TODO blocks in `docs/aics/<slug>/plan.md` |
 | `/arcdlc:execute <slug> [TASK-ID]` | Implement all pending plan tasks (or one by ID): status `TODO→TAKEN→DONE`, tests/lint, one Conventional Commits commit per task. | code, tests, commits |
 | `/arcdlc:remove <slug>` | Delete a completed initiative's folder and clean the registry — always after an explicit confirmation. | removed folder, refreshed `docs/aics/` + registry |
 | `/arcdlc:archive <slug>` | Move `DONE` task blocks into `docs/aics/<slug>/plan-archive.md`, keeping the plan small. | compacted plan + archive |
-| `source-map` skill | Routing table into the bundled architecture & engineering reference library (AIC, arc42, TOGAF, C4, ADR, DDD, SOLID, MDCA, Go guides, Twelve-Factor, Conventional Commits, …). | reference guidance |
+| `source-map` skill | Routing table into the bundled architecture & engineering reference library (AIC, arc42, Tech Stack Canvas, TOGAF, C4, ADR, DDD, SOLID, MDCA, Go guides, Twelve-Factor, Conventional Commits, …). | reference guidance |
 
 While any of these skills is running, the agent talks in plain, short English — short sentences,
 bullets, no filler. Brevity applies to the conversation only: the documents, plans, and gap registers
@@ -315,6 +315,7 @@ task, audit an existing codebase, produce a different format, or retire a finish
 /arcdlc:execute payments AIC-3       # implement only task AIC-3 in the payments initiative
 /arcdlc:examinate payments MDCA      # audit code against MDCA, gaps become plan tasks
 /arcdlc:aic payments arc42           # produce an arc42 doc in docs/aics/payments/
+/arcdlc:aic payments arc42,tsc       # arc42 + Tech Stack Canvas, from one interview
 /arcdlc:remove payments              # delete the finished initiative (after confirming)
 ```
 

@@ -46,7 +46,9 @@ Four workstreams, in priority order:
    [ADR-0008](../../adr/0008-domain-imports-judged-by-purity-not-folder.md).
 4. **Density and auditability** — per-document trims across the remaining library; `Arc42.md` made
    self-sufficient and `arc42/` retired per
-   [ADR-0009](../../adr/0009-arc42-source-is-self-sufficient.md); `Tech Stack Canvas Original.md`
+   [ADR-0009](../../adr/0009-arc42-source-is-self-sufficient.md) — since revised by
+   [ADR-0010](../../adr/0010-arc42-plain-template-plus-guide.md), which ships the upstream plain
+   template verbatim alongside `Arc42 Guide.md`; `Tech Stack Canvas Original.md`
    deleted as a strict subset; `ECS.md`'s and `Go Client.md`'s project-specific halves fenced as
    example-only; the five duplicated diagram-convention blocks consolidated; citable rule IDs
    (`DDD-N`, `SOLID-N`, `ECS-N`, per-clause MDCA anchors) added to every document
@@ -151,6 +153,13 @@ pipeline skills above; its distribution boundary is public.
 
 ### 🔵 H4 — `Arc42.md` becomes self-sufficient before `arc42/` is deleted
 
+> **Revised 2026-08-31 by [ADR-0010](../../adr/0010-arc42-template-verbatim-with-fill-guide.md).**
+> The upstream template was re-added and read side by side with `Arc42.md`; the two proved to be
+> complements, not duplicates. Two files now ship: `arc42-template-EN.md` — the upstream *plain*
+> edition, verbatim, copied as the skeleton — and `Arc42 Guide.md` (the rewritten `Arc42.md`), which
+> absorbs the annotated edition's help as an imperative section catalogue. The hypothesis below is
+> kept as the record of the decision this one replaced.
+
 - **Context:** The bundled upstream template is 987 placeholder lines plus 948 KB of images an agent
   cannot read; `Arc42.md` is denser and is what `C4.md`/`UML.md` cross-references resolve against.
 - **Decision:** Per [ADR-0009](../../adr/0009-arc42-source-is-self-sufficient.md), rewrite `Arc42.md`
@@ -231,7 +240,9 @@ pipeline skills above; its distribution boundary is public.
 
 - [ADR-0007 — The MDCA standard is normative](../../adr/0007-mdca-standard-is-normative-single-document.md)
 - [ADR-0008 — Domain imports judged by purity](../../adr/0008-domain-imports-judged-by-purity-not-folder.md)
-- [ADR-0009 — `Arc42.md` must be self-sufficient](../../adr/0009-arc42-source-is-self-sufficient.md)
+- [ADR-0009 — `Arc42.md` must be self-sufficient](../../adr/0009-arc42-source-is-self-sufficient.md) *(superseded by ADR-0010)*
+- [ADR-0010 — arc42 plain template plus one guide](../../adr/0010-arc42-plain-template-plus-guide.md)
+- [ADR-0011 — TSC is a first-class format; formats compose](../../adr/0011-tsc-is-a-first-class-format-and-formats-compose.md)
 - `AGENTS.md` — hard rules on install-agnostic skills and the routing-table convention
 - `skills/source-map/SKILL.md` — the routing table this initiative keeps in sync
 - `skills/plan/references/plan-format.md` — the contract the removed documents contradict

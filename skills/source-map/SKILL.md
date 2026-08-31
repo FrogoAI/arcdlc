@@ -38,7 +38,7 @@ The governance track has no separate plan step: a policy is rules, not work to d
 
 | Stage | Command | Output |
 | --- | --- | --- |
-| Architecture document (grilled interview first, then AIC / arc42 / TOGAF / C4 / ADR) | `/arcdlc:aic <slug> [format]` | `docs/aics/<slug>/<format>.md`, ADRs, `CONTEXT.md` |
+| Architecture document (grilled interview first, then AIC / arc42 / TSC / TOGAF / C4 / ADR; formats combine, e.g. `arc42,tsc`) | `/arcdlc:aic <slug> [formats]` | `docs/aics/<slug>/<format>.md`, ADRs, `CONTEXT.md` |
 | Governance policy (grilled interview first, per the Policy of Policies framework) | `/arcdlc:policy <name>` | `docs/policies/<name>.md`, `docs/policies/README.md` index, README/AGENTS refs |
 | Decompose the document into the executable task queue | `/arcdlc:plan <slug>` | `docs/aics/<slug>/plan.md` |
 | Examine code for policy/design compliance and register gaps as plan tasks | `/arcdlc:examinate <slug> [policy]` | `docs/aics/<slug>/gap.md`, new TODO blocks in `docs/aics/<slug>/plan.md` |
@@ -62,7 +62,7 @@ when it is absent.
 |---------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
 | AIC or Architecture Inception Canvas                          | `source/AIC Template.md`                                                                                  |
 | ADR or architecture decision record                           | `source/ADR.md`                                                                                           |
-| Architecture documentation                                    | `source/Arc42.md`                                                                                         |
+| Architecture documentation (arc42)                            | `source/Arc42 Guide.md` (the instruction), `source/arc42-template-EN.md` (the skeleton to copy)          |
 | Enterprise architecture, TOGAF, or ArchiMate                  | `source/TOGAF.md`                                                                                         |
 | Tech stack decisions                                          | `source/Tech Stack Canvas.md`                                                                             |
 | Go server architecture                                        | `source/Go Server.md`                                                                                     |

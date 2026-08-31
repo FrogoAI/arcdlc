@@ -26,6 +26,8 @@ func TestFindArchDoc(t *testing.T) {
 	}{
 		{"aic wins over others", []string{"aic.md", "arc42.md", "plan.md"}, "aic.md"},
 		{"arc42 over c4", []string{"arc42.md", "c4.md", "plan.md", "gap.md"}, "arc42.md"},
+		{"arc42 over tsc", []string{"tsc.md", "arc42.md", "plan.md"}, "arc42.md"},
+		{"tsc beats alphabetical fallback", []string{"notes.md", "tsc.md", "plan.md"}, "tsc.md"},
 		{"togaf over c4", []string{"togaf.md", "c4.md"}, "togaf.md"},
 		{"alphabetical fallback", []string{"notes.md", "zeta.md"}, "notes.md"},
 		{"non-arch files excluded from fallback", []string{"plan.md", "gap.md", "plan-archive.md"}, ""},

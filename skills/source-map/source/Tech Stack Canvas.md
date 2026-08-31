@@ -2,6 +2,17 @@
 
 Reference: [The Tech Stack Canvas](https://techstackcanvas.io/)
 
+**Purpose**: the technology picture of an initiative — services, stack, integrations, infrastructure.
+Generated as `docs/aics/<slug>/tsc.md` when the engineer invokes `/arcdlc:aic <slug> tsc` (flat
+installs: `arcdlc-aic <slug> tsc`), alone or combined with another format (`arc42,tsc`).
+
+**How to fill it**: keep the four groups and every heading below, in this order, with their colour
+markers. Replace each description with the initiative's own content; a field that does not apply
+stays in place with an explicit `Not applicable — <reason>`. Open the document with a
+`# <Title>` heading and a one-line `> ` summary blockquote under it — `arctool sync` parses both for
+the initiative registry. Prefer tables and short bullets over prose, and state only what the
+interview, an ADR, or the code supports.
+
 ## Business
 
 ### 🟠 Business Feature Description
