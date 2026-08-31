@@ -427,6 +427,9 @@ response including a measure.
 **Long form** (favoured by the SEI and [Bass+21]), for the few scenarios that need it: Scenario ID,
 Scenario Name, Source, Stimulus, Environment, Artifact, Response, Response Measure.
 
+[Bass+21]: Len Bass, Paul Clements, Rick Kazman, *Software Architecture in Practice*, 4th edition,
+Addison-Wesley, 2021. Worked examples of quality requirements: <https://quality.arc42.org>.
+
 ## 11 Risks and Technical Debts
 
 **Write**: the identified technical risks and technical debts, ordered by priority, each with the
