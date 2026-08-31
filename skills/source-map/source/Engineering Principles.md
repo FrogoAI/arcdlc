@@ -2,11 +2,11 @@
 
 This document records one organization's engineering practice, kept as a worked example of a
 delivery standard. It is not a universal mandate: where a rule names a specific stack — event-driven
-internal communication, NATS, Swagger, Kubernetes — it applies **only** to projects built on that
-stack. On any other stack, those rules are conditional and should be read as "the equivalent rule for
-your transport / API-doc / deployment target", or ignored outright. The stack-neutral rules (KISS,
-DRY, Clean Code, non-decreasing test coverage, API versioning discipline, review duties, branch and
-MR conventions) are the portable part.
+internal communication, Swagger, Kubernetes — it applies **only** to projects built on that stack. On
+any other stack, those rules are conditional and should be read as "the equivalent rule for your
+transport / API-doc / deployment target", or ignored outright. The stack-neutral rules (KISS, DRY,
+Clean Code, non-decreasing test coverage, API versioning discipline, review duties, branch, commit
+and MR conventions) are the portable part.
 
 ---
 
@@ -19,6 +19,12 @@ MR conventions) are the portable part.
 * **Root Cause**: The fundamental issue which, if addressed, will prevent the incident from recurring.
 * **KISS (Keep It Simple and Smart)**: See `source/KISS.md` for the full definition and its rules.
 * **DRY (Don't Repeat Yourself)**: A principle aimed at reducing repetition of software patterns.
+* **Conventional Commits**: The commit message convention this policy mandates. See
+  `source/Conventional Commits.md` for the full specification.
+* **Message Broker**: Any queue, log, or pub/sub middleware carrying asynchronous messages between
+  services (Kafka, NATS, RabbitMQ, SQS/SNS, Pub/Sub, Redis Streams, …).
+* **Subject**: The broker's addressable channel for a message — the term a concrete broker may call a
+  topic, subject, queue, stream, or exchange/routing key.
 
 ---
 
@@ -53,6 +59,28 @@ MR conventions) are the portable part.
   * **{TITLE}**: A short, descriptive title, with words separated by a dash (`-`).
   * **Example**: `epic/DAF-123-user-authentication-flow`
 
+### Commit Message Convention
+
+* **Mandatory Convention**: Every commit message must follow **Conventional Commits 1.0.0** — the
+  specification in `source/Conventional Commits.md` is normative. Reviewers must reject an MR whose
+  commits do not conform.
+* **Format**: `<type>[optional scope][!]: <description>`, followed by an optional body and optional
+  footers, separated by blank lines.
+* **Type**: `feat` for a new capability, `fix` for a bug fix; `docs`, `test`, `refactor`, `perf`,
+  `build`, `ci`, `chore`, `style` for everything else. The type is lowercase.
+* **Scope**: A scope in parentheses names the affected area — the initiative slug, service, or module
+  (e.g. `feat(scoring): …`). Use one consistent vocabulary per repository.
+* **Description**: Imperative mood, lowercase, no trailing period, and it must state the change, not
+  the task ID.
+* **Breaking Changes**: A backward-incompatible change must carry `!` after the type/scope **and** a
+  `BREAKING CHANGE: <what breaks and how to migrate>` footer.
+* **Task Reference**: Every commit must reference its work item in a footer — `Refs: {TASK}` with the
+  full Task ID (e.g. `Refs: DAF-123`) — so a commit is always traceable to its acceptance criteria.
+* **Granularity**: One task, one commit. When a change spans several types, the dominant type wins;
+  do not merge unrelated tasks into a single commit.
+* **AI-Assisted Work**: A commit produced with AI assistance must be marked as such in a footer, per
+  the project's disclosure rule.
+
 ### Merge Request (MR) Submission
 
 * **Decomposition**: An epic may be broken down into multiple subtasks. Developers are permitted to create separate branches and MRs for subtasks.
@@ -66,11 +94,26 @@ MR conventions) are the portable part.
 * **Legacy Endpoints**: All legacy endpoints without a version must have a corresponding versioned endpoint created (starting from `v1`). A migration plan with a due date must be defined.
 * **Exceptions**: Adding a "non-versioned" API must be discussed individually and requires explicit written approval from the CTO and the BE Lead.
 
-### NATS Communication and Subject Naming
+### Asynchronous Messaging and Subject Naming
 
-* **Naming Convention**: The name of a NATS subject must follow the pattern: `{project}.{system}.{service}.{kind of event (sync or async)}.{what is the message about}`.
+These rules are broker-agnostic: they hold for any message broker (Kafka, NATS, RabbitMQ, SQS/SNS,
+Pub/Sub, …). Read "subject" as whatever the chosen broker calls its addressable channel — topic,
+subject, queue, stream, or exchange with routing key — and map the naming pattern onto that broker's
+own constraints (its allowed separator and character set) without changing the segment order.
+
+* **Naming Convention**: A subject name must follow the pattern:
+  `{project}.{system}.{service}.{kind of event (sync or async)}.{what is the message about}`.
   * Example: `[company].scoring.api-server.async.scoring_event`.
-* **Responsibility**: The service that writes/produces the message is responsible for defining the subject names and their data structures.
-* **Versioning**: To create a new version of an existing subject, a version number (e.g., `v2`, `v3`) may be added to the end of the subject name. The initial version does not use a `v1` suffix.
-* **Renaming Subjects**: To rename a subject, a new service must be created to publish events with the new topic. After new versions of all consumers are prepared and deployed, the old services can be removed once 100% of traffic is using the new version.
-* **Request/Reply**: Services that communicate using a request/reply pattern must have only one consumer. Every NATS request-reply handler must send a reply back to the client, even if an error occurs.
+  * On a broker that forbids `.` as a separator, substitute its idiomatic separator (e.g. `-`) and
+    keep the five segments in the same order.
+* **Responsibility**: The service that writes/produces the message owns the subject name and the
+  message's data structure — including its schema and compatibility guarantees.
+* **Versioning**: To create a new version of an existing subject, append a version number (e.g. `v2`,
+  `v3`) to the end of the subject name. The initial version carries no `v1` suffix.
+* **Renaming Subjects**: Rename by addition, never in place: publish to the new subject alongside the
+  old one, deploy new versions of all consumers, and remove the old producer and subject only once
+  100% of traffic has moved to the new name.
+* **Request/Reply**: A subject used in a request/reply pattern must have exactly one consumer. Every
+  request/reply handler must send a reply back to the caller, even when the outcome is an error.
+* **Delivery Semantics**: Assume at-least-once delivery. Consumers must be idempotent, and every
+  message must carry enough identity (message ID or business key) for a consumer to detect a replay.
