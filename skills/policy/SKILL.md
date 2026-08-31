@@ -64,11 +64,17 @@ Read what already exists so the interview builds on it instead of repeating it:
 Never write the policy straight from the request. A policy encodes real decisions (scope, owner,
 approver, the actual rules), so interview first — this mirrors `/arcdlc:aic`.
 
-- Invoke the `grill-with-docs` skill (which runs a `grilling` session).
-- If `grill-with-docs` cannot be used here — not installed, or installed but not model-invocable (e.g. marked
-  `disable-model-invocation`, in which case ask the user to run it) — run the same discipline inline: interview the user
-  relentlessly, one question at a time, each with your recommended answer; explore the codebase or
-  existing policies to answer questions instead of asking when you can.
+**What is mandatory is the grilled interview, not any particular skill.** Take the first option below
+that is actually available and never stop to report a missing skill:
+
+1. **`grilling`** — the normal path; it is model-invocable.
+2. **`grill-with-docs`**, *only if you can invoke it* — it wraps `grilling`. Many installs mark it
+   `disable-model-invocation: true`, which means **the user runs it, you cannot**. That is a
+   deliberate setting, not a broken install: do not report it as missing, and do not stop and ask the
+   user to run it when option 1 is open to you.
+3. **Inline**, if no grilling skill is available at all: interview the user relentlessly, one question
+   at a time, each with your recommended answer; explore the codebase or existing policies to answer
+   questions instead of asking when you can.
 
 Cover at minimum, mapping each answer to a template section:
 

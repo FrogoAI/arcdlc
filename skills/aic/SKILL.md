@@ -1,6 +1,6 @@
 ---
 name: arcdlc-aic
-description: Build or update an initiative's architecture document under docs/aics/<slug>/. The initiative slug is the required first argument (e.g. /arcdlc:aic payments); an optional second argument picks the format (AIC by default, or arc42, tsc, TOGAF, C4, ADR), accepts a comma-separated list to produce several from one interview (e.g. /arcdlc:aic payments arc42,tsc), and takes a :html suffix to emit HTML instead of Markdown (e.g. /arcdlc:aic payments arc42:html). Always starts with a mandatory grill-with-docs interview before any document is written. Use when the user runs /arcdlc:aic, invokes arcdlc-aic, or asks to create an architecture document for an initiative.
+description: Build or update an initiative's architecture document under docs/aics/<slug>/. The initiative slug is the required first argument (e.g. /arcdlc:aic payments); an optional second argument picks the format (AIC by default, or arc42, tsc, TOGAF, C4, ADR), accepts a comma-separated list to produce several from one interview (e.g. /arcdlc:aic payments arc42,tsc), and takes a :html suffix to emit HTML instead of Markdown (e.g. /arcdlc:aic payments arc42:html). Always starts with a mandatory grilled interview before any document is written. Use when the user runs /arcdlc:aic, invokes arcdlc-aic, or asks to create an architecture document for an initiative.
 argument-hint: "<slug> [aic|arc42|tsc|togaf|c4|adr, comma-separated, :html for HTML]"
 ---
 
@@ -99,17 +99,25 @@ Read what already exists so the interview builds on it instead of repeating it:
 
 ## Step 2 — MANDATORY: grill the design
 
-Never write the architecture document straight from the request. Run the `grill-with-docs` skill first — the whole
-point of `/arcdlc:aic` is that the process is controlled: interview, then document.
+Never write the architecture document straight from the request — the whole point of `/arcdlc:aic` is
+that the process is controlled: interview, then document. **What is mandatory is the grilled
+interview, not any particular skill.** Take the first option below that is actually available and
+never stop to report a missing skill:
 
-- Invoke the `grill-with-docs` skill (which runs a `grilling` session using the `domain-modeling` skill).
-- If `grill-with-docs` cannot be used here — not installed, or installed but not model-invocable (e.g. marked
-  `disable-model-invocation`, in which case ask the user to run it) — run the same discipline inline:
-  - Interview the user relentlessly about every aspect of the initiative — one question at a time, with your
-    recommended answer for each.
-  - If a question can be answered by exploring the codebase, explore instead of asking.
-  - As decisions crystallise, write them down immediately: glossary terms into `CONTEXT.md`, architectural decisions
-    into `docs/adr/NNNN-<slug>.md`.
+1. **`grilling` + `domain-modeling`** — the normal path. Invoke `grilling` for the interview, and use
+   `domain-modeling` to capture terms and decisions as they settle. Both are model-invocable.
+2. **`grill-with-docs`**, *only if you can invoke it* — it bundles exactly those two. Many installs
+   mark it `disable-model-invocation: true`, which means **the user runs it, you cannot**. That is a
+   deliberate setting, not a broken install: do not report it as missing, and do not stop and ask the
+   user to run it when option 1 is open to you.
+3. **Inline**, if no grilling skill is available at all:
+   - Interview the user relentlessly about every aspect of the initiative — one question at a time, with your
+     recommended answer for each.
+   - If a question can be answered by exploring the codebase, explore instead of asking.
+   - As decisions crystallise, write them down immediately: glossary terms into `CONTEXT.md`, architectural decisions
+     into `docs/adr/NNNN-<slug>.md`.
+
+Whichever option runs, the coverage below and the exit condition are the same.
 
 Cover at minimum: problem/goal, scope boundaries (in/out), key quality attributes, ownership and context boundaries,
 data model and storage, communication patterns, deployment model, tech stack deltas, risks, and open questions.

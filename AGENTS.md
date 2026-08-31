@@ -53,6 +53,12 @@ checks. Do not merge with a red pipeline.
  dual path references (`../plan/...` and `../arcdlc-plan/...`) intact when editing.
 - **`arctool` is always optional in skills.** Every skill that uses it must probe
   `command -v arctool` and describe the manual fallback. Never make a skill hard-depend on the CLI.
+- **No skill hard-depends on another skill.** A skill that delegates (e.g. `/arcdlc:aic` and
+  `/arcdlc:policy` delegating the interview) must state a preference ladder that leads with a
+  model-invocable skill and ends in an inline fallback, and must never stop to report a helper skill
+  as missing. `disable-model-invocation: true` is a deliberate setting meaning *the user* invokes it
+  and the agent cannot — treat it as unavailable and move to the next rung, not as a broken install.
+  What is mandatory is the behaviour (the grilled interview), never a particular skill name.
 - **Status mutations stay byte-preserving and atomic.** `take`/`done`/`block`/`todo` rewrite only
   the one `- Status:` line via temp-file + rename; `archive` writes the archive before compacting
   the plan. Preserve these invariants.
