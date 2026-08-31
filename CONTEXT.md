@@ -8,8 +8,9 @@ skills, `arctool`, ADRs, and architecture documents.
   Mandatory first positional argument of every pipeline skill; `--aic SLUG` in `arctool`.
 - **Initiative folder** — `docs/aics/<slug>/`, holding the architecture document plus `plan.md`,
   `gap.md`, and `plan-archive.md` (the latter two are always siblings of `plan.md`).
-- **Architecture document** — `aic.md`, `arc42.md`, `togaf.md`, `c4.md`, or `tsc.md` inside the
-  initiative folder (one initiative may hold several; `arctool sync` picks one by that precedence). Its first `# ` H1 is the initiative **title**; the one-line `> ` blockquote directly
+- **Architecture document** — `aic`, `arc42`, `togaf`, `c4`, or `tsc` inside the initiative folder,
+  as `.md` or (when asked for with `:html`) `.html`. One initiative may hold several; `arctool sync`
+  picks one by format rank, `.md` before `.html`. Its first `# ` H1 is the initiative **title**; the one-line `> ` blockquote directly
   under the H1 is the initiative **summary** (both are contract, parsed by `arctool sync`).
 - **Registry** — the generated list of initiatives between `<!-- arcdlc:initiatives:begin -->`
   and `<!-- arcdlc:initiatives:end -->` in `AGENTS.md` and `README.md`. Owned by `arctool sync`;

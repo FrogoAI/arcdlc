@@ -37,7 +37,8 @@ it into a `docs/aics/<slug>/` folder.
 ## Step 1 — Locate the inputs
 
 - Architecture document: `docs/aics/<slug>/aic.md` by default; accept an explicit path or format argument
-  (e.g. `/arcdlc:plan <slug> arc42` reads `docs/aics/<slug>/arc42.md`).
+  (e.g. `/arcdlc:plan <slug> arc42` reads `docs/aics/<slug>/arc42.md`; `arc42:html` reads
+  `docs/aics/<slug>/arc42.html`).
 - If no architecture document exists, stop and tell the user to run `/arcdlc:aic` first. Do not plan from a verbal
   description — the pipeline requires the grilled, written document as the source of truth.
 - Also read `docs/aics/<slug>/gap.md` if present (evidence register, possibly produced by `/arcdlc:examinate`),

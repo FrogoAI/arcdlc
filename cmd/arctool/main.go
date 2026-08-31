@@ -22,7 +22,7 @@ import (
 	"github.com/FrogoAI/arcdlc/internal/registry"
 )
 
-const version = "0.9.0"
+const version = "0.10.0"
 
 // aicsDir is the root directory under which each initiative gets its own folder
 // (docs/aics/<slug>/, holding plan.md, gap.md, plan-archive.md). Selection is
@@ -528,7 +528,9 @@ func runSync(dir string, targets []string, check bool, out, errw io.Writer) int 
 }
 
 // scanInitiatives returns a registry entry for every <dir>/<slug>/ folder that
-// holds at least one .md file, sorted by slug.
+// holds at least one .md or .html file, sorted by slug. HTML counts because
+// /arcdlc:aic writes an .html architecture document when asked for a format with
+// the :html suffix, and such an initiative must still reach the registry.
 func scanInitiatives(dir string) []registry.Initiative {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -544,14 +546,17 @@ func scanInitiatives(dir string) []registry.Initiative {
 		if err != nil {
 			continue
 		}
-		hasMD := false
+		hasDoc := false
 		for _, f := range sub {
-			if !f.IsDir() && strings.HasSuffix(f.Name(), ".md") {
-				hasMD = true
+			if f.IsDir() {
+				continue
+			}
+			if n := f.Name(); strings.HasSuffix(n, ".md") || strings.HasSuffix(n, ".html") {
+				hasDoc = true
 				break
 			}
 		}
-		if hasMD {
+		if hasDoc {
 			inits = append(inits, registry.Load(dir, slug))
 		}
 	}

@@ -202,6 +202,47 @@ func TestRunSync(t *testing.T) {
 	}
 }
 
+func TestRunSyncHTMLOnlyInitiative(t *testing.T) {
+	// An initiative whose only architecture document is HTML (written by
+	// /arcdlc:aic <slug> arc42:html) must still reach the registry: scanInitiatives
+	// once gated on the folder holding a .md file, which skipped these silently.
+	root := t.TempDir()
+	aics := filepath.Join(root, "docs", "aics")
+	agents := filepath.Join(root, "AGENTS.md")
+	dir := filepath.Join(aics, "payments")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	doc := `<!DOCTYPE html><html><body>` +
+		`<h1>Payments Platform &#8212; arc42</h1>` +
+		`<div class="paragraph"><p>Card authorization and capture.</p></div>` +
+		`</body></html>`
+	if err := os.WriteFile(filepath.Join(dir, "arc42.html"), []byte(doc), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if code := runSync(aics, []string{agents}, false, io.Discard, io.Discard); code != 0 {
+		t.Fatalf("sync exit=%d, want 0", code)
+	}
+	b, err := os.ReadFile(agents)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := string(b)
+	for _, want := range []string{
+		"[Payments Platform — arc42]",
+		"docs/aics/payments/arc42.html",
+		"Card authorization and capture.",
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("registry missing %q:\n%s", want, got)
+		}
+	}
+	if code := runSync(aics, []string{agents}, true, io.Discard, io.Discard); code != 0 {
+		t.Fatalf("--check after write exit=%d, want 0 (not idempotent)", code)
+	}
+}
+
 func TestRunSyncNoInitiativesStub(t *testing.T) {
 	root := t.TempDir()
 	aics := filepath.Join(root, "docs", "aics")

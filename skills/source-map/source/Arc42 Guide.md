@@ -1,12 +1,20 @@
 # arc42 — How to Build the Document
 
-**What this is**: the complete instruction for turning `arc42-template-EN.md` (this directory) into a
-finished arc42 document. Two files, one job each: the template is the **skeleton you copy**, this
-guide is **everything you need to fill it**. No third source is required.
+**What this is**: the complete instruction for turning an upstream arc42 template (this directory)
+into a finished arc42 document. The template is the **skeleton you copy**, this guide is **everything
+you need to fill it**. No third source is required.
 
-**The template file** is the upstream *plain* edition, kept verbatim. To move to a newer arc42
-release, paste the new **plain** edition over `arc42-template-EN.md` and re-check the numbering map
-below. Never paste the "with help" edition there — its explanations live in this guide instead.
+**Two output formats, one template each. Markdown is the default.**
+
+| Asked for | Template to copy | Output |
+|-----------|------------------|--------|
+| `arc42` (default) | `arc42-template-EN.md` — upstream *plain* Markdown edition | `docs/aics/<slug>/arc42.md` |
+| `arc42:html` (also written "arc42 in html", "arc42 html") | `arc42-template.html` — upstream Asciidoctor HTML edition | `docs/aics/<slug>/arc42.html` |
+
+Both are the *plain* upstream editions, kept verbatim, and carry the same twelve sections in the same
+order. To move to a newer arc42 release, paste the new plain edition over the matching file and
+re-check the numbering map below. Never paste a "with help" edition over either — those explanations
+live in this guide instead.
 
 **Attribution**: arc42 is created and © by Dr. Peter Hruschka, Dr. Gernot Starke and contributors,
 published under CC BY-SA. See <https://arc42.org>. Section names, structure, and the guidance in the
@@ -19,12 +27,12 @@ onboarding matter.
 
 ---
 
-## Procedure
+## Procedure — Markdown output (default)
 
-1. **Copy** `arc42-template-EN.md` to the output path. It already carries the twelve sections, in
-   order, with every fill-in slot.
-2. **Number the headings** per the map below. The plain edition ships unnumbered.
-3. **Clear the pandoc leftovers** (next section).
+1. **Copy** `arc42-template-EN.md` to `docs/aics/<slug>/arc42.md`. It already carries the twelve
+   sections, in order, with every fill-in slot.
+2. **Number the headings** per the map below. The plain Markdown edition ships unnumbered.
+3. **Clear the pandoc leftovers** (see *Reading the template's slots*).
 4. **Write the header**: `# <Title>` plus a one-line `> ` summary blockquote directly under it.
    ```markdown
    # Payments Platform — arc42
@@ -36,8 +44,39 @@ onboarding matter.
    with an empty `# `.
 5. **Fill every section** from the Section Catalogue below, deleting the slots you do not use.
 
-A section that genuinely does not apply stays in place with an explicit `Not applicable — <reason>`
-rather than being dropped.
+## Procedure — HTML output (`arc42:html`)
+
+The HTML edition is Asciidoctor output. It is **already numbered** (`1.`, `1.1.`, `5.1.1.`) and
+carries a table of contents and stable anchor ids, so the work is different:
+
+1. **Copy** `arc42-template.html` to `docs/aics/<slug>/arc42.html`.
+2. **Do not renumber.** The section numbers are already correct and match the map below. HTML numbers
+   one level deeper than Markdown in §5, §7.2 and §8 — black boxes are `5.1.1`, `5.1.2`, …,
+   infrastructure elements `7.2.1`, …, concepts `8.1`, …. Keep what is there.
+3. **Replace both titles.** The template's `<title>Template</title>` and its `<h1>`, which holds the
+   arc42 logo:
+   ```html
+   <h1><span class="image"><img src="images/arc42-logo.png" alt="arc42"></span> Template</h1>
+   ```
+   becomes
+   ```html
+   <h1>Payments Platform — arc42</h1>
+   <div class="paragraph"><p>Card payment authorization and capture for the merchant portal.</p></div>
+   ```
+   Same contract as Markdown: `arctool sync` reads the first `<h1>` as the initiative title and the
+   first `<p>` after it as the summary. Replacing the `<h1>` also drops the only `<img>` in the file,
+   so the copied document has no image dependency — do not copy `images/` alongside it. Keeping the
+   logo would leave both a broken image path and an empty title.
+4. **Fill the slots in place**, keeping the surrounding `<div class="sect2">` / `<div class="paragraph">`
+   structure and the `<a class="anchor">` elements — the table of contents links to them.
+5. **Prune the table of contents.** Every heading you delete or rename has a matching `<li>` in
+   `<div id="toc">`. Update them together, or the TOC points at anchors that no longer exist.
+6. **Leave the `<style>` block alone.** The first ~434 lines are the embedded Asciidoctor stylesheet;
+   they carry no content.
+
+A section that genuinely does not apply stays in place, in either format, with an explicit
+`Not applicable — <reason>` rather than being dropped. The Section Catalogue below is the same for
+both formats — only the markup differs.
 
 ## Reading the template's slots
 
@@ -53,10 +92,26 @@ The template is pandoc output. Four kinds of markup appear in it, and they are n
 Also delete the empty `# ` on line 1 and the **About arc42** preamble — your header from step 4
 replaces them.
 
+### The same slots in the HTML edition
+
+Asciidoctor markup, identical meaning:
+
+| In the file | What it is | What to do |
+|-------------|-----------|-----------|
+| `<em>&lt;Purpose/Responsibility&gt;</em>` inside `<div class="paragraph"><p>…</p></div>` | A slot for your content. | Replace the `<p>` contents. Keep the wrapping `div`. |
+| `<dt class="hdlist1">Motivation</dt>` and its `<dd>` — also `Contained Building Blocks`, `Important Interfaces` (§5.1), `Motivation`, `Quality and/or Performance Features`, `Mapping of Building Blocks to Infrastructure` (§7.1) | **Content headings**, in a `<div class="dlist"><dl>`. Same white box template as Markdown. | **Keep the `<dt>`**, write into the `<dd>`. |
+| A whole `<div class="sect3">…</div>` holding `5.1.2. &lt;Name black box 2&gt;` and friends | A repeat slot. | Keep one per real element, rename its `<h4>`, delete the rest — with their TOC entries. |
+| `<a class="anchor" href="#…"></a>` at the start of every heading | The TOC link target. | Leave it. Renaming a heading's text is fine; changing its `id` means fixing the TOC link too. |
+
+There are no pandoc HTML tables to convert here and no teaching blocks to strip — the HTML edition is
+already plain. Its only `<img>` is the logo in the `<h1>`, removed by step 3.
+
 ## Numbering (contract)
 
 Other references in this library cite arc42 by number: "Arc42 §5 Level 1" in `C4.md`, "Arc42 Section
-6" in `UML.md` and `BPMN.md`. Never renumber or reorder.
+6" in `UML.md` and `BPMN.md`. Never renumber or reorder. The map below is the top-level contract and
+holds for both output formats; the HTML edition additionally numbers the repeat slots one level
+deeper (`5.1.1`, `7.2.1`, …), which is upstream's own numbering and is kept as-is.
 
 | # | Heading | Numbered subsections |
 |---|---------|----------------------|

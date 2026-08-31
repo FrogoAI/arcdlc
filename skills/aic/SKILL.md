@@ -1,7 +1,7 @@
 ---
 name: arcdlc-aic
-description: Build or update an initiative's architecture document under docs/aics/<slug>/. The initiative slug is the required first argument (e.g. /arcdlc:aic payments); an optional second argument picks the format (AIC by default, or arc42, tsc, TOGAF, C4, ADR) and accepts a comma-separated list to produce several from one interview (e.g. /arcdlc:aic payments arc42,tsc). Always starts with a mandatory grill-with-docs interview before any document is written. Use when the user runs /arcdlc:aic, invokes arcdlc-aic, or asks to create an architecture document for an initiative.
-argument-hint: "<slug> [aic|arc42|tsc|togaf|c4|adr, comma-separated]"
+description: Build or update an initiative's architecture document under docs/aics/<slug>/. The initiative slug is the required first argument (e.g. /arcdlc:aic payments); an optional second argument picks the format (AIC by default, or arc42, tsc, TOGAF, C4, ADR), accepts a comma-separated list to produce several from one interview (e.g. /arcdlc:aic payments arc42,tsc), and takes a :html suffix to emit HTML instead of Markdown (e.g. /arcdlc:aic payments arc42:html). Always starts with a mandatory grill-with-docs interview before any document is written. Use when the user runs /arcdlc:aic, invokes arcdlc-aic, or asks to create an architecture document for an initiative.
+argument-hint: "<slug> [aic|arc42|tsc|togaf|c4|adr, comma-separated, :html for HTML]"
 ---
 
 # ArcDLC AIC (/arcdlc:aic)
@@ -47,17 +47,31 @@ the template through the sibling `source-map` skill of this bundle (from this fi
 | Argument | Output file | Source in `../source-map/source/` |
 | --- | --- | --- |
 | *(none)* or `aic` | `docs/aics/<slug>/aic.md` | `AIC Template.md` |
-| `arc42` | `docs/aics/<slug>/arc42.md` | `Arc42 Guide.md` (start here — the full instruction) and `arc42-template-EN.md` (the upstream skeleton it tells you to copy). Two files, no third source. |
+| `arc42` | `docs/aics/<slug>/arc42.md` | `Arc42 Guide.md` (start here — the full instruction) and `arc42-template-EN.md` (the upstream Markdown skeleton it tells you to copy). |
+| `arc42:html` | `docs/aics/<slug>/arc42.html` | `Arc42 Guide.md` and `arc42-template.html` (the upstream Asciidoctor skeleton). Follow the guide's *Procedure — HTML output*. |
 | `tsc` | `docs/aics/<slug>/tsc.md` | `Tech Stack Canvas.md` |
 | `togaf` | `docs/aics/<slug>/togaf.md` | `TOGAF.md` |
 | `c4` | `docs/aics/<slug>/c4.md` | `C4.md` |
 | `adr` | `docs/adr/NNNN-<title>.md` (global) | `ADR.md` |
 | anything else | `docs/aics/<slug>/<format>.md` | Look it up in the `source-map` table; if no matching source exists, tell the user and list available formats. |
 
+### Output format: Markdown by default, HTML on request
+
+Every format writes Markdown unless the engineer asks for HTML. Append `:html` to the format token —
+`/arcdlc:aic payments arc42:html` — which changes only the extension of the output path and the
+template used. Accept the natural phrasings too and normalise them to the same thing: "arc42 in
+html", "arc42 html", "arc42, as html". If the engineer asks for HTML for a format that has no HTML
+template in `../source-map/source/`, say so and offer the Markdown one rather than inventing markup.
+
+`arctool sync` reads HTML architecture documents as well as Markdown ones (first `<h1>` for the
+title, first `<p>` after it for the summary), so an HTML-only initiative still registers — but only
+if the generated document replaces the template's logo `<h1>`, which the guide requires.
+
 ### Several formats at once
 
-The argument accepts a **comma-separated list** — `/arcdlc:aic payments arc42,tsc` — and then every
-named format is produced from the **same single interview**, in the order given:
+The argument accepts a **comma-separated list** — `/arcdlc:aic payments arc42,tsc`, and `:html`
+composes with it (`arc42:html,tsc`) — and then every named format is produced from the **same single
+interview**, in the order given:
 
 - Run Step 2 (the grilled interview) **once**, covering what all the requested formats need. Never
   interview per format.
@@ -67,8 +81,9 @@ named format is produced from the **same single interview**, in the order given:
   blocks), state it in full in one document and cross-link from the other with a relative link. Never
   fork the wording — two divergent copies is the failure this rule exists to prevent.
 - The registry takes only one document per initiative. `arctool sync` picks it by precedence:
-  `aic.md`, `arc42.md`, `togaf.md`, `c4.md`, `tsc.md`, else the first `*.md` alphabetically. Make sure
-  the winning document's H1 and summary describe the whole initiative.
+  `aic`, `arc42`, `togaf`, `c4`, `tsc` by format rank, `.md` before `.html` within a format, else the
+  first `*.md` alphabetically, else the first `*.html`. Make sure the winning document's H1 and
+  summary describe the whole initiative.
 - If any entry in the list is not a known format and has no `source-map` match, **write nothing**:
   report the unknown name and list the supported formats.
 

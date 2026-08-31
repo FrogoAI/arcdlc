@@ -8,6 +8,7 @@ package registry
 import (
 	"errors"
 	"fmt"
+	"html"
 	"os"
 	"path/filepath"
 	"sort"
@@ -25,8 +26,16 @@ const (
 )
 
 // archDocPrecedence lists the recognised architecture-document filenames in the
-// order arctool prefers them when a folder holds more than one.
-var archDocPrecedence = []string{"aic.md", "arc42.md", "togaf.md", "c4.md", "tsc.md"}
+// order arctool prefers them when a folder holds more than one. Format rank comes
+// first; within one format Markdown outranks HTML, which /arcdlc:aic writes when
+// the engineer asks for a format in HTML (e.g. `arc42:html`).
+var archDocPrecedence = []string{
+	"aic.md", "aic.html",
+	"arc42.md", "arc42.html",
+	"togaf.md", "togaf.html",
+	"c4.md", "c4.html",
+	"tsc.md", "tsc.html",
+}
 
 // nonArchDocs are initiative files that are never the architecture document, so
 // they are excluded from the alphabetical fallback in findArchDoc.
@@ -55,11 +64,13 @@ func Load(aicsDir, slug string) Initiative {
 	if err != nil {
 		return Initiative{Slug: slug, Title: slug, Summary: "(no architecture doc)"}
 	}
-	title := parseTitle(content)
+	title, summary := parseTitle(content), parseSummary(content)
+	if strings.HasSuffix(doc, ".html") {
+		title, summary = parseHTMLTitle(content), parseHTMLSummary(content)
+	}
 	if title == "" {
 		title = slug
 	}
-	summary := parseSummary(content)
 	if summary == "" {
 		summary = "(no summary)"
 	}
@@ -73,7 +84,8 @@ func Load(aicsDir, slug string) Initiative {
 
 // findArchDoc returns the architecture-document filename in dir: the first of
 // archDocPrecedence that is present, else the first *.md alphabetically that is
-// not a known non-architecture file (plan/gap/plan-archive). "" when none.
+// not a known non-architecture file (plan/gap/plan-archive), else the first
+// *.html alphabetically. "" when none.
 func findArchDoc(dir string) string {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -81,8 +93,11 @@ func findArchDoc(dir string) string {
 	}
 	present := map[string]bool{}
 	for _, e := range entries {
-		if !e.IsDir() && strings.HasSuffix(e.Name(), ".md") {
-			present[e.Name()] = true
+		if e.IsDir() {
+			continue
+		}
+		if n := e.Name(); strings.HasSuffix(n, ".md") || strings.HasSuffix(n, ".html") {
+			present[n] = true
 		}
 	}
 	for _, p := range archDocPrecedence {
@@ -90,15 +105,24 @@ func findArchDoc(dir string) string {
 			return p
 		}
 	}
-	var others []string
+	var mds, htmls []string
 	for name := range present {
-		if !nonArchDocs[name] {
-			others = append(others, name)
+		if nonArchDocs[name] {
+			continue
+		}
+		if strings.HasSuffix(name, ".md") {
+			mds = append(mds, name)
+		} else {
+			htmls = append(htmls, name)
 		}
 	}
-	sort.Strings(others)
-	if len(others) > 0 {
-		return others[0]
+	sort.Strings(mds)
+	sort.Strings(htmls)
+	if len(mds) > 0 {
+		return mds[0]
+	}
+	if len(htmls) > 0 {
+		return htmls[0]
 	}
 	return ""
 }
@@ -145,6 +169,73 @@ func parseSummary(content []byte) string {
 		para = append(para, s)
 	}
 	return truncate(strings.Join(para, " "))
+}
+
+// parseHTMLTitle returns the text of the first <h1> element with inner tags
+// stripped, or "". The arc42 HTML template ships a logo image inside its <h1>;
+// a generated document is required to replace it with the initiative title.
+func parseHTMLTitle(content []byte) string {
+	s := string(content)
+	low := strings.ToLower(s)
+	i := strings.Index(low, "<h1")
+	if i < 0 {
+		return ""
+	}
+	open := strings.Index(low[i:], ">")
+	if open < 0 {
+		return ""
+	}
+	start := i + open + 1
+	end := strings.Index(low[start:], "</h1>")
+	if end < 0 {
+		return ""
+	}
+	return stripTags(s[start : start+end])
+}
+
+// parseHTMLSummary returns the text of the first <p> element after the first
+// </h1>, truncated to summaryMax runes. Returns "" when there is none.
+func parseHTMLSummary(content []byte) string {
+	s := string(content)
+	low := strings.ToLower(s)
+	i := 0
+	if h := strings.Index(low, "</h1>"); h >= 0 {
+		i = h + len("</h1>")
+	}
+	j := strings.Index(low[i:], "<p")
+	if j < 0 {
+		return ""
+	}
+	start := i + j
+	open := strings.Index(low[start:], ">")
+	if open < 0 {
+		return ""
+	}
+	start += open + 1
+	end := strings.Index(low[start:], "</p>")
+	if end < 0 {
+		return ""
+	}
+	return truncate(stripTags(s[start : start+end]))
+}
+
+// stripTags removes HTML tags from s, unescapes entities, and collapses runs of
+// whitespace. Deliberately minimal: the registry needs only the text of one
+// heading and one paragraph, from documents this bundle's own skills generate.
+func stripTags(s string) string {
+	var b strings.Builder
+	inTag := false
+	for i := 0; i < len(s); i++ {
+		switch {
+		case s[i] == '<':
+			inTag = true
+		case s[i] == '>' && inTag:
+			inTag = false
+		case !inTag:
+			b.WriteByte(s[i])
+		}
+	}
+	return strings.Join(strings.Fields(html.UnescapeString(b.String())), " ")
 }
 
 // truncate shortens s to at most summaryMax runes, appending an ellipsis when cut.

@@ -28,6 +28,11 @@ func TestFindArchDoc(t *testing.T) {
 		{"arc42 over c4", []string{"arc42.md", "c4.md", "plan.md", "gap.md"}, "arc42.md"},
 		{"arc42 over tsc", []string{"tsc.md", "arc42.md", "plan.md"}, "arc42.md"},
 		{"tsc beats alphabetical fallback", []string{"notes.md", "tsc.md", "plan.md"}, "tsc.md"},
+		{"html arch doc found when it is the only one", []string{"arc42.html", "plan.md"}, "arc42.html"},
+		{"markdown outranks html for the same format", []string{"arc42.html", "arc42.md"}, "arc42.md"},
+		{"format rank beats extension", []string{"aic.html", "arc42.md"}, "aic.html"},
+		{"html alphabetical fallback", []string{"design.html", "notes.html"}, "design.html"},
+		{"any markdown beats unranked html", []string{"notes.md", "zeta.html"}, "notes.md"},
 		{"togaf over c4", []string{"togaf.md", "c4.md"}, "togaf.md"},
 		{"alphabetical fallback", []string{"notes.md", "zeta.md"}, "notes.md"},
 		{"non-arch files excluded from fallback", []string{"plan.md", "gap.md", "plan-archive.md"}, ""},
@@ -224,5 +229,67 @@ func TestPreviewEmptyIsNone(t *testing.T) {
 	}
 	if !strings.Contains(content, beginMarker+"\n_none_\n"+endMarker) {
 		t.Errorf("empty registry should render _none_:\n%s", content)
+	}
+}
+
+func TestParseHTMLTitleAndSummary(t *testing.T) {
+	cases := []struct {
+		name              string
+		doc               string
+		wantTit, wantSumm string
+	}{
+		{
+			"asciidoctor h1 with anchor and entities",
+			`<h1><a class="anchor" href="#x"></a>Payments &amp; Ledger</h1>` +
+				`<div class="paragraph"><p>Card authorization and capture.</p></div>`,
+			"Payments & Ledger", "Card authorization and capture.",
+		},
+		{
+			"logo image left in the h1 yields no title",
+			`<h1><span class="image"><img src="images/arc42-logo.png" alt="arc42"></span></h1><p>Body.</p>`,
+			"", "Body.",
+		},
+		{"no h1", `<p>Orphan paragraph.</p>`, "", "Orphan paragraph."},
+		{"h1 but no paragraph", `<h1>Only A Title</h1>`, "Only A Title", ""},
+		{
+			"whitespace across lines is collapsed",
+			"<h1>Split\n   Title</h1>\n<p>Sum\n  mary</p>",
+			"Split Title", "Sum mary",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := parseHTMLTitle([]byte(tc.doc)); got != tc.wantTit {
+				t.Errorf("title = %q, want %q", got, tc.wantTit)
+			}
+			if got := parseHTMLSummary([]byte(tc.doc)); got != tc.wantSumm {
+				t.Errorf("summary = %q, want %q", got, tc.wantSumm)
+			}
+		})
+	}
+}
+
+func TestLoadHTMLInitiative(t *testing.T) {
+	aics := t.TempDir()
+	dir := filepath.Join(aics, "payments")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	doc := `<!DOCTYPE html><html><body>` +
+		`<h1><a class="anchor" href="#t"></a>Payments Platform &#8212; arc42</h1>` +
+		`<div class="paragraph"><p>Card payment authorization and capture.</p></div>` +
+		`</body></html>`
+	if err := os.WriteFile(filepath.Join(dir, "arc42.html"), []byte(doc), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	got := Load(aics, "payments")
+	if got.Title != "Payments Platform — arc42" {
+		t.Errorf("Title = %q", got.Title)
+	}
+	if got.Summary != "Card payment authorization and capture." {
+		t.Errorf("Summary = %q", got.Summary)
+	}
+	if !strings.HasSuffix(got.DocRelPath, "payments/arc42.html") {
+		t.Errorf("DocRelPath = %q", got.DocRelPath)
 	}
 }
