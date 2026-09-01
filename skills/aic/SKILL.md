@@ -100,24 +100,27 @@ Read what already exists so the interview builds on it instead of repeating it:
 ## Step 2 — MANDATORY: grill the design
 
 Never write the architecture document straight from the request — the whole point of `/arcdlc:aic` is
-that the process is controlled: interview, then document. **What is mandatory is the grilled
-interview, not any particular skill.** Take the first option below that is actually available and
-never stop to report a missing skill:
+that the process is controlled: interview first, document second.
 
-1. **`grilling` + `domain-modeling`** — the normal path. Invoke `grilling` for the interview, and use
-   `domain-modeling` to capture terms and decisions as they settle. Both are model-invocable.
-2. **`grill-with-docs`**, *only if you can invoke it* — it bundles exactly those two. Many installs
-   mark it `disable-model-invocation: true`, which means **the user runs it, you cannot**. That is a
-   deliberate setting, not a broken install: do not report it as missing, and do not stop and ask the
-   user to run it when option 1 is open to you.
-3. **Inline**, if no grilling skill is available at all:
-   - Interview the user relentlessly about every aspect of the initiative — one question at a time, with your
-     recommended answer for each.
-   - If a question can be answered by exploring the codebase, explore instead of asking.
-   - As decisions crystallise, write them down immediately: glossary terms into `CONTEXT.md`, architectural decisions
-     into `docs/adr/NNNN-<slug>.md`.
+The interview runs on this bundle's own grilling skill, `arcdlc-grilling` (`/arcdlc:grilling`), a
+sibling of this one. ArcDLC depends on no external grilling skill: do not look for one, and never
+stop to report a skill as missing.
 
-Whichever option runs, the coverage below and the exit condition are the same.
+1. **Invoke `arcdlc-grilling`** — the normal path. It ships in every ArcDLC install and is
+   model-invocable.
+2. **Inline**, only if that skill is genuinely not invocable here: run the same protocol yourself,
+   reading it from `../grilling/SKILL.md` (plugin layout) or `../arcdlc-grilling/SKILL.md` (flat
+   installs). What is mandatory is the grilled interview, not the invocation.
+
+Whichever path runs, all of this holds:
+
+- **One question at a time.** Ask one question, wait for the answer, then ask the next. Never a
+  numbered round, never "two quick ones", never "and also…" tacked onto a question.
+- Every question carries your recommended answer and one line of why.
+- Facts are yours to find: if the codebase, config, or an existing doc can answer it, look it up
+  instead of asking.
+- Decisions are written down the moment they settle — glossary terms into `CONTEXT.md`, hard and
+  surprising trade-offs into `docs/adr/NNNN-<slug>.md`.
 
 Cover at minimum: problem/goal, scope boundaries (in/out), key quality attributes, ownership and context boundaries,
 data model and storage, communication patterns, deployment model, tech stack deltas, risks, and open questions.
@@ -134,6 +137,28 @@ The interview ends only when the user confirms shared understanding or explicitl
   Do not imagine, invent, or silently assume architecture conclusions (this is the `source-map` rule).
 - Anything still undecided goes into an explicit "Open questions" section — never into the body as if decided.
 - Link the ADRs created during the interview from the document.
+
+### Write it for a human reader (every format, Markdown and HTML)
+
+The document is read by people — a new engineer must understand it without asking anyone. That is
+the bar. Write every section of every format this skill produces in plain English:
+
+- Short sentences, one idea each. Active voice, present tense: "The API writes to Postgres", not
+  "Persistence is realised via the relational store".
+- Common words (B2). No `leverage`, `utilise`, `facilitate`, `in order to`, `it should be noted`.
+- Say the thing, then the reason, in that order: "We keep sessions in Postgres because we already run
+  it and the volume is small."
+- Break up stacked noun phrases ("install-agnostic cross-agent skill bundle distribution") into a
+  sentence a person can say out loud.
+- Expand every acronym on its first use in each document. Keep a technical term only when it is this
+  project's or this domain's own term — and define it once, in plain words, or in `CONTEXT.md`.
+- Paragraphs stay under about five lines. Prefer a list, a table, or a diagram to a long paragraph.
+- The `# <Title>` and the `> ` summary line follow the same rule: the summary is one plain sentence
+  that tells a stranger what this initiative does, not a compressed spec.
+
+Plain words, full content: simple English never means less detail. Keep every decision, constraint,
+trade-off, risk, path, and acceptance criterion the template asks for — just say it in words a person
+reads once and gets.
 
 ## Step 4 — Register and hand off
 

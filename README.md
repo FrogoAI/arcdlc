@@ -65,8 +65,9 @@ and "done" is a vibe. ArcDLC wraps a **deterministic lifecycle** around your age
 architecture interview to an audited, task-by-task implementation — so complex systems get built the
 way they were designed.
 
-- **Design before you build** — a mandatory grilled interview produces the architecture document
-  (AIC, arc42, Tech Stack Canvas, TOGAF, C4, or ADRs) *before* any code is written.
+- **Design before you build** — a mandatory grilled interview — one question at a time, each with a
+  recommended answer — produces the architecture document (AIC, arc42, Tech Stack Canvas, TOGAF, C4,
+  or ADRs) in plain English, *before* any code is written.
 - **Plans you can trust** — every task carries testable `Acceptance` criteria; the optional
   `arctool` CLI validates the contract and flips task status atomically. No hand-edited status lines.
 - **Audit what already exists** — `/arcdlc:examinate` measures real code against a named architecture
@@ -133,11 +134,13 @@ argument (e.g. `/arcdlc:plan checkout`). Details and manual alternatives: [Insta
 | `/arcdlc:execute <slug> [TASK-ID]` | Implement all pending plan tasks (or one by ID): status `TODO→TAKEN→DONE`, tests/lint, one Conventional Commits commit per task. | code, tests, commits |
 | `/arcdlc:remove <slug>` | Delete a completed initiative's folder and clean the registry — always after an explicit confirmation. | removed folder, refreshed `docs/aics/` + registry |
 | `/arcdlc:archive <slug>` | Move `DONE` task blocks into `docs/aics/<slug>/plan-archive.md`, keeping the plan small. | compacted plan + archive |
+| `/arcdlc:grilling [topic]` | The interview stage `/arcdlc:aic` and `/arcdlc:policy` run on, usable on its own: relentless questions, **one at a time**, each with a recommended answer, until nothing is silently assumed. | settled decisions, `CONTEXT.md` terms, ADRs |
 | `source-map` skill | Routing table into the bundled architecture & engineering reference library (AIC, arc42, Tech Stack Canvas, TOGAF, C4, ADR, DDD, SOLID, MDCA, Go guides, Twelve-Factor, Conventional Commits, …). | reference guidance |
 
 While any of these skills is running, the agent talks in plain, short English — short sentences,
-bullets, no filler. Brevity applies to the conversation only: the documents, plans, and gap registers
-it writes keep their full required detail.
+bullets, no filler. Architecture documents are written the same way: plain English a new engineer
+reads once and gets. Plain words never mean less content — the documents, plans, and gap registers
+keep their full required detail.
 
 ### Initiatives live in folders
 
@@ -178,7 +181,8 @@ arcdlc/
 ├── assets/                  # README banner (arcdlc_bg.svg)
 ├── skills/                  # one skill per directory (SKILL.md each)
 │   ├── source-map/          # reference library (SKILL.md + source/)
-│   ├── aic/  policy/  plan/  examinate/  execute/  archive/
+│   ├── grilling/            # the one-question-at-a-time interview every skill runs on
+│   ├── aic/  policy/  plan/  examinate/  execute/  remove/  archive/
 │   └── plan/references/plan-format.md   # the executable-plan contract
 ├── cmd/arctool/               # arctool CLI entry point
 ├── internal/plan/           # plan parser, validator, mutator, archiver (+ tests)

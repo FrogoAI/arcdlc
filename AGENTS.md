@@ -8,8 +8,8 @@ Guidance for AI coding agents working **on this repository**. (If you are lookin
 ArcDLC is two deliverables in one repo, and they share a contract:
 
 1. **A skill bundle** (`skills/`, packaged by `.claude-plugin/`) — the `/arcdlc:*` delivery
-   workflow (aic, policy, plan, examinate, execute, remove, archive) plus the `source-map` reference
-   library.
+   workflow (aic, policy, plan, examinate, execute, remove, archive), the `grilling` interview skill
+   they all run on, plus the `source-map` reference library.
 2. **The `arctool` CLI** (`cmd/arctool`, `internal/plan`, `internal/registry`) — a deterministic
    runner for the plan format those skills produce and consume, plus the initiative registry sync.
 
@@ -53,12 +53,23 @@ checks. Do not merge with a red pipeline.
  dual path references (`../plan/...` and `../arcdlc-plan/...`) intact when editing.
 - **`arctool` is always optional in skills.** Every skill that uses it must probe
   `command -v arctool` and describe the manual fallback. Never make a skill hard-depend on the CLI.
-- **No skill hard-depends on another skill.** A skill that delegates (e.g. `/arcdlc:aic` and
-  `/arcdlc:policy` delegating the interview) must state a preference ladder that leads with a
-  model-invocable skill and ends in an inline fallback, and must never stop to report a helper skill
-  as missing. `disable-model-invocation: true` is a deliberate setting meaning *the user* invokes it
-  and the agent cannot — treat it as unavailable and move to the next rung, not as a broken install.
-  What is mandatory is the behaviour (the grilled interview), never a particular skill name.
+- **The bundle depends on nothing outside itself.** A skill that delegates delegates to a *sibling
+  skill in this bundle*, never to an external one. The interview is `skills/grilling` (`arcdlc-grilling`);
+  `/arcdlc:aic`, `/arcdlc:policy`, and `/arcdlc:plan` name it and no other. Do not reintroduce
+  references to third-party skills (`grilling`, `grill-with-docs`, `domain-modeling` on the user's
+  machine) — that dependency is what `skills/grilling` exists to remove.
+- **No skill hard-depends on another skill.** Even for a sibling, a delegating skill states a
+  preference ladder that leads with the model-invocable skill and ends in an inline fallback (read
+  the sibling's `SKILL.md` and run its protocol yourself), and never stops to report a helper skill
+  as missing. What is mandatory is the behaviour (the grilled interview), never the invocation.
+- **The interview is one question at a time.** `skills/grilling` asks exactly one question per turn,
+  waits for the answer, then asks the next — never a numbered round. Every question carries a
+  recommended answer. `/arcdlc:aic`, `/arcdlc:policy`, and `/arcdlc:plan` restate this rule for their
+  inline fallback; change it in all four together.
+- **Architecture documents are written for humans.** Every document `/arcdlc:aic` writes — every
+  format, Markdown or HTML — is plain B2 English: short active sentences, expanded acronyms, no
+  stacked noun phrases. Plain words never mean less content: every decision, constraint, trade-off,
+  and open question the template asks for still has to be there.
 - **Status mutations stay byte-preserving and atomic.** `take`/`done`/`block`/`todo` rewrite only
   the one `- Status:` line via temp-file + rename; `archive` writes the archive before compacting
   the plan. Preserve these invariants.
@@ -89,8 +100,8 @@ checks. Do not merge with a red pipeline.
 - **Every `SKILL.md` carries the same `## Talk simple and short` block**, verbatim, placed after the
   intro and before the first step. It sets how the agent talks to the user while the skill runs
   (plain B2 English, short sentences, no filler) without letting brevity drop rules, paths, or
-  acceptance criteria. CI greps for the heading in all eight skills; copy the block when adding a
-  skill, and change all eight together when editing its wording.
+  acceptance criteria. CI greps for the heading in all nine skills; copy the block when adding a
+  skill, and change all nine together when editing its wording.
 - Reference documents belong in `skills/source-map/source/` and are routed via the table in
   `skills/source-map/SKILL.md` — add a row when adding a document.
 - Adding or renaming a sub-skill requires updating the `SUBSKILLS` list in `install.sh` and the

@@ -84,9 +84,10 @@ before handing off, reconcile the plan against the document's **Technical Challe
   task, or by an explicit process mitigation you record — or consciously **accepted/deferred** with a
   short rationale. Nothing may be silently dropped.
 - If any risk is neither covered nor accepted, **run a grilling session with the engineer** focused on
-  the uncovered risks: invoke the `grilling` skill if available, otherwise interview inline (one
-  question at a time, each with your recommended answer). Turn each outcome into the plan — a new task
-  block when it needs implementation, or an accepted-risk note when it does not.
+  the uncovered risks: invoke this bundle's `arcdlc-grilling` skill, or, if it is not invocable here,
+  run the same protocol inline (one question at a time — ask, wait for the answer, then ask the next —
+  each with your recommended answer). Turn each outcome into the plan — a new task block when it needs
+  implementation, or an accepted-risk note when it does not.
 - Record the result as a `## Risk Coverage` mapping in the plan preamble: one line per risk → the task
   IDs that cover it, or "accepted" with the reason. This makes the check demonstrable, not asserted.
 

@@ -64,17 +64,22 @@ Read what already exists so the interview builds on it instead of repeating it:
 Never write the policy straight from the request. A policy encodes real decisions (scope, owner,
 approver, the actual rules), so interview first — this mirrors `/arcdlc:aic`.
 
-**What is mandatory is the grilled interview, not any particular skill.** Take the first option below
-that is actually available and never stop to report a missing skill:
+The interview runs on this bundle's own grilling skill, `arcdlc-grilling` (`/arcdlc:grilling`), a
+sibling of this one. ArcDLC depends on no external grilling skill: do not look for one, and never
+stop to report a skill as missing.
 
-1. **`grilling`** — the normal path; it is model-invocable.
-2. **`grill-with-docs`**, *only if you can invoke it* — it wraps `grilling`. Many installs mark it
-   `disable-model-invocation: true`, which means **the user runs it, you cannot**. That is a
-   deliberate setting, not a broken install: do not report it as missing, and do not stop and ask the
-   user to run it when option 1 is open to you.
-3. **Inline**, if no grilling skill is available at all: interview the user relentlessly, one question
-   at a time, each with your recommended answer; explore the codebase or existing policies to answer
-   questions instead of asking when you can.
+1. **Invoke `arcdlc-grilling`** — the normal path. It ships in every ArcDLC install and is
+   model-invocable.
+2. **Inline**, only if that skill is genuinely not invocable here: run the same protocol yourself,
+   reading it from `../grilling/SKILL.md` (plugin layout) or `../arcdlc-grilling/SKILL.md` (flat
+   installs). What is mandatory is the grilled interview, not the invocation.
+
+Whichever path runs, all of this holds:
+
+- **One question at a time.** Ask one question, wait for the answer, then ask the next. Never a
+  numbered round, never "two quick ones".
+- Every question carries your recommended answer and one line of why.
+- Facts are yours to find: if the codebase or an existing policy answers it, look it up, do not ask.
 
 Cover at minimum, mapping each answer to a template section:
 

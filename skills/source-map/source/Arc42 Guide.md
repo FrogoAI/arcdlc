@@ -525,5 +525,10 @@ decisions and their consequences, keep prose short, prefer tables and diagrams o
 significant statement must trace to an interview answer, an existing ADR, or code evidence — never
 invent architecture conclusions.
 
+Write it in plain English: short active sentences, common words, acronyms expanded on first use, no
+stacked noun phrases. A new engineer must understand the document without asking anyone. Plain words
+never mean less content — every decision, constraint, trade-off, and open question still has to be
+in there.
+
 Diagrams embedded in an arc42 document follow the shared DOT → PNG workflow, `images/` naming rule,
 tooling, and palettes — see `Diagram Conventions.md`.
