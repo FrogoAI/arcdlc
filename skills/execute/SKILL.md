@@ -129,7 +129,12 @@ For each task, in order (in orchestrator mode, the spawned subagent performs the
 7. If the task cannot be completed — including any acceptance criterion you cannot satisfy: `arctool block <id> -m
    "<one-line reason>"` naming the failing criterion (or `arctool todo <id>` to release it back to the queue), report
    why, and stop — do not continue to the next task on failure. Never `arctool done` a task whose acceptance criteria
-   are unmet. *Fallback: set the status line to `- Status: BLOCKED — <reason>.` or back to `TODO`.*
+   are unmet. The same rule covers an order inversion: while implementing, you find the task needs something a task
+   **below** it will build. Block it the same way, with a reason that names the other task: `arctool block <id> -m
+   "needs <OTHER-ID>, which is below it"`. Then add one line to your report with the exact command that would fix the
+   order, for example `arctool order <OTHER-ID> <id> --aic <slug>`, which swaps those two positions and leaves every
+   other block where it is. You never run that command: the engineer decides whether the plan changes, and the run
+   stops here either way. *Fallback: set the status line to `- Status: BLOCKED — <reason>.` or back to `TODO`.*
 8. Repeat from step 1. When running the whole queue, stop when `arctool next` exits non-zero (code `3` = no `TODO`
    left). *Fallback: stop when no `TODO` block remains.*
 

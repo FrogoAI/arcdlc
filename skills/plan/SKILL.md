@@ -120,6 +120,18 @@ no-op — note that and continue.
     - Task IDs are unique.
     - Every block has a non-empty `- Acceptance:` section (`--strict` fails otherwise — it implies
       `--require-acceptance`).
+- Fix the order when it is wrong. The dependency order from Step 2 is the run order, and the same
+  `command -v arctool` probe above decides how you change it:
+  - With `arctool`: `arctool order <ID> <ID> … --aic <slug>` (or `--plan <path>`) re-orders the task
+    blocks. Add `--dry-run` to see the new order without writing the file.
+  - The named tasks swap among the positions they already hold, so "move to first" is a swap, not a
+    shift. On `T1 T2 T3`, `arctool order T3 T1` gives `T3 T2 T1`: T2 keeps the middle slot. Name the
+    whole span to hoist a task and keep the rest in relative order, so `arctool order T3 T1 T2` gives
+    `T3 T1 T2`. A task you do not name never moves.
+  - Without `arctool`: move the `###` blocks by hand, then re-check that every block still carries
+    its `- Status:` line (a block that lost it is silently skipped by the runner).
+  - Reorder between `/arcdlc:execute` runs, not during one. Nothing stops a reorder while a task is
+    `TAKEN`, and the agent holding that task keeps working from the block it already read.
 - Self-sufficiency check (the litmus test): reread each block as if you were a weaker model that has
   read **only** the block and its `References`. If implementing it would require asking a question,
   guessing a design decision, or hunting for an unnamed file, fix the block now — put the decision in

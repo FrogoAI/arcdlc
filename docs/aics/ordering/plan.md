@@ -255,7 +255,7 @@ before every commit: the repo must stay green.
   - GIVEN both files WHEN `grep -c '^## Talk simple, write like a human$' skills/plan/SKILL.md skills/execute/SKILL.md` runs THEN each reports 1, so the CI skill-layout check still passes.
   - GIVEN both files WHEN `grep -n "arcdlc-plan/references\|../plan/references" skills/execute/SKILL.md` runs THEN both dual path forms are still present.
 - References: `docs/aics/ordering/aic.md`, `docs/adr/0013-order-is-a-slot-permutation.md`, `skills/plan/references/plan-format.md`, `skills/source-map/source/Writing Style.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### ORD-5: Bump arctool to 0.11.0 and the plugin bundle to 0.13.0
 
