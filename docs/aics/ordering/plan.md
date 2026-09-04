@@ -206,7 +206,7 @@ before every commit: the repo must stay green.
   - GIVEN both edited files WHEN `grep -nE "—|–" AGENTS.md README.md` runs THEN every remaining hit is a pre-existing line or a generated initiative-registry line, and none is in the prose this task added.
   - GIVEN the repo WHEN `arctool sync --check` runs THEN it exits 0.
 - References: `docs/aics/ordering/aic.md`, `docs/adr/0014-exit-5-means-self-validation-failed.md`, `skills/source-map/source/Writing Style.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### ORD-4: Teach `/arcdlc:plan` and `/arcdlc:execute` about ordering
 

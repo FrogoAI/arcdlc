@@ -80,7 +80,8 @@ checks. Do not merge with a red pipeline.
   in generated initiative-registry lines) is exempt; that is `internal/registry`'s output, not prose.
 - **Status mutations stay byte-preserving and atomic.** `take`/`done`/`block`/`todo` rewrite only
   the one `- Status:` line via temp-file + rename; `archive` writes the archive before compacting
-  the plan. Preserve these invariants.
+  the plan; `order` permutes whole blocks, re-parses its own output before writing, and writes
+  nothing on a failed check. Preserve these invariants.
 - **Initiatives are folders; selection is mandatory and explicit.** Each initiative lives in
   `docs/aics/<slug>/` (holding the architecture doc, `plan.md`, `gap.md`, `plan-archive.md` — the
   latter two are always siblings of `plan.md`). Selection is always named, never inferred:
@@ -119,7 +120,7 @@ checks. Do not merge with a red pipeline.
 - Adding or renaming a sub-skill requires updating the `SUBSKILLS` list in `install.sh` and the
   skill-layout / installer-smoke checks in `.github/workflows/ci.yml` in the same change set.
 - Exit codes of `arctool` are part of its interface (0 ok, 1 contract failure, 2 usage, 3 not
-  found/empty, 4 I/O, 5 archive self-validation) — skills key off them; do not renumber.
+  found/empty, 4 I/O, 5 self-validation) — skills key off them; do not renumber.
 - The Antigravity plugin manifest lives in `.antigravity-plugin/` (alongside the Claude Code manifest
   in `.claude-plugin/`).
 - `CLAUDE.md` is a symlink to this file; edit `AGENTS.md` only.

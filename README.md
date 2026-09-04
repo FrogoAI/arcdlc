@@ -368,12 +368,16 @@ arctool next --json            # first TODO block as JSON (exit 3 when queue is 
 arctool take AIC-1             # claim it: TODO → TAKEN (refuses non-TODO without --force)
 arctool done AIC-1 --aic checkout   # complete it in a named initiative: TAKEN → DONE
 arctool block AIC-1 -m "vendor API returns 500 on staging"
+arctool order AIC-3 AIC-1 AIC-2   # re-order task blocks (slot permutation; unnamed tasks never move)
+arctool order AIC-3 AIC-1 --dry-run   # preview the new order without writing
 arctool archive --dry-run      # preview which DONE blocks would move to plan-archive.md
 arctool archive                # move them (archive written first — crash-safe)
 ```
 
-All mutations are guarded, byte-preserving, atomic rewrites of the single status line —
-`arctool` never reformats your plan.
+Status changes rewrite only the one `- Status:` line and leave every other byte alone. `archive`
+and `order` rewrite the whole file, and both re-parse their own output before they write it. Every
+write is atomic. `arctool` never reformats your plan beyond the block spacing those two commands
+normalise.
 
 ## License
 
