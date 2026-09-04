@@ -104,7 +104,7 @@ before every commit: the repo must stay green.
   - GIVEN a plan whose first byte begins a `###` block WHEN a reorder runs THEN `out` does not begin with a blank line.
   - GIVEN the new code WHEN `go test ./internal/plan/...` runs THEN `order_test.go` covers every case above and passes.
 - References: `docs/aics/ordering/aic.md`, `docs/adr/0013-order-is-a-slot-permutation.md`, `docs/adr/0014-exit-5-means-self-validation-failed.md`, `skills/plan/references/plan-format.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### ORD-2: Add the `arctool order` command
 
