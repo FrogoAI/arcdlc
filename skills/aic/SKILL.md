@@ -11,17 +11,24 @@ Produce the architecture document that anchors the ArcDLC delivery pipeline:
 `/arcdlc:aic` → `/arcdlc:plan` → `/arcdlc:execute` → `/arcdlc:archive`, with `/arcdlc:examinate` feeding
 compliance gaps into the plan at any point.
 
-## Talk simple and short
+## Talk simple, write like a human
 
-While this skill runs, keep replies to the user simple and brief:
+Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor.
 
-- Plain English, common words (B2). Short sentences, one idea each.
-- Bullets over paragraphs. No filler, no praise, no repeating the request.
-- Say only what matters: what you did, what you found, what comes next.
-- Keep a technical term only when it is this project's own term.
+- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
+  Say what you did, what you found, what comes next.
+- **Files you write:** no AI filler ("Furthermore", "In conclusion", "It is important to note",
+  "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
+  invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
+  improves performance".
+- **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
+  Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
+- **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
+  once in plain words, then use it. Simple English is about the sentence, not the term.
 
-Brief talk, full content: never drop a rule, path, acceptance criterion, or decision
-to save words. Files this skill writes keep their required detail.
+Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
+decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
+pre-save check, is `source/Writing Style.md` in the bundle's `source-map` skill.
 
 ## Argument: initiative slug (required, first positional)
 
@@ -140,24 +147,26 @@ The interview ends only when the user confirms shared understanding or explicitl
 
 ### Write it for a human reader (every format, Markdown and HTML)
 
-The document is read by people — a new engineer must understand it without asking anyone. That is
-the bar. Write every section of every format this skill produces in plain English:
+The document is read by people. A new engineer must understand it without asking anyone. That is
+the bar, and the `## Talk simple, write like a human` rules at the top of this skill apply to every section of
+every format produced here, Markdown and HTML alike. Read
+`../source-map/source/Writing Style.md` (flat installs: `../arcdlc-source-map/source/Writing Style.md`)
+before the first section and run its pre-save check before you hand the draft over.
 
-- Short sentences, one idea each. Active voice, present tense: "The API writes to Postgres", not
-  "Persistence is realised via the relational store".
-- Common words (B2). No `leverage`, `utilise`, `facilitate`, `in order to`, `it should be noted`.
-- Say the thing, then the reason, in that order: "We keep sessions in Postgres because we already run
-  it and the volume is small."
+Four points matter most in an architecture document:
+
+- Say the thing, then the reason, in that order: "We keep sessions in Postgres because we already
+  run it and the volume is small."
 - Break up stacked noun phrases ("install-agnostic cross-agent skill bundle distribution") into a
   sentence a person can say out loud.
-- Expand every acronym on its first use in each document. Keep a technical term only when it is this
-  project's or this domain's own term — and define it once, in plain words, or in `CONTEXT.md`.
-- Paragraphs stay under about five lines. Prefer a list, a table, or a diagram to a long paragraph.
-- The `# <Title>` and the `> ` summary line follow the same rule: the summary is one plain sentence
-  that tells a stranger what this initiative does, not a compressed spec.
+- Expand every acronym on its first use in each document. Keep a domain term when it is this
+  project's or this domain's own word, and define it once in plain words, here or in `CONTEXT.md`.
+  Do not replace it with a vaguer everyday word.
+- The `# <Title>` and the `> ` summary line follow the same rules. The summary is one plain
+  sentence that tells a stranger what this initiative does, not a compressed spec.
 
 Plain words, full content: simple English never means less detail. Keep every decision, constraint,
-trade-off, risk, path, and acceptance criterion the template asks for — just say it in words a person
+trade-off, risk, path, and acceptance criterion the template asks for. Just say it in words a person
 reads once and gets.
 
 ## Step 4 — Register and hand off

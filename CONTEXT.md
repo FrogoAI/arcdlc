@@ -23,6 +23,9 @@ skills, `arctool`, ADRs, and architecture documents.
   skills `remove` and `policy`).
 - **Plan contract** — the task-block format defined in `skills/plan/references/plan-format.md`,
   parsed mechanically by `internal/plan`.
+- **Slot permutation** — the semantics of `arctool order`. The named tasks keep the positions they
+  already hold in `plan.md`, and only their contents are permuted among those positions. A task that
+  is not named never moves. See [ADR-0013](docs/adr/0013-order-is-a-slot-permutation.md).
 - **Reference library** — `skills/source-map/source/`: the bundled reference documents, reached only
   through the routing table in `skills/source-map/SKILL.md` (one row per document). Agent-facing: a
   document earns its place by changing what an agent produces.

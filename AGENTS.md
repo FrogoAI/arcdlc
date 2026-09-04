@@ -24,6 +24,7 @@ Active initiatives in this repo (kept in sync by `arctool sync`; do not edit ins
 - [Antigravity CLI](docs/aics/antigravity-cli/aic.md) — Add Google Antigravity as a fourth supported agent — a native plugin bundle with a flat-skills fallback.
 - [Cursor Support](docs/aics/cursor-support/aic.md) — Add Cursor as a supported agent via flat personal skills (~/.cursor/skills/arcdlc-<name>) — installer, CI, and docs only…
 - [Initiative Lifecycle](docs/aics/initiative-lifecycle/aic.md) — Mandatory slug-first selection, an arctool-synced initiative registry, and an always-confirmed removal flow.
+- [Task Ordering](docs/aics/ordering/aic.md) — Add an arctool command that re-orders task blocks in plan.md, because /arcdlc:execute runs them top to bottom.
 - [Source Library Cleanup](docs/aics/source-library-cleanup/aic.md) — Make the bundled reference library agent-grade: redact leaked data, delete docs that contradict the plan contract, merge…
 <!-- arcdlc:initiatives:end -->
 
@@ -66,10 +67,17 @@ checks. Do not merge with a red pipeline.
   waits for the answer, then asks the next — never a numbered round. Every question carries a
   recommended answer. `/arcdlc:aic`, `/arcdlc:policy`, and `/arcdlc:plan` restate this rule for their
   inline fallback; change it in all four together.
-- **Architecture documents are written for humans.** Every document `/arcdlc:aic` writes — every
-  format, Markdown or HTML — is plain B2 English: short active sentences, expanded acronyms, no
-  stacked noun phrases. Plain words never mean less content: every decision, constraint, trade-off,
-  and open question the template asks for still has to be there.
+- **Everything the skills write is written for humans.** Every file every skill produces — the
+  architecture documents of `/arcdlc:aic` in any format, Markdown or HTML, plus policies, ADRs,
+  `CONTEXT.md`, plan tasks, gap blocks, and commit messages — is plain B2 English: short active
+  sentences, expanded acronyms, no stacked noun phrases, no AI filler, and no long dashes (`—`, `–`)
+  in prose. Domain terms survive: a word like *provenance* is defined once in plain words, never
+  swapped for a vaguer one. Plain words never mean less content: every decision, constraint,
+  trade-off, and open question the template asks for still has to be there. The full standard is
+  `skills/source-map/source/Writing Style.md`; the `## Talk simple, write like a human` block in every
+  `SKILL.md` is its short form and must stay self-sufficient, because a skill is loaded but a
+  reference is only read if the agent opens it. A long dash a format contract owns (the `— ` separator
+  in generated initiative-registry lines) is exempt; that is `internal/registry`'s output, not prose.
 - **Status mutations stay byte-preserving and atomic.** `take`/`done`/`block`/`todo` rewrite only
   the one `- Status:` line via temp-file + rename; `archive` writes the archive before compacting
   the plan. Preserve these invariants.
@@ -97,11 +105,15 @@ checks. Do not merge with a red pipeline.
 - One skill per directory under `skills/`, entry file always `SKILL.md`, YAML frontmatter with a
   `description` that names its triggers (the `/arcdlc:<name>` command and the `arcdlc-<name>`
   flat form).
-- **Every `SKILL.md` carries the same `## Talk simple and short` block**, verbatim, placed after the
-  intro and before the first step. It sets how the agent talks to the user while the skill runs
-  (plain B2 English, short sentences, no filler) without letting brevity drop rules, paths, or
-  acceptance criteria. CI greps for the heading in all nine skills; copy the block when adding a
-  skill, and change all nine together when editing its wording.
+- **Every `SKILL.md` carries the same `## Talk simple, write like a human` block**, verbatim, placed
+  after the intro and before the first step. It covers both audiences in one place: how the agent
+  talks to the user while the skill runs (plain B2 English, bullets, no filler) and how it writes the
+  files the skill produces (no AI filler, no long dashes, varied rhythm, concrete facts, domain terms
+  kept and defined once). Brevity applies to replies, never to files: the block never lets a rule,
+  path, decision, or acceptance criterion be dropped. Keep it short but self-sufficient — every rule
+  an agent must follow stays inline, and only the tables, examples, and the pre-save grep live in the
+  long form, `skills/source-map/source/Writing Style.md`. CI greps for the heading in all nine skills;
+  copy the block when adding a skill, and change all nine plus the long form together.
 - Reference documents belong in `skills/source-map/source/` and are routed via the table in
   `skills/source-map/SKILL.md` — add a row when adding a document.
 - Adding or renaming a sub-skill requires updating the `SUBSKILLS` list in `install.sh` and the

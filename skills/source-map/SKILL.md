@@ -1,6 +1,6 @@
 ---
 name: arcdlc-source-map
-description: Use when a user asks for architecture, architecture decision records or ADRs, engineering governance, delivery workflow, commit message conventions or Conventional Commits, Go architecture, Go best practices, clean code, KISS, simple design, modularity, DDD, SOLID, ECS, MDCA, TOGAF, ArchiMate, AIC, arc42, C4, UML, BPMN, flowcharts, Twelve-Factor App guidance, tech stack decisions, CTO methodology, or asks which ArcDLC source reference file to read.
+description: Use when a user asks for architecture, architecture decision records or ADRs, engineering governance, delivery workflow, commit message conventions or Conventional Commits, Go architecture, Go best practices, clean code, KISS, simple design, modularity, DDD, SOLID, ECS, MDCA, TOGAF, ArchiMate, AIC, arc42, C4, UML, BPMN, flowcharts, Twelve-Factor App guidance, tech stack decisions, CTO methodology, document writing style or plain English or how to keep AI slop out of a document, or asks which ArcDLC source reference file to read.
 ---
 
 # ArcDLC Source Map
@@ -13,17 +13,24 @@ Do not imagine, invent, or silently assume important architecture conclusions or
 
 If a project has its own `AGENTS.md`, `CLAUDE.md`, or README guidance, follow that project guidance together with this source map.
 
-## Talk simple and short
+## Talk simple, write like a human
 
-While this skill runs, keep replies to the user simple and brief:
+Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor.
 
-- Plain English, common words (B2). Short sentences, one idea each.
-- Bullets over paragraphs. No filler, no praise, no repeating the request.
-- Say only what matters: what you did, what you found, what comes next.
-- Keep a technical term only when it is this project's own term.
+- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
+  Say what you did, what you found, what comes next.
+- **Files you write:** no AI filler ("Furthermore", "In conclusion", "It is important to note",
+  "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
+  invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
+  improves performance".
+- **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
+  Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
+- **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
+  once in plain words, then use it. Simple English is about the sentence, not the term.
 
-Brief talk, full content: never drop a rule, path, acceptance criterion, or decision
-to save words. Files this skill writes keep their required detail.
+Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
+decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
+pre-save check, is `source/Writing Style.md` in the bundle's `source-map` skill.
 
 ## Delivery Workflow Commands
 
@@ -80,6 +87,7 @@ when it is absent.
 | Commit messages or semantic version bumps                     | `source/Conventional Commits.md`                                                                          |
 | Executable plan format (docs/aics/<slug>/plan.md)             | `../plan/references/plan-format.md` (flat: `../arcdlc-plan/references/plan-format.md`)                    |
 | Engineering governance                                        | `source/Engineering Principles.md`, `source/Policy of Policies.md`, `source/Policy of Initiatives.md`     |
+| Writing style, plain English, or removing AI slop from a document | `source/Writing Style.md`                                                                              |
 | Create / author a policy (docs/policies/<name>.md)            | `/arcdlc:policy` skill, which applies `source/Policy of Policies.md`                                      |
 | App methodology                                               | `source/Twelve-Factor App.md`                                                                             |
 | CTO or operating model                                        | `source/CTO Methodology Guide.md`                                                                         |

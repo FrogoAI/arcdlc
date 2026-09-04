@@ -22,17 +22,24 @@ code impact (or a clean audit) ends the track at the document.
 The governing framework is `source/Policy of Policies.md` in the sibling `source-map` skill. It is
 the contract for how every policy must be created, structured, and managed — read it before writing.
 
-## Talk simple and short
+## Talk simple, write like a human
 
-While this skill runs, keep replies to the user simple and brief:
+Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor.
 
-- Plain English, common words (B2). Short sentences, one idea each.
-- Bullets over paragraphs. No filler, no praise, no repeating the request.
-- Say only what matters: what you did, what you found, what comes next.
-- Keep a technical term only when it is this project's own term.
+- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
+  Say what you did, what you found, what comes next.
+- **Files you write:** no AI filler ("Furthermore", "In conclusion", "It is important to note",
+  "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
+  invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
+  improves performance".
+- **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
+  Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
+- **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
+  once in plain words, then use it. Simple English is about the sentence, not the term.
 
-Brief talk, full content: never drop a rule, path, acceptance criterion, or decision
-to save words. Files this skill writes keep their required detail.
+Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
+decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
+pre-save check, is `source/Writing Style.md` in the bundle's `source-map` skill.
 
 ## Argument
 
@@ -110,8 +117,11 @@ Pick the class from the classification table, then the next sequential number by
 
 ## Step 3 — Write `docs/policies/<name>.md`
 
-Use the mandatory structure from `Policy of Policies.md`. Write in simple, direct, active voice;
-avoid jargon and passive voice. Include every section:
+Use the mandatory structure from `Policy of Policies.md`. The `## Talk simple, write like a human` rules above
+cover every line of the policy: plain English, active voice, no filler, no long dashes, and domain
+terms kept and defined once. Full rules and the pre-save check live in
+`../source-map/source/Writing Style.md` (flat installs: `../arcdlc-source-map/source/Writing Style.md`).
+Include every section:
 
 - **Header block**: Policy Name, Unique ID, Author, Creation Date, `Status: Draft`, Effective Date,
   `Approval Date: TBD`, and Next Review Date (Creation Date + 6 months).

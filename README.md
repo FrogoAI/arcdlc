@@ -72,6 +72,10 @@ way they were designed.
   `arctool` CLI validates the contract and flips task status atomically. No hand-edited status lines.
 - **Audit what already exists** — `/arcdlc:examinate` measures real code against a named architecture
   or policy (MDCA, DDD, SOLID, Twelve-Factor, …) and files each gap as a tracked task.
+- **Documents that read like a person wrote them** — every skill carries the same
+  `Talk simple, write like a human` rule: plain English, no AI filler, no long dashes, concrete facts, and the
+  domain's own terms kept and defined once. The standard lives in
+  `skills/source-map/source/Writing Style.md`.
 - **Bring your own agent** — one install-agnostic bundle for Claude Code, Codex, OpenCode, Cursor, and Antigravity.
 
 ## Why teams adopt ArcDLC
@@ -155,6 +159,7 @@ instead of guessing. Task IDs need only be unique within one initiative's plan, 
 - [Antigravity CLI](docs/aics/antigravity-cli/aic.md) — Add Google Antigravity as a fourth supported agent — a native plugin bundle with a flat-skills fallback.
 - [Cursor Support](docs/aics/cursor-support/aic.md) — Add Cursor as a supported agent via flat personal skills (~/.cursor/skills/arcdlc-<name>) — installer, CI, and docs only…
 - [Initiative Lifecycle](docs/aics/initiative-lifecycle/aic.md) — Mandatory slug-first selection, an arctool-synced initiative registry, and an always-confirmed removal flow.
+- [Task Ordering](docs/aics/ordering/aic.md) — Add an arctool command that re-orders task blocks in plan.md, because /arcdlc:execute runs them top to bottom.
 - [Source Library Cleanup](docs/aics/source-library-cleanup/aic.md) — Make the bundled reference library agent-grade: redact leaked data, delete docs that contradict the plan contract, merge…
 <!-- arcdlc:initiatives:end -->
 

@@ -13,17 +13,24 @@ before they write a single line of their document.
 This skill ships inside the ArcDLC bundle. ArcDLC needs no external grilling skill — do not look for
 one, and do not report one as missing.
 
-## Talk simple and short
+## Talk simple, write like a human
 
-While this skill runs, keep replies to the user simple and brief:
+Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor.
 
-- Plain English, common words (B2). Short sentences, one idea each.
-- Bullets over paragraphs. No filler, no praise, no repeating the request.
-- Say only what matters: what you did, what you found, what comes next.
-- Keep a technical term only when it is this project's own term.
+- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
+  Say what you did, what you found, what comes next.
+- **Files you write:** no AI filler ("Furthermore", "In conclusion", "It is important to note",
+  "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
+  invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
+  improves performance".
+- **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
+  Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
+- **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
+  once in plain words, then use it. Simple English is about the sentence, not the term.
 
-Brief talk, full content: never drop a rule, path, acceptance criterion, or decision
-to save words. Files this skill writes keep their required detail.
+Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
+decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
+pre-save check, is `source/Writing Style.md` in the bundle's `source-map` skill.
 
 ## Hard rule — one question at a time
 
@@ -95,7 +102,8 @@ Capture each outcome the moment it lands — never batch it to the end of the se
 
 - **Terms** → `CONTEXT.md` at the repo root (or the context's own `CONTEXT.md` when a `CONTEXT-MAP.md`
   exists at the root). Glossary only: one canonical name per concept, plain-language definition, no
-  implementation detail. Create the file when the first term settles.
+  implementation detail. Create the file when the first term settles. The definition is plain
+  English; the term itself stays exact. A word like provenance is defined, never replaced.
 - **Decisions** → `docs/adr/NNNN-<slug>.md` (global, never per-initiative), but only when all three
   hold: hard to reverse, surprising to a future reader without the reasoning, and the result of a
   real trade-off. If any of the three is missing, skip the ADR — the decision belongs in the
