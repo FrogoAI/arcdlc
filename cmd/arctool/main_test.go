@@ -2,11 +2,14 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/FrogoAI/arcdlc/internal/plan"
 )
 
 // mkPlan creates an empty plan.md at dir/rel, making parent directories as needed.
@@ -278,5 +281,181 @@ func TestRunSyncNoInitiativesStub(t *testing.T) {
 	}
 	if !strings.Contains(string(b), "_none_") {
 		t.Errorf("no-initiative registry should render _none_:\n%s", b)
+	}
+}
+
+// --- arctool order ---
+
+// orderPlan writes a plan.md holding one minimal task block per id, in the
+// given order, into a fresh temp dir and returns its path.
+func orderPlan(t *testing.T, ids ...string) string {
+	t.Helper()
+	var b strings.Builder
+	b.WriteString("# plan\n")
+	for _, id := range ids {
+		fmt.Fprintf(&b, "\n### %s: Task %s\n- WHAT: x.\n- WHERE: internal/%s.go\n- WHY: y.\n- References: `a`.\n- Status: TODO.\n", id, id, id)
+	}
+	path := filepath.Join(t.TempDir(), "plan.md")
+	if err := os.WriteFile(path, []byte(b.String()), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+// runOrder calls cmdOrder with both standard streams captured.
+func runOrder(t *testing.T, args ...string) (code int, stdout, stderr string) {
+	t.Helper()
+	stderr = captureStderr(t, func() {
+		stdout = captureStdout(t, func() { code = cmdOrder(args) })
+	})
+	return code, stdout, stderr
+}
+
+// readFile returns the file's bytes as a string, so a test can assert that a
+// refused or dry run left them untouched.
+func readFile(t *testing.T, path string) string {
+	t.Helper()
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(b)
+}
+
+// planIDs returns the task IDs of the plan file at path, in file order.
+func planIDs(t *testing.T, path string) string {
+	t.Helper()
+	var ids []string
+	for _, task := range plan.Parse([]byte(readFile(t, path))).Tasks {
+		ids = append(ids, task.ID)
+	}
+	return strings.Join(ids, " ")
+}
+
+func TestCmdOrderWritesThePermutation(t *testing.T) {
+	path := orderPlan(t, "T1", "T2", "T3")
+	code, stdout, stderr := runOrder(t, "T3", "T1", "T2", "--plan", path)
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
+	}
+	if got := planIDs(t, path); got != "T3 T1 T2" {
+		t.Fatalf("order on disk = %q, want %q", got, "T3 T1 T2")
+	}
+	if want := "reordered 3 task(s) in " + path; !strings.Contains(stdout, want) {
+		t.Errorf("stdout missing %q:\n%s", want, stdout)
+	}
+	for _, want := range []string{"  1  T3", "  2  T1", "  3  T2"} {
+		if !strings.Contains(stdout, want) {
+			t.Errorf("stdout missing order line %q:\n%s", want, stdout)
+		}
+	}
+}
+
+func TestCmdOrderDryRunWritesNothing(t *testing.T) {
+	path := orderPlan(t, "T1", "T2", "T3")
+	before := readFile(t, path)
+	code, stdout, stderr := runOrder(t, "T3", "T1", "--dry-run", "--plan", path)
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
+	}
+	if after := readFile(t, path); after != before {
+		t.Fatalf("--dry-run rewrote the file:\n%s", after)
+	}
+	if want := "would reorder " + path + ":"; !strings.Contains(stdout, want) {
+		t.Errorf("stdout missing %q:\n%s", want, stdout)
+	}
+	// Slot permutation (ADR-0013): T3 and T1 swap positions 1 and 3, T2 stays.
+	for _, want := range []string{"  1  T3", "  2  T2", "  3  T1"} {
+		if !strings.Contains(stdout, want) {
+			t.Errorf("preview missing order line %q:\n%s", want, stdout)
+		}
+	}
+}
+
+func TestCmdOrderNoOpPrintsTheCurrentOrder(t *testing.T) {
+	path := orderPlan(t, "T1", "T2", "T3")
+	before := readFile(t, path)
+	// T1 already holds the first named slot, so naming T1 T3 changes nothing.
+	code, stdout, stderr := runOrder(t, "T1", "T3", "--plan", path)
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
+	}
+	if after := readFile(t, path); after != before {
+		t.Fatalf("a no-op rewrote the file:\n%s", after)
+	}
+	if !strings.Contains(stdout, "already in that order") {
+		t.Errorf("stdout missing the no-op notice:\n%s", stdout)
+	}
+	for _, want := range []string{"  1  T1", "  2  T2", "  3  T3"} {
+		if !strings.Contains(stdout, want) {
+			t.Errorf("stdout missing order line %q:\n%s", want, stdout)
+		}
+	}
+}
+
+func TestCmdOrderRefusesAndLeavesTheFileAlone(t *testing.T) {
+	cases := []struct {
+		name string
+		ids  []string
+		want int // 2 = usage error, 3 = not found
+	}{
+		{"one id", []string{"T1"}, 2},
+		{"repeated id", []string{"T1", "T1"}, 2},
+		{"unknown id", []string{"T3", "T9"}, 3},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			path := orderPlan(t, "T1", "T2", "T3")
+			before := readFile(t, path)
+			args := append(append([]string{}, c.ids...), "--plan", path)
+			code, _, stderr := runOrder(t, args...)
+			if code != c.want {
+				t.Fatalf("exit=%d, want %d (stderr: %s)", code, c.want, stderr)
+			}
+			if after := readFile(t, path); after != before {
+				t.Fatalf("a refused order rewrote the file:\n%s", after)
+			}
+			if stderr == "" {
+				t.Error("a refused order said nothing on stderr")
+			}
+		})
+	}
+}
+
+func TestCmdOrderEmptyPlanIsNotFound(t *testing.T) {
+	path := mkPlan(t, t.TempDir(), "plan.md") // "# plan\n": no "###" blocks
+	code, _, stderr := runOrder(t, "T1", "T2", "--plan", path)
+	if code != 3 {
+		t.Fatalf("exit=%d, want 3 (stderr: %s)", code, stderr)
+	}
+}
+
+func TestCmdOrderAcceptsPositionalsBeforeFlags(t *testing.T) {
+	// Proves splitArgs is used: the stdlib flag package stops at the first
+	// positional, which would leave --plan unparsed and fail selection with 2.
+	path := orderPlan(t, "T1", "T2", "T3")
+	code, _, stderr := runOrder(t, "T3", "T1", "--plan", path)
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
+	}
+	if got := planIDs(t, path); got != "T3 T2 T1" {
+		t.Fatalf("order on disk = %q, want %q", got, "T3 T2 T1")
+	}
+}
+
+func TestUsageDocumentsOrderAndTheWidenedExitFive(t *testing.T) {
+	help := fmt.Sprintf(usage, version) // exactly what `arctool help` prints
+	for _, want := range []string{
+		"arctool order  <id> <id> [<id>…] [--dry-run] [--aic SLUG | --plan PATH]",
+		"slot permutation: named tasks swap among the positions they already hold",
+		`T1 T2 T3 + "order T3 T1 T2" -> T3 T1 T2; a task you do not name never moves`,
+		"5  self-validation failed (nothing written)",
+	} {
+		if !strings.Contains(help, want) {
+			t.Errorf("help output missing %q:\n%s", want, help)
+		}
+	}
+	if bad := "5  archive self-validation failed"; strings.Contains(help, bad) {
+		t.Errorf("help output still carries the pre-ADR-0014 line %q", bad)
 	}
 }
