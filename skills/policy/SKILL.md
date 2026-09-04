@@ -24,7 +24,8 @@ the contract for how every policy must be created, structured, and managed — r
 
 ## Talk simple, write like a human
 
-Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor.
+Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor. Cut
+empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
 
 - **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
   Say what you did, what you found, what comes next.
@@ -77,7 +78,7 @@ stop to report a skill as missing.
 
 1. **Invoke `arcdlc-grilling`** — the normal path. It ships in every ArcDLC install and is
    model-invocable.
-2. **Inline**, only if that skill is genuinely not invocable here: run the same protocol yourself,
+2. **Inline**, only if that skill is not invocable here: run the same protocol yourself,
    reading it from `../grilling/SKILL.md` (plugin layout) or `../arcdlc-grilling/SKILL.md` (flat
    installs). What is mandatory is the grilled interview, not the invocation.
 

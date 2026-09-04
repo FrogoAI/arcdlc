@@ -74,7 +74,7 @@ carries a table of contents and stable anchor ids, so the work is different:
 6. **Leave the `<style>` block alone.** The first ~434 lines are the embedded Asciidoctor stylesheet;
    they carry no content.
 
-A section that genuinely does not apply stays in place, in either format, with an explicit
+A section that does not apply stays in place, in either format, with an explicit
 `Not applicable — <reason>` rather than being dropped. The Section Catalogue below is the same for
 both formats — only the markup differs.
 

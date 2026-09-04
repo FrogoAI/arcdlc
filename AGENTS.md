@@ -70,8 +70,8 @@ checks. Do not merge with a red pipeline.
 - **Everything the skills write is written for humans.** Every file every skill produces — the
   architecture documents of `/arcdlc:aic` in any format, Markdown or HTML, plus policies, ADRs,
   `CONTEXT.md`, plan tasks, gap blocks, and commit messages — is plain B2 English: short active
-  sentences, expanded acronyms, no stacked noun phrases, no AI filler, and no long dashes (`—`, `–`)
-  in prose. Domain terms survive: a word like *provenance* is defined once in plain words, never
+  sentences, expanded acronyms, no stacked noun phrases, no AI filler, no empty intensifiers
+  (`honestly`, `genuinely`, `truly`, `clearly`, `obviously`), and no long dashes (`—`, `–`) in prose. Domain terms survive: a word like *provenance* is defined once in plain words, never
   swapped for a vaguer one. Plain words never mean less content: every decision, constraint,
   trade-off, and open question the template asks for still has to be there. The full standard is
   `skills/source-map/source/Writing Style.md`; the `## Talk simple, write like a human` block in every

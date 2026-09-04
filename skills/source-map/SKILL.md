@@ -15,7 +15,8 @@ If a project has its own `AGENTS.md`, `CLAUDE.md`, or README guidance, follow th
 
 ## Talk simple, write like a human
 
-Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor.
+Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor. Cut
+empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
 
 - **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
   Say what you did, what you found, what comes next.

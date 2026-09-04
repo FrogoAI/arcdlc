@@ -1,7 +1,8 @@
 // Command arctool is the deterministic companion for the ArcDLC plan
 // (docs/aics/<slug>/plan.md). It covers the full plan lifecycle: read commands
 // (validate, next, show, list), status mutation (take, done, block, todo),
-// archive, and version. Initiative selection is mandatory and explicit: pass
+// re-ordering (order), archive, and version. Initiative selection is mandatory
+// and explicit: pass
 // --aic <slug> or --plan PATH. There is no auto-detect; with neither flag arctool
 // lists the initiatives under docs/aics/ and exits 2.
 package main
@@ -9,6 +10,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -37,6 +39,9 @@ usage:
   arctool list   [--status TODO|TAKEN|DONE|BLOCKED] [--json] [--aic SLUG | --plan PATH]
   arctool take|done|todo <id> [--force] [--aic SLUG | --plan PATH]   flip status (TODO->TAKEN->DONE / release)
   arctool block  <id> [-m reason] [--force] [--aic SLUG | --plan PATH]   mark BLOCKED
+  arctool order  <id> <id> [<id>…] [--dry-run] [--aic SLUG | --plan PATH]   re-order task blocks
+                 slot permutation: named tasks swap among the positions they already hold
+                 T1 T2 T3 + "order T3 T1 T2" -> T3 T1 T2; a task you do not name never moves
   arctool validate [--strict] [--json] [--warn-as-error] [--require-acceptance] [--aic SLUG | --plan PATH]
                  (--strict implies --require-acceptance: every task needs an Acceptance section)
   arctool archive  [--dry-run] [--aic SLUG | --plan PATH]    move DONE blocks to plan-archive.md
@@ -55,7 +60,7 @@ exit codes:
   2  usage error
   3  not found / nothing to do (e.g. next with no TODO)
   4  I/O error
-  5  archive self-validation failed
+  5  self-validation failed (nothing written)
 `
 
 func main() {
@@ -72,6 +77,8 @@ func main() {
 		os.Exit(cmdList(os.Args[2:]))
 	case "take", "done", "block", "todo":
 		os.Exit(cmdMutate(os.Args[1], os.Args[2:]))
+	case "order":
+		os.Exit(cmdOrder(os.Args[2:]))
 	case "validate":
 		os.Exit(cmdValidate(os.Args[2:]))
 	case "archive":
@@ -477,6 +484,96 @@ func cmdMutate(cmd string, args []string) int {
 	return 0
 }
 
+// cmdOrder permutes the named task blocks among the positions they already
+// occupy (ADR-0013): the named positions are filled, in ascending order, with
+// the tasks in the order given, and a task nobody names never moves. The
+// rewrite is whole-file, so (*plan.Plan).Reorder re-parses and checks its own
+// output before handing the bytes back; a failed check writes nothing (exit 5).
+func cmdOrder(args []string) int {
+	flags, pos := splitArgs(args, map[string]bool{"plan": true, "aic": true})
+
+	fs := flag.NewFlagSet("order", flag.ContinueOnError)
+	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic)")
+	aicFlag := fs.String("aic", "", "initiative slug under docs/aics/")
+	dryRun := fs.Bool("dry-run", false, "print the resulting order without writing")
+	if err := fs.Parse(flags); err != nil {
+		return 2
+	}
+	if len(pos) < 2 {
+		fmt.Fprintln(os.Stderr, "usage: arctool order <id> <id> [<id>…] [--dry-run] [--aic SLUG | --plan PATH]")
+		return 2
+	}
+
+	planPath, code := resolvePlan(aicsDir, *planFlag, *aicFlag)
+	if code != 0 {
+		return code
+	}
+	p, code := loadPlan(planPath)
+	if code != 0 {
+		return code
+	}
+
+	out, changed, err := p.Reorder(pos)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "arctool: %v\n", err)
+		var rerr *plan.ReorderError
+		if !errors.As(err, &rerr) {
+			return 1
+		}
+		switch rerr.Kind {
+		case plan.ReorderBadArgs:
+			return 2
+		case plan.ReorderNotFound:
+			return 3
+		case plan.ReorderSelfCheck:
+			fmt.Fprintln(os.Stderr, "arctool: nothing written")
+			return 5
+		}
+		return 1
+	}
+	// Reorder yields no bytes when the plan already has the requested order, so
+	// the no-op path prints from the plan that is loaded, not from out.
+	if !changed {
+		fmt.Println("already in that order")
+		printOrder(p)
+		return 0
+	}
+
+	np := plan.Parse(out)
+	if *dryRun {
+		fmt.Printf("would reorder %s:\n", planPath)
+		printOrder(np)
+		return 0
+	}
+	if err := atomicWrite(planPath, out); err != nil {
+		fmt.Fprintf(os.Stderr, "arctool: write %s: %v\n", planPath, err)
+		return 4
+	}
+	moved := 0
+	for i := range np.Tasks {
+		if i < len(p.Tasks) && np.Tasks[i].ID != p.Tasks[i].ID {
+			moved++
+		}
+	}
+	fmt.Printf("reordered %d task(s) in %s\n", moved, planPath)
+	printOrder(np)
+	return 0
+}
+
+// printOrder prints the plan's blocks in file order — position, task ID,
+// status, title — so the caller sees the order it just asked for. An empty
+// status renders as "(none)", exactly as cmdList does.
+func printOrder(p *plan.Plan) {
+	for i := range p.Tasks {
+		t := &p.Tasks[i]
+		st := t.Status.String()
+		if st == "" {
+			st = "(none)"
+		}
+		fmt.Printf("%3d  %-16s %-8s %s\n", i+1, t.ID, st, t.Title)
+	}
+}
+
 // cmdSync updates the initiative registry blocks in AGENTS.md and README.md at
 // the repo root. It is repo-wide, so it takes no --aic/--plan selection.
 func cmdSync(args []string) int {
@@ -688,7 +785,7 @@ func cmdArchive(args []string) int {
 	}
 
 	if err := plan.VerifyArchive(p, res); err != nil {
-		fmt.Fprintf(os.Stderr, "arctool: archive self-validation failed: %v; nothing written\n", err)
+		fmt.Fprintf(os.Stderr, "arctool: archive: self-validation failed: %v; nothing written\n", err)
 		return 5
 	}
 

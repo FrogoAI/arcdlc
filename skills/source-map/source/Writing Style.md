@@ -53,13 +53,31 @@ Do not "simplify" any of these:
 | delve into | look at, dig into |
 | leverage, utilise, utilize | use |
 | facilitate, enable (as filler) | let, allow, do |
-| robust, seamless, cutting-edge | say what it actually does |
+| robust, seamless, cutting-edge | name what it does |
 | holistic, comprehensive | drop it or list what is covered |
 | myriad, plethora, a wealth of | a number, or the number |
 | tapestry, beacon, realm, journey, landscape | the real noun |
 | underscore, testament to, pivotal, crucial, vital | important, or say why |
 | in order to | to |
 | a variety of, a range of | the actual list |
+| honestly, genuinely, truly, really | delete the word |
+| clearly, obviously, essentially, basically | delete the word |
+
+**Empty intensifiers.** Cut `honestly`, `genuinely`, `truly`, `really`, `simply`, `clearly`,
+`obviously`, `essentially`, `basically`. Every one of them adds emphasis where a fact belongs,
+and the sentence is stronger with the word gone. Two earn a special mention:
+
+- `honestly` implies the sentences around it were not honest. Say the thing and let it stand.
+- `genuinely` claims sincerity instead of showing evidence. "A genuinely hard trade-off" tells
+  the reader nothing. "Both options cost us something: Redis adds a service to run, an
+  in-process cache loses us multi-node reads" tells them everything.
+
+`clearly` and `obviously` do extra damage. When the point is not obvious to the reader, the word
+tells them they are slow. Delete it and explain instead.
+
+One exception: `actually` may stay when it marks a real contrast, as in "code you actually read"
+(read, not assumed) or "what the diff actually does" (not what the task title claimed). If it is
+not doing that job, it is filler.
 
 **Praise and hedging.** No "great question", no "this powerful approach", no "we believe this
 elegant solution". A document states decisions and reasons. Nothing else.
@@ -90,7 +108,7 @@ Replace one with the punctuation that fits the thought:
 - A full stop, when the two halves are two thoughts. Usually the right answer.
 - A comma, when it is an aside.
 - A colon, when what follows explains what came before.
-- Brackets, when it is a genuine parenthesis.
+- Brackets, when the text is an aside the sentence could drop.
 
 ```
 Bad:  We store sessions in Postgres — we already run it — and the volume is small.
@@ -184,7 +202,7 @@ Run this on every document, every time. It takes a minute.
 A rough grep for the mechanical part, run from the repo root:
 
 ```bash
-grep -nEi "—|–|\b(delve|leverage|utili[sz]e|robust|seamless|holistic|myriad|plethora|tapestry|beacon|realm|landscape|underscore|testament|pivotal|crucial)\b|\b(furthermore|moreover|in conclusion|it is important to note|it'?s important to note|in today'?s|ever-evolving|at its core|needless to say)\b|not just .* but" docs/aics/<slug>/*.md docs/policies/*.md
+grep -nEi "—|–|\b(delve|leverage|utili[sz]e|robust|seamless|holistic|myriad|plethora|tapestry|beacon|realm|landscape|underscore|testament|pivotal|crucial|honestly|genuinely|truly|clearly|obviously|essentially|basically)\b|\b(furthermore|moreover|in conclusion|it is important to note|it'?s important to note|in today'?s|ever-evolving|at its core|needless to say)\b|not just .* but" docs/aics/<slug>/*.md docs/policies/*.md
 ```
 
 Judge every hit. Some are legitimate: a quoted error message, a contract line, a domain term that

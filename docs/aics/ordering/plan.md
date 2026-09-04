@@ -162,7 +162,7 @@ before every commit: the repo must stay green.
   - GIVEN the built binary WHEN `arctool help` runs THEN the output contains the `arctool order` line, the worked example `T3 T1 T2`, and the exit line `5  self-validation failed (nothing written)`, and does not contain `5  archive self-validation failed`.
   - GIVEN the new code WHEN `go test ./cmd/...` runs THEN the tests above pass and `go vet ./...` is clean.
 - References: `docs/aics/ordering/aic.md`, `docs/adr/0013-order-is-a-slot-permutation.md`, `docs/adr/0014-exit-5-means-self-validation-failed.md`.
-- Status: TODO.
+- Status: TAKEN.
 
 ### ORD-3: Update AGENTS.md and README.md for the new command
 

@@ -11,7 +11,8 @@ executable plan so `/arcdlc:execute` can close them.
 
 ## Talk simple, write like a human
 
-Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor.
+Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor. Cut
+empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
 
 - **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
   Say what you did, what you found, what comes next.
@@ -66,7 +67,7 @@ not exist yet (a fresh audit, e.g. `mdca-audit`), confirm the slug with the user
 - Every finding needs evidence: `file:line` (or package/module) plus the rule it violates. No evidence, no gap.
 - Classify each finding's source status: `MISSING` (required element absent), `PARTIAL` (present but incomplete),
   or `DRIFT` (present but violates the policy).
-- Do not report style preferences that the policy does not actually mandate.
+- Do not report style preferences that the policy does not mandate.
 
 ## Step 3 — Write the gap register
 
