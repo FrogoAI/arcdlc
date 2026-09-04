@@ -282,4 +282,4 @@ before every commit: the repo must stay green.
   - GIVEN both manifests WHEN `test "$(jq -r .version .antigravity-plugin/plugin.json)" = "$(jq -r .version .claude-plugin/plugin.json)"` runs THEN it succeeds, and both read `0.13.0`.
   - GIVEN the repo WHEN `go build ./... && go test ./... && gofmt -l . && go vet ./...` runs THEN the build and tests pass and `gofmt -l .` prints nothing.
 - References: `docs/aics/ordering/aic.md`.
-- Status: TODO.
+- Status: DONE.
