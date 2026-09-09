@@ -25,6 +25,11 @@ empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add
   "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
   invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
   improves performance".
+- **Be direct, name the thing.** The fewest words that carry the fact; a word that only adds tone
+  comes out. Never a metaphor, a narrative line, or a question. Say what must happen: "The alerter
+  retries three times, then dead-letters." Every title that names work is an instruction, a verb
+  plus its object: "Implement the alerter service", never "One message out, and the three places it
+  goes".
 - **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
   Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
 - **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
@@ -63,6 +68,10 @@ matters goes into the block.
 - Task IDs: unique, prefixed by the initiative (e.g. `AIC-1`, `AIC-2`, or a project code like `WA240-VER-03`).
   These IDs are what `/arcdlc:execute <TASK-ID>` targets — keep them short and stable. Headings of
   AIC-derived tasks take **no** parenthetical tag — `(MISSING|PARTIAL|DRIFT)` is only for gap-derived tasks.
+- The title is an instruction that names the thing: an imperative verb plus its object, with the real
+  component, file, or command named. `Implement the alerter service`, never `One message out, and the
+  three places it goes`. A title the executor has to decode is a title that costs a guess. If you
+  cannot name the thing, the task is not decomposed far enough yet.
 - Size each task so a single agent session can implement, test, and commit it: one coherent slice,
   roughly ≤5–6 files in `WHERE`. If it spans unrelated modules, split it.
 - Order blocks by dependency: the runner executes top-to-bottom, so a task may only depend on tasks above it.

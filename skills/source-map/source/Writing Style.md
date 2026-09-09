@@ -13,10 +13,12 @@ It applies to everything the ArcDLC skills produce: architecture documents (AIC,
 Canvas, TOGAF, C4), ADRs, `CONTEXT.md`, policies under `docs/policies/`, plan tasks, gap findings,
 commit messages, and the HTML variants of all of them.
 
-Two rules stand above the rest:
+Three rules stand above the rest:
 
 1. Write plain English. Short sentences, common words, a named actor.
 2. Never trade content for simplicity. Plain words, full content, always.
+3. Be direct and short. The fewest words that carry the fact. Never a metaphor, a narrative line,
+   or a question.
 
 ## Scope: what this does not touch
 
@@ -98,6 +100,59 @@ These patterns read as generated even when every word is fine:
 - Every bullet in a list built to the identical mould.
 - Bold on half the words in a paragraph.
 - Emoji, unless the template already uses them.
+
+## Be direct
+
+Never a metaphor, a narrative line, or a question.
+
+A turn of phrase makes the reader decode instead of read. It passes every ban list on this page and
+still fails, because the words are common and the sentence is short. The test is not vocabulary. The
+test is whether the reader knows the thing after one read.
+
+- No metaphor for a technical fact. A service does not wake up. It starts.
+- No narrative line. Do not walk the reader through a story. Name the subject, state the fact.
+- No question, in a title or in a line. Answer it instead.
+- No teaser, no headline. Nothing here needs a hook.
+
+**Say what must happen.** A task, a policy, and an acceptance criterion state the required behaviour
+as fact. "The alerter retries three times, then dead-letters." Not "should consider retrying", not
+"aims to handle failures", not "could be beneficial".
+
+**Use the fewest words.** Cut every word that carries only tone. One sentence beats two. If a shorter
+form keeps every fact, the shorter form is the correct one. This never means dropping material: see
+"Plain words, full content".
+
+```
+Bad:  One message out, and the three places it goes
+Good: Implement the alerter service
+```
+
+The bad line is short, plain, active, and holds no banned word. It fails anyway. It names no
+component and no action, so the reader has to open the body to learn the subject.
+
+## Name the thing
+
+Every title that names work is an instruction: an imperative verb plus its object.
+
+- **Task titles, gap titles, commit subjects.** "Implement the alerter service." "Add the `arctool
+  order` command." "Bump arctool to 0.11.0."
+- Name the real component, file, or command. If you cannot name it, the work is not defined yet.
+- **The architecture document H1** is the initiative name, a short noun phrase: `# Task Ordering`.
+  `arctool sync` prints it as the registry link label, right before the summary, so an instruction
+  there states the summary twice.
+- **The ADR H1** states the decision: "`arctool order` permutes slots, it does not move tasks". The
+  decision is already made, so an instruction is the wrong tense.
+- **Section headings** name their subject. "Alerter service", not "How a message finds its way".
+- The rule in "Say who does what" about breaking stacked nouns into a sentence is for prose. A title
+  stays a label: shorten the noun stack, do not turn it into a sentence.
+- Headings a template owns are exempt. See "Scope".
+
+| Do not write | Write |
+| --- | --- |
+| One message out, and the three places it goes | Implement the alerter service |
+| Making validation stricter | Reject a task block with no Acceptance section |
+| The road to atomic writes | Write the status line with temp-file plus rename |
+| So how do we ship this? | Add the release workflow |
 
 ## No long dashes
 
@@ -196,7 +251,10 @@ Run this on every document, every time. It takes a minute.
 4. Check the shape: three sentences in a row of the same length is a rewrite.
 5. Pick three claims at random. Can you name the source of each? If not, move or cut them.
 6. Check the terms: is every acronym expanded once, and every domain term defined once?
-7. Last read: would a new engineer act on this document without asking a question that the
+7. Read each title alone, with the body covered. Can you say what changes and where? If not, rename
+   it.
+8. Try to delete a word from each sentence. If nothing breaks, it was tone, not fact.
+9. Last read: would a new engineer act on this document without asking a question that the
    document should have answered?
 
 A rough grep for the mechanical part, run from the repo root:
@@ -205,8 +263,15 @@ A rough grep for the mechanical part, run from the repo root:
 grep -nEi "—|–|\b(delve|leverage|utili[sz]e|robust|seamless|holistic|myriad|plethora|tapestry|beacon|realm|landscape|underscore|testament|pivotal|crucial|honestly|genuinely|truly|clearly|obviously|essentially|basically)\b|\b(furthermore|moreover|in conclusion|it is important to note|it'?s important to note|in today'?s|ever-evolving|at its core|needless to say)\b|not just .* but" docs/aics/<slug>/*.md docs/policies/*.md
 ```
 
+A second grep for titles that name nothing:
+
+```bash
+grep -nE '^#+ .*\?|^#+ (A|An|The|One|How|Why|What|When)\b' docs/aics/<slug>/*.md docs/policies/*.md
+```
+
 Judge every hit. Some are legitimate: a quoted error message, a contract line, a domain term that
-happens to be on the list. The grep finds candidates, you decide.
+happens to be on the list, a heading whose subject really does start with `The`. The grep finds
+candidates, you decide.
 
 ## Worked examples
 
@@ -220,6 +285,13 @@ Bad:  In today's rapidly evolving payments landscape, it is crucial to leverage 
 Good: Payments go through one integration service. It owns retries, idempotency keys, and the
       audit trail, so the rest of the system never talks to a provider directly. We accept the
       extra hop because provider outages then have one place to fail.
+```
+
+**Task title**
+
+```
+Bad:  ### ALT-1: One message out, and the three places it goes
+Good: ### ALT-1: Implement the alerter service
 ```
 
 **Plan task**

@@ -33,6 +33,11 @@ empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add
   "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
   invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
   improves performance".
+- **Be direct, name the thing.** The fewest words that carry the fact; a word that only adds tone
+  comes out. Never a metaphor, a narrative line, or a question. Say what must happen: "The alerter
+  retries three times, then dead-letters." Every title that names work is an instruction, a verb
+  plus its object: "Implement the alerter service", never "One message out, and the three places it
+  goes".
 - **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
   Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
 - **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each

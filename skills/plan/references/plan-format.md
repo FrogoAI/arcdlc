@@ -45,6 +45,10 @@ gate. It is ordinary prose, not a `### ` task block, so the runner ignores it; o
 (`arctool validate` warns on anything else). Tasks decomposed from an architecture document take
 **no** tag. Do not put status in the heading — status lives on the `- Status:` line.
 
+`<Short Title>` is an instruction that names the thing: an imperative verb plus its object, with the
+real component, file, or command named (`Implement the alerter service`). The parser does not check
+this, the reader does.
+
 ### Section keys
 
 The parser reads exactly these keys (exact casing). `WHAT`, `WHY`, `References`, and `Status` are
