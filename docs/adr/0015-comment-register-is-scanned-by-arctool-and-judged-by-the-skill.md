@@ -5,6 +5,11 @@
 - Initiative: none (bundle-wide, introduced with `/arcdlc:assist`)
 - Amended by: [ADR-0016](0016-comment-markers-group-by-tag.md), which groups markers by tag, gives the
   sweep the `WHAT` draft, takes the verdict away from it, and lets one block grow
+- Amended by: [ADR-0017](0017-a-marker-is-arcdlc-in-a-comment-and-cutting-it-is-asked-for.md), which
+  makes `ARCDLC` the default marker, makes removing a comment an asked-for step (`--strip`), and reads a
+  marker only inside a comment
+- Amended by: [ADR-0018](0018-only-single-line-comments-carry-markers.md): a marker counts in a
+  single-line comment only, so the block-comment rules here no longer apply
 
 ## Context
 

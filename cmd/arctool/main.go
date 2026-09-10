@@ -25,7 +25,7 @@ import (
 	"github.com/FrogoAI/arcdlc/internal/scan"
 )
 
-const version = "0.13.0"
+const version = "0.15.0"
 
 // aicsDir is the root directory under which each initiative gets its own folder
 // (docs/aics/<slug>/, holding plan.md, gap.md, comments.md, plan-archive.md).
@@ -47,10 +47,12 @@ usage:
   arctool validate [--strict] [--json] [--warn-as-error] [--require-acceptance] [--aic SLUG | --plan PATH]
                  (--strict implies --require-acceptance: every task needs an Acceptance section)
   arctool scan   [--marker LIST] [--path DIR] [--exclude LIST] [--comments PATH]
-                 [--json] [--dry-run] [--aic SLUG | --plan PATH]
-                 sweep source comments for markers (default TODO) into comments.md,
-                 then delete those comment lines from the code (--dry-run does neither)
-                 markers sharing a tag are one block: // TODO:G1 in three files, one task
+                 [--strip] [--json] [--dry-run] [--aic SLUG | --plan PATH]
+                 sweep source comments for markers (default ARCDLC) into comments.md
+                 markers sharing a tag are one block: ARCDLC:T1 in three files, one task
+                 --strip also deletes those comment lines from the code; without it the
+                 code is left alone (--dry-run writes nothing either way)
+                 a marker counts only inside a comment, never inside a string literal
                  (exit 3 when no marker is found)
   arctool archive  [--dry-run] [--aic SLUG | --plan PATH]    move DONE blocks to plan-archive.md
   arctool sync     [--check]                                 sync the initiative registry in AGENTS.md/README.md
@@ -768,10 +770,11 @@ func cmdScan(args []string) int {
 	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic)")
 	aicFlag := fs.String("aic", "", "initiative slug under docs/aics/")
 	commentsPath := fs.String("comments", "", "register path (default: comments.md beside the plan)")
-	markerList := fs.String("marker", "TODO", "comma-separated marker words to look for")
+	markerList := fs.String("marker", strings.Join(scan.DefaultMarkers, ","), "comma-separated marker words to look for")
 	root := fs.String("path", ".", "directory to sweep")
 	excludeList := fs.String("exclude", "", "comma-separated directory names to skip (default: "+strings.Join(scan.DefaultExclude, ",")+")")
 	asJSON := fs.Bool("json", false, "emit this sweep as JSON")
+	strip := fs.Bool("strip", false, "also delete the marker comments this run registered (default: leave the code alone)")
 	dryRun := fs.Bool("dry-run", false, "show what would change without writing")
 	if err := fs.Parse(args); err != nil {
 		return 2
@@ -795,7 +798,7 @@ func cmdScan(args []string) int {
 		newFolder = filepath.ToSlash(dir)
 	}
 
-	found, err := scan.Sweep(scan.Opts{Root: *root, Markers: markers, Exclude: splitList(*excludeList)})
+	found, guessed, err := scan.Sweep(scan.Opts{Root: *root, Markers: markers, Exclude: splitList(*excludeList)})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "arctool: scan %s: %v\n", *root, err)
 		return 4
@@ -811,21 +814,26 @@ func cmdScan(args []string) int {
 		return 1
 	}
 
-	// Work out the code edits before anything is written: the register holds the
-	// marker text, so the comment can go. Strip only computes and verifies here.
-	edits, skipped, err := scan.Strip(*root, found)
-	if err != nil {
-		var pathErr *os.PathError
-		if errors.As(err, &pathErr) {
-			fmt.Fprintf(os.Stderr, "arctool: scan: %v\n", err)
-			return 4
+	// Removing a comment is asked for, never assumed: without --strip this sweep only
+	// records. When it is asked for, the edits are worked out before anything is
+	// written, because the register must hold the text before the comment can go.
+	var edits []scan.Edit
+	var skipped []scan.Skip
+	if *strip {
+		edits, skipped, err = scan.Strip(*root, found)
+		if err != nil {
+			var pathErr *os.PathError
+			if errors.As(err, &pathErr) {
+				fmt.Fprintf(os.Stderr, "arctool: scan: %v\n", err)
+				return 4
+			}
+			fmt.Fprintf(os.Stderr, "arctool: scan: self-validation failed: %v; nothing written\n", err)
+			return 5
 		}
-		fmt.Fprintf(os.Stderr, "arctool: scan: self-validation failed: %v; nothing written\n", err)
-		return 5
 	}
 
 	if *asJSON {
-		if code := emitScanJSON(cp, markers, found, res, edits, skipped); code != 0 {
+		if code := emitScanJSON(cp, markers, guessed, found, res, edits, skipped); code != 0 {
 			return code
 		}
 	}
@@ -840,7 +848,7 @@ func cmdScan(args []string) int {
 			if newFolder != "" {
 				fmt.Printf("would create %s/ (new initiative folder)\n", newFolder)
 			}
-			reportScan(cp, *root, markers, found, res, edits, skipped, true)
+			reportScan(cp, *root, markers, guessed, found, res, edits, skipped, *strip, true)
 		}
 		return 0
 	}
@@ -866,7 +874,7 @@ func cmdScan(args []string) int {
 		if newFolder != "" {
 			fmt.Printf("created %s/ (new initiative folder)\n", newFolder)
 		}
-		reportScan(cp, *root, markers, found, res, edits, skipped, false)
+		reportScan(cp, *root, markers, guessed, found, res, edits, skipped, *strip, false)
 	}
 	return 0
 }
@@ -886,17 +894,19 @@ type scanJSON struct {
 	Known    int          `json:"known"`
 	Total    int          `json:"total"`
 	Changed  bool         `json:"changed"`
+	Guessed  []string     `json:"guessedTypes"`
 	New      []scan.Block `json:"new"`
 	Extended []scan.Block `json:"extended"`
 	Edited   []scan.Edit  `json:"edited"`
 	Skipped  []scan.Skip  `json:"skipped"`
 }
 
-func emitScanJSON(register string, markers []string, found []scan.Finding, res scan.Result,
+func emitScanJSON(register string, markers, guessed []string, found []scan.Finding, res scan.Result,
 	edits []scan.Edit, skipped []scan.Skip) int {
 	payload := scanJSON{
 		Register: filepath.ToSlash(register),
 		Markers:  markers,
+		Guessed:  append([]string{}, guessed...),
 		Found:    len(found),
 		Known:    res.Known,
 		Total:    res.Total,
@@ -916,8 +926,8 @@ func emitScanJSON(register string, markers []string, found []scan.Finding, res s
 }
 
 // reportScan prints the summary a reader (or an agent) acts on.
-func reportScan(register, root string, markers []string, found []scan.Finding, res scan.Result,
-	edits []scan.Edit, skipped []scan.Skip, dryRun bool) {
+func reportScan(register, root string, markers, guessed []string, found []scan.Finding, res scan.Result,
+	edits []scan.Edit, skipped []scan.Skip, strip, dryRun bool) {
 	verb := "wrote"
 	switch {
 	case dryRun:
@@ -940,7 +950,18 @@ func reportScan(register, root string, markers []string, found []scan.Finding, r
 			fmt.Printf("  note %s:%d  tag %q needs a letter: read as a plain marker\n", f.File, f.Line, tag)
 		}
 	}
+	if len(guessed) > 0 {
+		// A language the openers table does not name is read with // and #. Say so, so
+		// that "no marker found" is never mistaken for "this tree is clean".
+		fmt.Printf("  note %d file type(s) the sweep does not know (%s) were read with the default // and # comment style\n",
+			len(guessed), strings.Join(clipList(guessed, 5), ", "))
+	}
 
+	if !strip {
+		fmt.Printf("left every marker comment in the code: pass --strip to remove the %d this run registered\n",
+			len(found))
+		return
+	}
 	removed := 0
 	for _, e := range edits {
 		removed += e.Removed
@@ -958,6 +979,7 @@ func reportScan(register, root string, markers []string, found []scan.Finding, r
 	for _, sk := range skipped {
 		fmt.Printf("  left %s:%d in place: %s\n", sk.File, sk.Line, sk.Reason)
 	}
+
 	if removed > 0 && !dryRun {
 		fmt.Println("the code changed: review it with git diff")
 	}
@@ -973,6 +995,14 @@ func reportBlock(indent string, b scan.Block) {
 		}
 		fmt.Printf("%s%s  %s:%d  %s\n", indent, id, f.File, f.Line, clip(f.Text, 100))
 	}
+}
+
+// clipList shortens a list for a report line, naming how many it left out.
+func clipList(in []string, max int) []string {
+	if len(in) <= max {
+		return in
+	}
+	return append(in[:max:max], fmt.Sprintf("and %d more", len(in)-max))
 }
 
 // splitList turns a comma-separated flag value into a trimmed list.
@@ -1040,16 +1070,20 @@ func cmdArchive(args []string) int {
 	if code != 0 {
 		return code
 	}
+
 	// Archive first (additive), then plan (destructive).
 	if err := atomicWrite(ap, archiveContent); err != nil {
 		fmt.Fprintf(os.Stderr, "arctool: write %s: %v\n", ap, err)
 		return 4
 	}
+
 	if err := atomicWrite(planPath, res.NewPlan); err != nil {
 		fmt.Fprintf(os.Stderr, "arctool: write %s: %v\n", planPath, err)
 		return 4
 	}
+
 	fmt.Printf("archived %d, pending %d\n", len(res.Archived), pending)
+
 	return 0
 }
 

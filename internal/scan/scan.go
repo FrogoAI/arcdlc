@@ -39,10 +39,10 @@ type Finding struct {
 }
 
 // stripPlan records the edit that deletes one marker comment and nothing else.
-// Line numbers are 1-based and inclusive.
+// Line numbers are 1-based and inclusive. Every single-line comment can be removed,
+// so there is no shape to refuse: what stops a strip is the file changing between the
+// sweep and the edit, which Strip reports.
 type stripPlan struct {
-	ok               bool
-	reason           string    // why the comment must stay, when ok is false
 	fromLine, toLine int       // whole lines to delete; 0 when there are none
 	cuts             []lineCut // spans to cut out of a line that keeps its code
 }
@@ -53,15 +53,11 @@ type lineCut struct {
 	from, to int // byte range to cut
 }
 
-// span is the shape of one comment the sweep matched: the lines it covers, where
-// it opens, and, for a block comment that closes on a later line, where that
-// closer ends.
+// span is the shape of one comment the sweep matched: the lines it covers and the
+// column its opener sits at.
 type span struct {
-	from, to int    // 0-based line indices, inclusive
-	opener   string // the comment opener on line from
-	at       int    // column of that opener
-	closeAt  int    // column just past the closer on line to; 0 unless the block closes lower down
-	unclosed bool   // a block comment with no closer anywhere below
+	from, to int // 0-based line indices, inclusive
+	at       int // column of the comment opener on line from
 }
 
 // Opts configures a sweep.
@@ -71,8 +67,10 @@ type Opts struct {
 	Exclude []string // directory names to skip; nil means DefaultExclude
 }
 
-// DefaultMarkers is what a sweep looks for when the caller names nothing.
-var DefaultMarkers = []string{"TODO"}
+// DefaultMarkers is what a sweep looks for when the caller names nothing. ARCDLC is
+// the bundle's own word, so a sweep never touches the TODO and FIXME notes a team
+// already had. A team that wants those swept asks for them: --marker TODO.
+var DefaultMarkers = []string{"ARCDLC"}
 
 // DefaultExclude lists directory names a sweep never enters. docs is on the
 // list because the register itself lives there: a plan task or a gap block is
@@ -80,53 +78,102 @@ var DefaultMarkers = []string{"TODO"}
 var DefaultExclude = []string{".git", "vendor", "node_modules", "dist", "bin", "docs"}
 
 // Comment openers are chosen per file type, because a marker must sit behind a
-// comment start that the language actually has. Reading "--" or "%" as a
-// comment in a Go file turns every "--json" flag and every "%s" format string
-// into a false finding.
+// comment start that the language actually has. Reading "--" or "%" as a comment in a
+// Go file turns every "--json" flag and every "%s" format string into a false
+// finding, and reading "//" as a comment in Ada or Fortran finds nothing at all.
+//
+// Only single-line comments are listed, because only single-line comments carry
+// markers. A language with no single-line comment of its own therefore carries none:
+// its entry is empty, and the sweep reads the file and finds nothing.
+//
+// A language this table does not name is read with defaultOpeners, and the sweep
+// reports that it guessed, so an empty result is never mistaken for a clean tree.
 var (
-	cFamily  = []string{"//", "/*", "*"}
-	hashOnly = []string{"#"}
-	dashOnly = []string{"--"}
+	slashOnly = []string{"//"}
+	hashOnly  = []string{"#"}
+	dashOnly  = []string{"--"}
+	semiOnly  = []string{";"}
+	noLine    = []string{} // no single-line comment: no marker can be written
 
 	openersByExt = map[string][]string{
-		".go": cFamily, ".c": cFamily, ".h": cFamily, ".cc": cFamily, ".cpp": cFamily,
-		".hpp": cFamily, ".cs": cFamily, ".java": cFamily, ".js": cFamily, ".jsx": cFamily,
-		".mjs": cFamily, ".cjs": cFamily, ".ts": cFamily, ".tsx": cFamily, ".swift": cFamily,
-		".kt": cFamily, ".kts": cFamily, ".rs": cFamily, ".scala": cFamily, ".php": cFamily,
-		".dart": cFamily, ".proto": cFamily, ".zig": cFamily, ".groovy": cFamily,
-		".css": cFamily, ".scss": cFamily, ".less": cFamily,
+		".go": slashOnly, ".c": slashOnly, ".h": slashOnly, ".cc": slashOnly,
+		".cpp": slashOnly, ".hpp": slashOnly, ".cs": slashOnly, ".java": slashOnly,
+		".js": slashOnly, ".jsx": slashOnly, ".mjs": slashOnly, ".cjs": slashOnly,
+		".ts": slashOnly, ".tsx": slashOnly, ".swift": slashOnly, ".kt": slashOnly,
+		".kts": slashOnly, ".rs": slashOnly, ".scala": slashOnly, ".php": slashOnly,
+		".dart": slashOnly, ".proto": slashOnly, ".zig": slashOnly, ".groovy": slashOnly,
+		".scss": slashOnly, ".less": slashOnly, ".sol": slashOnly, ".gradle": slashOnly,
+		".jsonc": slashOnly, ".json5": slashOnly, ".v": slashOnly, ".d": slashOnly,
+		".fs": slashOnly, ".fsi": slashOnly, ".fsx": slashOnly,
+		".pas": slashOnly, ".pp": slashOnly, ".dpr": slashOnly,
+		".vue": slashOnly, ".svelte": slashOnly,
 
-		".py": hashOnly, ".rb": hashOnly, ".sh": hashOnly, ".bash": hashOnly, ".zsh": hashOnly,
-		".fish": hashOnly, ".yml": hashOnly, ".yaml": hashOnly, ".toml": hashOnly,
-		".tf": hashOnly, ".pl": hashOnly, ".pm": hashOnly, ".r": hashOnly, ".mk": hashOnly,
-		".cmake": hashOnly, ".env": hashOnly, ".gemspec": hashOnly, ".rake": hashOnly,
+		".py": hashOnly, ".rb": hashOnly, ".sh": hashOnly, ".bash": hashOnly,
+		".zsh": hashOnly, ".fish": hashOnly, ".yml": hashOnly, ".yaml": hashOnly,
+		".toml": hashOnly, ".pl": hashOnly, ".pm": hashOnly, ".r": hashOnly,
+		".mk": hashOnly, ".cmake": hashOnly, ".env": hashOnly, ".gemspec": hashOnly,
+		".rake": hashOnly, ".ex": hashOnly, ".exs": hashOnly, ".cr": hashOnly,
+		".tcl": hashOnly, ".graphql": hashOnly, ".gql": hashOnly, ".awk": hashOnly,
+		".bzl": hashOnly, ".jl": hashOnly, ".nim": hashOnly, ".nix": hashOnly,
+		".ps1": hashOnly, ".psm1": hashOnly, ".gitignore": hashOnly,
+		".dockerignore": hashOnly, ".bazelrc": hashOnly,
+		".properties": {"#", "!"},
 
-		".sql": {"--", "/*", "*"}, ".lua": dashOnly, ".hs": dashOnly, ".elm": dashOnly,
-		".el": {";"}, ".lisp": {";"}, ".clj": {";"}, ".scm": {";"},
+		// HCL takes both, and Terraform files are full of them.
+		".tf": {"#", "//"}, ".tfvars": {"#", "//"}, ".hcl": {"#", "//"},
+
+		".sql": dashOnly, ".lua": dashOnly, ".hs": dashOnly, ".elm": dashOnly,
+		".ada": dashOnly, ".adb": dashOnly, ".ads": dashOnly, ".vhd": dashOnly,
+		".vhdl": dashOnly, ".applescript": dashOnly,
+
+		".el": semiOnly, ".lisp": semiOnly, ".clj": semiOnly, ".cljs": semiOnly,
+		".scm": semiOnly, ".rkt": semiOnly, ".ss": semiOnly,
 		".ini": {";", "#"}, ".cfg": {";", "#"},
-		".tex": {"%"}, ".erl": {"%"}, ".m": {"%", "//"},
-		".html": {"<!--"}, ".htm": {"<!--"}, ".xml": {"<!--"}, ".vue": {"<!--", "//", "/*"},
-		".svelte": {"<!--", "//", "/*"},
+		".asm": {";", "#", "//"}, ".s": {";", "#", "//"},
+
+		".f": {"!"}, ".for": {"!"}, ".f90": {"!"}, ".f95": {"!"}, ".f03": {"!"},
+		".vb": {"'"}, ".vbs": {"'"}, ".bas": {"'"},
+		".vim": {`"`},
+		".bat": {"::", "REM ", "rem "}, ".cmd": {"::", "REM ", "rem "},
+		".tex": {"%"}, ".erl": {"%"}, ".hrl": {"%"}, ".m": {"%", "//"},
+
+		// These have block comments only, so no marker can be written in them.
+		".css": noLine, ".html": noLine, ".htm": noLine, ".xml": noLine,
+		".ml": noLine, ".mli": noLine,
 	}
 
 	openersByName = map[string][]string{
 		"Makefile": hashOnly, "makefile": hashOnly, "Dockerfile": hashOnly,
 		"Justfile": hashOnly, "justfile": hashOnly, "Rakefile": hashOnly,
+		"Gemfile": hashOnly, "Brewfile": hashOnly, "Vagrantfile": hashOnly,
+		"Podfile": hashOnly, "Fastfile": hashOnly, "BUILD": hashOnly, "WORKSPACE": hashOnly,
+		"CMakeLists.txt": hashOnly, "Doxyfile": hashOnly, ".vimrc": {`"`},
 	}
 
-	// defaultOpeners covers a file type this list does not name.
+	// defaultOpeners covers a file type this list does not name. The two most common
+	// styles are a fair guess, and the sweep says when it had to make one.
 	defaultOpeners = []string{"//", "#"}
 )
 
-// openersFor returns the comment openers of one file.
-func openersFor(path string) []string {
+// openersFor returns the comment openers of one file, and whether the table knew
+// the file type or had to fall back to the default style.
+func openersFor(path string) (ops []string, known bool) {
 	if ops, ok := openersByName[filepath.Base(path)]; ok {
-		return ops
+		return ops, true
 	}
 	if ops, ok := openersByExt[strings.ToLower(filepath.Ext(path))]; ok {
-		return ops
+		return ops, true
 	}
-	return defaultOpeners
+	return defaultOpeners, false
+}
+
+// fileType names a file the way the openers table is keyed, so the sweep can report
+// which types it guessed at rather than listing every file.
+func fileType(path string) string {
+	if ext := strings.ToLower(filepath.Ext(path)); ext != "" {
+		return ext
+	}
+	return filepath.Base(path)
 }
 
 // docExt lists document extensions a sweep skips. The register is about source
@@ -142,7 +189,7 @@ const (
 
 // Sweep walks o.Root and returns every marker it finds, sorted by file then
 // line so two runs on an unchanged tree produce the same order.
-func Sweep(o Opts) ([]Finding, error) {
+func Sweep(o Opts) (found []Finding, guessedTypes []string, err error) {
 	root := o.Root
 	if root == "" {
 		root = "."
@@ -162,8 +209,8 @@ func Sweep(o Opts) ([]Finding, error) {
 		}
 	}
 
-	var found []Finding
-	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+	guessed := map[string]bool{}
+	err = filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return nil // an unreadable entry is skipped, never fatal
 		}
@@ -173,7 +220,13 @@ func Sweep(o Opts) ([]Finding, error) {
 			}
 			return nil
 		}
-		if !d.Type().IsRegular() || docExt[strings.ToLower(filepath.Ext(path))] {
+		if !d.Type().IsRegular() {
+			return nil
+		}
+		ops, known := openersFor(path)
+		// A document is not source code, unless the table names that file by name:
+		// CMakeLists.txt ends in .txt and is a build file.
+		if !known && docExt[strings.ToLower(filepath.Ext(path))] {
 			return nil
 		}
 		if fi, statErr := d.Info(); statErr == nil && fi.Size() > maxFileBytes {
@@ -187,19 +240,26 @@ func Sweep(o Opts) ([]Finding, error) {
 		if relErr != nil {
 			rel = path
 		}
-		found = append(found, scanFile(filepath.ToSlash(rel), b, markers, openersFor(path))...)
+		if !known {
+			guessed[fileType(path)] = true
+		}
+		found = append(found, scanFile(filepath.ToSlash(rel), b, markers, ops)...)
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+	for t := range guessed {
+		guessedTypes = append(guessedTypes, t)
+	}
+	sort.Strings(guessedTypes)
 	sort.SliceStable(found, func(i, j int) bool {
 		if found[i].File != found[j].File {
 			return found[i].File < found[j].File
 		}
 		return found[i].Line < found[j].Line
 	})
-	return found, nil
+	return found, guessedTypes, nil
 }
 
 // isBinary reports whether the head of b holds a NUL byte.
@@ -214,33 +274,20 @@ func isBinary(b []byte) bool {
 // scanFile finds every marker in one file's bytes.
 func scanFile(rel string, b []byte, markers []string, ops []string) []Finding {
 	lines := strings.Split(strings.ReplaceAll(string(b), "\r\n", "\n"), "\n")
+	lcs := lexFile(lines, ops)
 	var out []Finding
 	for i := 0; i < len(lines); i++ {
-		marker, group, rest, opener, at, ok := markerHit(lines[i], markers, ops)
+		marker, group, rest, ok := markerHit(lines[i], lcs[i], markers)
 		if !ok {
 			continue
 		}
-		s := span{from: i, to: i, opener: opener, at: at}
-		text := rest
-		closer, isBlock := blockClosers[opener]
-		switch {
-		case isBlock && strings.Contains(lines[i][at+len(opener):], closer):
-			// A block comment that opens and closes on this line: its words are the
-			// finding, its closer is not.
-			body := lines[i][at+len(opener):]
-			text, s.to = lineRun(lines, i, markers, ops, blockLine(body[:strings.Index(body, closer)]))
-		case isBlock:
-			// A block comment that closes further down is one finding, from its
-			// opener to its closer, whatever the lines between look like.
-			text, s.to, s.closeAt = blockSpan(lines, i, at+len(opener), closer, rest)
-			s.unclosed = s.closeAt == 0
-		default:
-			text, s.to = lineRun(lines, i, markers, ops, rest)
-		}
+		s := span{from: i, to: i, at: lcs[i].at}
+		text, to := lineRun(lines, lcs, i, markers, rest)
+		s.to = to
 		plan := planStrip(lines, s)
 		// A comment that trails code sits on the line it is about; a standalone
 		// comment is about the first code line under it.
-		code := codeUnder(lines, s.to+1, ops)
+		code := codeUnder(lines, lcs, s.to+1)
 		if len(plan.cuts) > 0 && plan.cuts[0].line == i+1 {
 			code = cutSpan(lines[i], plan.cuts[0].from, plan.cuts[0].to)
 		}
@@ -259,11 +306,11 @@ func scanFile(rel string, b []byte, markers []string, ops []string) []Finding {
 }
 
 // lineRun joins the comment lines under the marker's own line. Consecutive comment
-// lines continue the same finding, so a three-line TODO is one task, not three.
-func lineRun(lines []string, from int, markers, ops []string, first string) (text string, to int) {
+// lines continue the same finding, so a three-line note is one task, not three.
+func lineRun(lines []string, lcs []lineComment, from int, markers []string, first string) (text string, to int) {
 	text, to = first, from
 	for n := from + 1; n < len(lines); n++ {
-		cont, ok := continuationOnLine(lines[n], markers, ops)
+		cont, ok := continuationOnLine(lines[n], lcs[n], markers)
 		if !ok {
 			break
 		}
@@ -275,136 +322,42 @@ func lineRun(lines []string, from int, markers, ops []string, first string) (tex
 	return text, to
 }
 
-// blockSpan joins a block comment that closes on a later line: every line after the
-// marker's joins the text with its decoration trimmed, up to the line that holds the
-// closer, and the closer itself is dropped. One block comment is one finding, so a
-// second marker word inside the span does not split it.
+// planStrip works out how to delete one marker comment without touching a byte of
+// code. A single-line comment has exactly two shapes, and both are removable:
 //
-// A block that closes nowhere below returns the marker line alone and closeAt 0, so
-// the strip leaves the comment in a file it cannot read to the end.
-func blockSpan(lines []string, from, bodyAt int, closer, first string) (text string, to, closeAt int) {
-	text = first
-	for n := from; n < len(lines); n++ {
-		start := 0
-		if n == from {
-			start = bodyAt
-		}
-		k := strings.Index(lines[n][start:], closer)
-		if k < 0 {
-			if n > from {
-				if part := blockLine(lines[n]); part != "" {
-					text += " " + part
-				}
-			}
-			continue
-		}
-		if n > from {
-			if part := blockLine(lines[n][:start+k]); part != "" {
-				text += " " + part
-			}
-		}
-		return text, n, start + k + len(closer)
-	}
-	return first, from, 0
-}
-
-// blockLine trims one line of a block comment down to its words: the decoration a
-// block puts at the start of a line ("* ") and the space around it go.
-func blockLine(line string) string {
-	return strings.TrimSpace(trimDecoration(strings.TrimSpace(line)))
-}
-
-// planStrip works out how to delete one marker comment without touching a byte
-// of code.
-//
-// Three shapes are removable, and nothing else is:
-//   - a standalone comment line (plus its continuation lines): the lines go.
-//   - a comment trailing code on one line: the comment span is cut, the code stays.
-//   - a block comment that closes on a later line: the whole span goes, and code
-//     before the opener is cut free of it first.
-//
-// A marker inside a block comment that another line opened is left alone, because
-// deleting one of its lines can leave a dangling opener or an empty comment. So is a
-// block comment that never closes (that file is broken and the sweep will not guess)
-// and one whose closer shares a line with code.
+//   - a comment line of its own, plus the comment lines that continue it: the lines go.
+//   - a comment trailing code: the comment is cut off the line, the code stays.
 func planStrip(lines []string, s span) stripPlan {
-	if s.opener == "*" {
-		return stripPlan{reason: "inside a multi-line block comment"}
-	}
-	if s.unclosed {
-		return stripPlan{reason: "opens a block comment that does not close"}
-	}
 	line := lines[s.from]
-	standalone := strings.TrimSpace(line[:s.at]) == ""
-
-	if s.closeAt > 0 { // a block comment that closes on a later line
-		if strings.TrimSpace(lines[s.to][s.closeAt:]) != "" {
-			// Cutting the closer off this line would take the code's indentation
-			// with it, so the comment stays and the next sweep sees it again.
-			return stripPlan{reason: "code follows the closing " + blockClosers[s.opener]}
-		}
-		p := stripPlan{ok: true}
-		first := s.from + 1 // 1-based
-		if !standalone {
-			p.cuts = append(p.cuts, lineCut{line: first, from: s.at, to: len(line)})
-			first++
-		}
-		if first <= s.to+1 {
-			p.fromLine, p.toLine = first, s.to+1
-		}
-		return p
+	if strings.TrimSpace(line[:s.at]) == "" {
+		return stripPlan{fromLine: s.from + 1, toLine: s.to + 1}
 	}
-
-	end := len(line) // a line comment runs to the end of the line
-	if closer, isBlock := blockClosers[s.opener]; isBlock {
-		k := strings.Index(line[s.at+len(s.opener):], closer)
-		if k < 0 {
-			return stripPlan{reason: "opens a block comment that does not close on the same line"}
-		}
-		end = s.at + len(s.opener) + k + len(closer)
-	}
-
-	if standalone && end >= len(strings.TrimRight(line, " \t")) {
-		return stripPlan{ok: true, fromLine: s.from + 1, toLine: s.to + 1}
-	}
-	p := stripPlan{ok: true, cuts: []lineCut{{line: s.from + 1, from: s.at, to: end}}}
-	if s.to > s.from { // continuation lines below the code line are whole-line deletes
+	p := stripPlan{cuts: []lineCut{{line: s.from + 1, from: s.at, to: len(line)}}}
+	if s.to > s.from { // the continuation lines below the code line are whole-line deletes
 		p.fromLine, p.toLine = s.from+2, s.to+1
 	}
 	return p
 }
 
-// blockClosers maps a block-comment opener to the token that ends it.
-var blockClosers = map[string]string{"/*": "*/", "<!--": "-->"}
-
-// markerOnLine reports the marker that opens the comment on this line, and
-// returns the comment text from the marker on. The marker must be the comment's
-// first word: a sentence that merely mentions TODO is prose about markers, not a
-// marker.
-func markerOnLine(line string, markers []string, ops []string) (marker, rest string, ok bool) {
-	m, _, text, _, _, found := markerHit(line, markers, ops)
-	return m, text, found && m != ""
-}
-
-// markerHit is markerOnLine plus the group tag, the comment opener and its column,
-// which the strip plan needs.
-func markerHit(line string, markers []string, ops []string) (marker, group, rest, opener string, at int, ok bool) {
-	body, opener, at, found := commentBody(line, ops)
-	if !found {
-		return "", "", "", "", -1, false
+// markerHit reports the marker that opens the comment on this line, its group tag,
+// and the comment text from the marker on. The marker must be the comment's first
+// word: a sentence that merely mentions ARCDLC is prose about markers, not a marker.
+func markerHit(line string, lc lineComment, markers []string) (marker, group, rest string, ok bool) {
+	if lc.at < 0 {
+		return "", "", "", false
 	}
-	body = trimDecoration(body)
+	body := trimDecoration(commentBody(line, lc))
 	for _, m := range markers {
 		if m == "" || !strings.HasPrefix(body, m) {
 			continue
 		}
 		after := body[len(m):]
 		if after != "" && isWordByte(after[0]) {
-			continue // TODOLIST is a name, not a marker
+			continue // ARCDLCLIST is a name, not a marker
 		}
-		return m, groupTag(after), strings.TrimSpace(body), opener, at, true
+		return m, groupTag(after), strings.TrimSpace(body), true
 	}
-	return "", "", "", "", -1, false
+	return "", "", "", false
 }
 
 // groupTag reads the group tag off a marker: a ":" straight after the marker word,
@@ -454,88 +407,180 @@ func IgnoredTag(f Finding) string {
 	return after[1:end]
 }
 
-// trimDecoration removes the padding a doc comment puts between the opener and
-// the text: "///", "//!", "#!", "* ", "<!--".
+// trimDecoration removes the padding a doc comment puts between the opener and the
+// text: "///", "//!", "#!", "* ", "<!--", "## ", ";;; ", "%% ". Whatever sits in front
+// of the marker word is decoration, because a marker has to open its own comment.
 func trimDecoration(body string) string {
-	return strings.TrimLeft(body, "/*!<-= \t")
+	return strings.TrimLeft(body, "/*!<-=#;%'\"| \t")
 }
 
 // continuationOnLine reports whether the line is a plain comment line that
 // continues the marker above it. A line that starts its own marker ends the
 // previous finding, and so does anything that is not a comment.
-func continuationOnLine(line string, markers []string, ops []string) (string, bool) {
-	trimmed := strings.TrimSpace(line)
-	if trimmed == "" {
+func continuationOnLine(line string, lc lineComment, markers []string) (string, bool) {
+	if !onlyComment(line, lc) {
 		return "", false
 	}
-	if !startsWithOpener(trimmed, ops) {
-		return "", false
-	}
-	body, _, _, _ := commentBody(line, ops)
-	body = strings.TrimSpace(body)
+	body := strings.TrimSpace(commentBody(line, lc))
 	if body == "" || body == "/" { // an empty comment or a closing */ ends the run
 		return "", true
 	}
-	if _, _, isNew := markerOnLine(line, markers, ops); isNew {
+	if m, _, _, isNew := markerHit(line, lc, markers); isNew && m != "" {
 		return "", false // a second marker starts its own finding
 	}
 	return body, true
 }
 
-// commentBody returns the text after the first comment opener on the line, plus
-// the opener itself and where it starts.
-func commentBody(line string, ops []string) (body, opener string, at int, ok bool) {
-	at, width := -1, 0
-	for _, op := range ops {
-		i := strings.Index(line, op)
-		if i < 0 {
-			continue
-		}
-		// A bare "*" only opens a comment at the start of a line: it is a
-		// multiplication sign anywhere else.
-		if op == "*" && strings.TrimSpace(line[:i]) != "" {
-			continue
-		}
-		if insideString(line, i) {
-			continue // a comment quoted in a string literal, as test fixtures do
-		}
-		if at < 0 || i < at || (i == at && len(op) > width) {
-			at, width = i, len(op)
-		}
-	}
-	if at < 0 {
-		return "", "", -1, false
-	}
-	return strings.TrimLeft(line[at+width:], " \t"), line[at : at+width], at, true
+// lineComment says where a comment opens on one line, after the sweep has followed
+// the string literals of the file. at is -1 when the line carries no comment.
+type lineComment struct {
+	at     int
+	opener string
 }
 
-// insideString reports whether position at sits inside a string literal that
-// opens earlier on the same line. Counting unescaped quotes is enough for the
-// one case that matters: source that quotes a comment, which every scanner test
-// fixture does.
-func insideString(line string, at int) bool {
-	dquote, backtick := 0, 0
-	for i := 0; i < at; i++ {
-		switch line[i] {
-		case '\\':
-			i++ // skip the escaped byte
-		case '"':
-			dquote++
-		case '`':
-			backtick++
-		}
-	}
-	return dquote%2 == 1 || backtick%2 == 1
+// commentBody returns the text after the comment opener on this line.
+func commentBody(line string, lc lineComment) string {
+	return strings.TrimLeft(line[lc.at+len(lc.opener):], " \t")
 }
 
-// startsWithOpener reports whether an already-trimmed line begins a comment.
-func startsWithOpener(trimmed string, ops []string) bool {
+// onlyComment reports whether the line holds nothing but a comment, so that it can
+// continue the marker above it and is not code a marker sits on.
+func onlyComment(line string, lc lineComment) bool {
+	return lc.at >= 0 && strings.TrimSpace(line[:lc.at]) == ""
+}
+
+// lexFile works out, line by line, where a single-line comment opens, following the
+// string literals of the file as it goes.
+//
+// This is what keeps the sweep off constants. A marker counts only inside a comment,
+// and "// ARCDLC ..." written inside a string is text in that string. The single-line
+// case needs no state, but a Go or JavaScript raw string and a Python triple quote run
+// past the end of their line, so the pending delimiter is carried to the next one.
+//
+// It is a scanner, not a parser, and it is blunt in one direction on purpose: when it
+// cannot tell, it reports no comment. A missed marker costs one sweep. A marker read
+// out of a constant costs an edit to code nobody asked it to touch.
+func lexFile(lines []string, ops []string) []lineComment {
+	out, open := lexPass(lines, ops, true)
+	if open == "" {
+		return out
+	}
+	// The file ended inside a string literal, which source that compiles does not do.
+	// So the scanner misread a delimiter somewhere, and carrying it swallowed every
+	// line below. Read the file again with each line on its own: a wrong guess then
+	// costs one line instead of the rest of the file.
+	out, _ = lexPass(lines, ops, false)
+	return out
+}
+
+// lexPass lexes every line once. carry says whether a string literal may run past the
+// end of its line; the second pass turns that off.
+func lexPass(lines []string, ops []string, carry bool) ([]lineComment, string) {
+	out := make([]lineComment, len(lines))
+	open := ""
+	for i, line := range lines {
+		lc, still := lexLine(line, ops, open)
+		out[i] = lc
+		if carry {
+			open = still
+		}
+	}
+	return out, open
+}
+
+// multiQuotes are the string delimiters that can run past the end of a line: a Go or
+// JavaScript raw string, and a Python or Kotlin triple quote.
+var multiQuotes = []string{`"""`, "'''", "`"}
+
+// lexLine walks one line and returns where its comment opens, plus the multi-line
+// string delimiter still waiting to close when the line ends. open is that delimiter
+// carried from the line before, "" when nothing is pending.
+//
+// The walk stops at the comment opener, so a quote in comment text is never read as a
+// string delimiter: a lone backtick in prose cannot swallow the lines below it.
+func lexLine(line string, ops []string, open string) (lineComment, string) {
+	none := lineComment{at: -1}
+	i := 0
+	if open != "" {
+		k := strings.Index(line, open)
+		if k < 0 {
+			return none, open // the whole line sits inside the literal
+		}
+		i = k + len(open)
+	}
+	for i < len(line) {
+		if op, ok := openerAt(line, i, ops); ok {
+			return lineComment{at: i, opener: op}, ""
+		}
+		if q := quoteAt(line, i); q != "" {
+			k := closeQuote(line, i+len(q), q)
+			if k < 0 {
+				if isMultiQuote(q) {
+					return none, q // the literal runs on into the next line
+				}
+				return none, "" // an unterminated quote ends with its line
+			}
+			i = k + len(q)
+			continue
+		}
+		i++
+	}
+	return none, ""
+}
+
+// openerAt reports the comment opener that starts at this column, the longest one when
+// two of them match.
+func openerAt(line string, i int, ops []string) (string, bool) {
+	best := ""
 	for _, op := range ops {
-		if strings.HasPrefix(trimmed, op) {
+		if len(op) <= len(best) || !strings.HasPrefix(line[i:], op) {
+			continue
+		}
+		best = op
+	}
+	return best, best != ""
+}
+
+// quoteAt reports the string delimiter that starts at this column.
+func quoteAt(line string, i int) string {
+	for _, q := range multiQuotes {
+		if strings.HasPrefix(line[i:], q) {
+			return q
+		}
+	}
+	if line[i] == '"' || line[i] == '\'' {
+		return line[i : i+1]
+	}
+	return ""
+}
+
+func isMultiQuote(q string) bool {
+	for _, m := range multiQuotes {
+		if q == m {
 			return true
 		}
 	}
 	return false
+}
+
+// closeQuote returns the column where the delimiter closes, or -1 when it does not
+// close on this line.
+//
+// A backslash escapes the byte after it, except inside a backtick: a Go raw string
+// has no escapes, so the closing backtick of `/\` is a closing backtick. Reading it
+// as an escape is what once swallowed the rest of a file.
+func closeQuote(line string, from int, q string) int {
+	raw := q == "`"
+	for i := from; i < len(line); i++ {
+		if !raw && line[i] == '\\' {
+			i++
+			continue
+		}
+		if strings.HasPrefix(line[i:], q) {
+			return i
+		}
+	}
+	return -1
 }
 
 func isTagByte(c byte) bool {
@@ -550,10 +595,10 @@ func isWordByte(c byte) bool {
 
 // codeUnder returns the first line at or after idx that is neither blank nor a
 // comment, trimmed and capped. It is the code the marker sits on.
-func codeUnder(lines []string, idx int, ops []string) string {
+func codeUnder(lines []string, lcs []lineComment, idx int) string {
 	for ; idx < len(lines); idx++ {
 		trimmed := strings.TrimSpace(lines[idx])
-		if trimmed == "" || startsWithOpener(trimmed, ops) {
+		if trimmed == "" || onlyComment(lines[idx], lcs[idx]) {
 			continue
 		}
 		return Normalize(trimmed, maxCodeLen)
