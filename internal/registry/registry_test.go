@@ -35,7 +35,7 @@ func TestFindArchDoc(t *testing.T) {
 		{"any markdown beats unranked html", []string{"notes.md", "zeta.html"}, "notes.md"},
 		{"togaf over c4", []string{"togaf.md", "c4.md"}, "togaf.md"},
 		{"alphabetical fallback", []string{"notes.md", "zeta.md"}, "notes.md"},
-		{"non-arch files excluded from fallback", []string{"plan.md", "gap.md", "plan-archive.md"}, ""},
+		{"non-arch files excluded from fallback", []string{"plan.md", "gap.md", "comments.md", "plan-archive.md"}, ""},
 		{"custom doc alongside plan", []string{"design.md", "plan.md", "gap.md"}, "design.md"},
 		{"empty folder", []string{}, ""},
 	}

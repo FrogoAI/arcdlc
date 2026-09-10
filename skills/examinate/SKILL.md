@@ -11,8 +11,8 @@ executable plan so `/arcdlc:execute` can close them.
 
 ## Talk simple, write like a human
 
-Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor. Cut
-empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
+Plain English, everywhere: short sentences, common words, one idea each, active voice, a named
+actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
 
 - **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
   Say what you did, what you found, what comes next.
@@ -73,6 +73,40 @@ not exist yet (a fresh audit, e.g. `mdca-audit`), confirm the slug with the user
 - Classify each finding's source status: `MISSING` (required element absent), `PARTIAL` (present but incomplete),
   or `DRIFT` (present but violates the policy).
 - Do not report style preferences that the policy does not mandate.
+- Do not settle a finding that needs the engineer. Dead-looking code, a contradiction, an ambiguous rule, a risky
+  fix, or a violation that may be deliberate all go through Step 2.5 first.
+
+## Step 2.5 — When a finding needs a human, grill (mandatory)
+
+Some findings are not yours to settle. Recording a fix the engineer never approved is worse than
+recording no fix: `/arcdlc:execute` will carry it out. Stop and ask the moment you hit one of these:
+
+- **Code that looks dead.** You can find no caller in this repository, which does not mean there is
+  none: another service, a plugin, a test harness, or a customer may call it. Deleting it is the
+  engineer's call.
+- **A contradiction.** The policy contradicts itself, another policy, an ADR, `CONTEXT.md`, or the
+  architecture document. Pick nothing until the engineer says which one wins.
+- **An ambiguous rule.** The rule can be read two ways and the two readings produce different gaps.
+- **A risky or hard-to-reverse fix.** A data migration, a deleted public interface, a changed wire
+  format, a dependency swap, a rename that breaks callers outside this repository.
+- **A violation that may be deliberate.** The code reads like a conscious exception, so the question is
+  whether the exception stands, not how to remove it.
+
+How to ask: prefer the bundle's `arcdlc-grilling` skill. If it cannot be invoked here, read its
+`SKILL.md` (`../grilling/SKILL.md`, flat installs: `../arcdlc-grilling/SKILL.md`) and run the same
+protocol inline. **One question per turn**: ask, wait for the answer, then ask the next, each with your
+recommended answer. Never a numbered round of questions, and never report a helper skill as missing.
+
+Each answer lands in the gap register, one way or the other:
+
+- **Fix approved:** write the engineer's decision into the gap's `HOW`, then mirror the gap into the
+  plan as usual.
+- **Deviation accepted:** add `- Accepted: <reason>, <date>.` to the gap block. It stays in `gap.md` as
+  evidence and gets **no** task in `plan.md`. An accepted deviation with no written reason is not
+  accepted, it is forgotten.
+- **A decision that outlives the audit:** write an ADR in `docs/adr/` and cite it in the gap's
+  `References`.
+- **A new term:** add it to `CONTEXT.md`.
 
 ## Step 3 — Write the gap register
 
@@ -113,6 +147,8 @@ Precision rules for each gap block:
   fallback, not the default. This also lets the mirrored plan task pass `arctool validate --strict`
   (which requires an `Acceptance` section).
 
+- `- Accepted: <reason>, <date>.` is optional. It appears only on a gap the engineer accepted in Step 2.5, and it
+  keeps that gap out of the plan.
 - `<PREFIX>` is the audited policy or initiative (e.g. `MDCA-GAP-01`, `AIC-GAP-03`). Number gaps sequentially,
   continuing from existing entries — never renumber or delete previous gaps.
 - If a gap from an earlier examination is now fixed, mark it in `gap.md` (e.g. append `— resolved <date>`) instead of
@@ -120,7 +156,7 @@ Precision rules for each gap block:
 
 ## Step 4 — Sync gaps into the plan
 
-Per the Gap Register Sync rules in `../plan/references/plan-format.md` (flat installs:
+Per the Register Sync rules in `../plan/references/plan-format.md` (flat installs:
 `../arcdlc-plan/references/plan-format.md`), append a matching task block to `docs/aics/<slug>/plan.md` for every new
 gap:
 
@@ -128,6 +164,8 @@ gap:
 - Add runner metadata: `References` (must include `docs/aics/<slug>/gap.md`, the policy source, and the architecture
   doc if relevant) and `- Status: TODO.`
 - Append after the existing blocks; never modify existing tasks or reuse an ID already present in the plan.
+- Skip a gap carrying `- Accepted:` from Step 2.5. It stays in `gap.md` as evidence and gets no task, and the
+  `- Accepted:` line never reaches the plan.
 - If `docs/aics/<slug>/plan.md` does not exist yet, create it per the format guide (a `/arcdlc:plan` run can merge it
   with architecture-driven tasks later).
 - After updating the plan, validate it. Prefer `arctool validate --strict --aic <slug>` (probe once with
@@ -138,4 +176,6 @@ gap:
 ## Step 5 — Report
 
 Summarize: policy audited, rules checked, gaps found by status (MISSING/PARTIAL/DRIFT) with severity, and how many
-tasks were added to the plan. Suggest `/arcdlc:execute <slug>` to start closing them.
+tasks were added to the plan. Name every finding you took to the engineer in Step 2.5 and what was decided, and list
+the accepted deviations separately: they are gaps on purpose, and nobody should read them as work left undone. Suggest
+`/arcdlc:execute <slug>` to start closing the rest.

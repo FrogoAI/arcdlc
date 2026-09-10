@@ -43,13 +43,26 @@ jobs:
 
       - name: Check skill layout
         run: |
-          for skill in aic archive examinate execute grilling plan plan-human policy remove source-map; do
+          for skill in aic archive assist examinate execute grilling plan plan-human policy remove source-map; do
             test -f "skills/$skill/SKILL.md" || { echo "missing skills/$skill/SKILL.md" >&2; exit 1; }
             grep -q '^## Talk simple, write like a human$' "skills/$skill/SKILL.md" \
               || { echo "skills/$skill/SKILL.md is missing the 'Talk simple, write like a human' block" >&2; exit 1; }
           done
           test -f 'skills/source-map/source/Writing Style.md' \
             || { echo "missing skills/source-map/source/Writing Style.md" >&2; exit 1; }
+
+      - name: Check the writing-style block is the same in every skill
+        run: |
+          extract() {
+            awk '/^## Talk simple, write like a human$/{f=1;print;next} f&&/^## /{exit} f{print}' "$1"
+          }
+          extract skills/aic/SKILL.md > /tmp/style-block.txt
+          test -s /tmp/style-block.txt || { echo "cannot read the reference style block" >&2; exit 1; }
+          for skill in aic archive assist examinate execute grilling plan plan-human policy remove source-map; do
+            extract "skills/$skill/SKILL.md" > /tmp/block-$skill.txt
+            diff -u /tmp/style-block.txt "/tmp/block-$skill.txt" \
+              || { echo "skills/$skill/SKILL.md has a different 'Talk simple' block; all eleven must match" >&2; exit 1; }
+          done
 
       - name: shellcheck installer
         run: shellcheck install.sh
@@ -65,7 +78,7 @@ jobs:
           HOME="$FAKE" ARCDLC_NO_PLUGIN_CLI=1 ./install.sh --bindir "$FAKE/bin"
           test -f "$FAKE/.claude/skills/arcdlc/.claude-plugin/plugin.json"
           test -f "$FAKE/.claude/skills/arcdlc/skills/plan/SKILL.md"
-          for s in aic archive examinate execute grilling plan plan-human policy remove source-map; do
+          for s in aic archive assist examinate execute grilling plan plan-human policy remove source-map; do
             test -f "$FAKE/.codex/skills/arcdlc-$s/SKILL.md"
             test -f "$FAKE/.config/opencode/skills/arcdlc-$s/SKILL.md"
             test -f "$FAKE/.cursor/skills/arcdlc-$s/SKILL.md"

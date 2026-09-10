@@ -119,6 +119,7 @@ binary for linux/darwin × amd64/arm64. Then, in your project:
 /arcdlc:aic <slug>       # grilled interview → docs/aics/<slug>/ architecture document
 /arcdlc:plan <slug>      # decompose it → docs/aics/<slug>/plan.md task queue
 /arcdlc:plan-human <slug> # board stories → docs/aics/<slug>/plan-human.md
+/arcdlc:assist <slug>    # sweep code TODOs → docs/aics/<slug>/comments.md + plan tasks
 /arcdlc:execute <slug>   # implement every task, one commit each
 /arcdlc:archive <slug>   # compact the plan, preserving history
 ```
@@ -137,10 +138,11 @@ argument (e.g. `/arcdlc:plan checkout`). Details and manual alternatives: [Insta
 | `/arcdlc:plan <slug>` | Decompose the approved architecture document into the executable task queue. | `docs/aics/<slug>/plan.md` |
 | `/arcdlc:plan-human <slug>` | Turn the task queue into the engineer stories a board shows: one story per service, numbered instructions, technical acceptance criteria, each self-contained so a ticket needs no file from this repository. | `docs/aics/<slug>/plan-human.md` + mapping in `CONTEXT.md` |
 | `/arcdlc:examinate <slug> [policy]` | Examine existing code for compliance with a named policy or design (`MDCA`, `DDD`, `SOLID`, …; default: the project's own AIC) and register gaps as plan tasks. | `docs/aics/<slug>/gap.md`, new TODO blocks in `docs/aics/<slug>/plan.md` |
+| `/arcdlc:assist <slug> [MARKER]` | Turn the code comment markers a team already wrote (`TODO` by default, also `FIXME`, `HACK`, `XXX`, `BUG`) into planned work: `arctool scan` sweeps the source and moves each marker out of the code into the register, markers sharing a tag (`// TODO:G1 ...`) become one record, the skill grills the engineer about the unclear ones, and every marker that names real work becomes a plan task. | `docs/aics/<slug>/comments.md`, new TODO blocks in `docs/aics/<slug>/plan.md`, the marker comments removed from the code |
 | `/arcdlc:execute <slug> [TASK-ID]` | Implement all pending plan tasks (or one by ID): status `TODO→TAKEN→DONE`, tests/lint, one Conventional Commits commit per task. | code, tests, commits |
 | `/arcdlc:remove <slug>` | Delete a completed initiative's folder and clean the registry — always after an explicit confirmation. | removed folder, refreshed `docs/aics/` + registry |
 | `/arcdlc:archive <slug>` | Move `DONE` task blocks into `docs/aics/<slug>/plan-archive.md`, keeping the plan small. | compacted plan + archive |
-| `/arcdlc:grilling [topic]` | The interview stage `/arcdlc:aic` and `/arcdlc:policy` run on, usable on its own: relentless questions, **one at a time**, each with a recommended answer, until nothing is silently assumed. | settled decisions, `CONTEXT.md` terms, ADRs |
+| `/arcdlc:grilling [topic]` | The interview every other command falls back to when something is unclear, contradictory, risky, or needs a human, usable on its own: relentless questions, **one at a time**, each with a recommended answer, until nothing is silently assumed. | settled decisions, `CONTEXT.md` terms, ADRs |
 | `source-map` skill | Routing table into the bundled architecture & engineering reference library (AIC, arc42, Tech Stack Canvas, TOGAF, C4, ADR, DDD, SOLID, MDCA, Go guides, Twelve-Factor, Conventional Commits, …). | reference guidance |
 
 While any of these skills is running, the agent talks in plain, short English — short sentences,
@@ -189,10 +191,12 @@ arcdlc/
 ├── skills/                  # one skill per directory (SKILL.md each)
 │   ├── source-map/          # reference library (SKILL.md + source/)
 │   ├── grilling/            # the one-question-at-a-time interview every skill runs on
-│   ├── aic/  policy/  plan/  examinate/  execute/  remove/  archive/
+│   ├── aic/  policy/  plan/  plan-human/  examinate/  assist/
+│   ├── execute/  remove/  archive/
 │   └── plan/references/plan-format.md   # the executable-plan contract
 ├── cmd/arctool/               # arctool CLI entry point
 ├── internal/plan/           # plan parser, validator, mutator, archiver (+ tests)
+├── internal/scan/           # code comment sweep + comment register (+ tests)
 ├── Makefile                 # build / install / test / release
 ├── install.sh               # one-line installer (skills + arctool, all agents)
 └── .github/workflows/       # CI (lint+test+cross-compile) and tag-driven releases
@@ -277,7 +281,8 @@ the copy loop.
 
 `arctool` is the deterministic companion for `docs/aics/<slug>/plan.md`: it validates the plan
 contract, picks the next task, and flips task status atomically so the agent never hand-edits status
-lines. It resolves the initiative from `--aic <slug>` or `--plan <path>` — a selection is always
+lines. It also sweeps the source for code comment markers (`arctool scan`) and writes the comment
+register `/arcdlc:assist` works from, which keeps that sweep out of the agent's context. It resolves the initiative from `--aic <slug>` or `--plan <path>` — a selection is always
 required. It is pure Go standard library — the binaries are static and need no runtime.
 
 Every ArcDLC skill probes `command -v arctool` and falls back to manual markdown handling when it
@@ -331,6 +336,62 @@ task, audit an existing codebase, produce a different format, or retire a finish
 /arcdlc:remove payments              # delete the finished initiative (after confirming)
 ```
 
+### Comment debt flow
+
+A `// TODO` in the code is work nobody planned. Turn the markers a team already wrote into tasks:
+
+```
+# in the code:
+#   // TODO We should move this function into a separate package, and use another
+#   // naming. The function must be publicly available.
+
+/arcdlc:assist payments          # sweep for TODO, then one question at a time about the unclear ones
+/arcdlc:assist payments FIXME    # the same for another marker
+/arcdlc:execute payments         # implement the tasks
+```
+
+The sweep takes each marker comment out of the code once its block is in the register, so the register
+is the one place the text lives and nobody plans the same comment twice. Review that change like any
+other, with `git diff`.
+
+`arctool scan` does the sweeping, so a repository with forty markers costs the agent a forty-line
+summary instead of forty file reads:
+
+```
+arctool scan --aic payments                    # write docs/aics/payments/comments.md
+arctool scan --aic payments --marker FIXME     # another marker, same register
+arctool scan --aic payments --dry-run          # look first: writes nothing, edits nothing
+arctool scan --aic payments --json             # the new findings as data
+arctool scan --aic review                     # a slug with no folder yet: the folder is created
+```
+
+Each block in the register keeps the evidence (a `- Marker:` line per marker, with the file, line and
+comment text) and the judgement (`- Verdict:` = `ACTIONABLE`, `UNCLEAR`, `STALE` or `DEFERRED`, written
+by the skill; the sweep leaves it empty). Only the actionable ones become plan tasks.
+
+**One change written down in several places is one task.** Tag the markers that belong together and the
+sweep merges them into one block, named after the tag:
+
+```go
+// TODO:G1 move the rebuild into internal
+...
+/* TODO:g1 change the return format
+to the single one
+*/
+```
+
+Both land in `TODO-CMT-G1`, with one `- Marker:` line each, both locations under `WHERE`, and their
+words seeded into `WHAT`. Tags ignore case, reach across the whole sweep, and belong to one marker
+word, so `FIXME:G1` is a different group. An untagged `// TODO` stays a task of its own.
+
+A re-run appends what is new and leaves every existing block alone, with one exception: a marker whose
+tag is already registered is added to that block, as another `- Marker:` line plus more text on `WHAT`
+and `WHERE`. Nothing else in the block moves, so a judgement already written there stands.
+
+A block comment that closes on a later line is one finding and is removed whole. Three shapes stay in
+the code and are reported as skipped: a marker on a decoration line of a block another line opened, a
+block that never closes, and a block whose closing `*/` shares a line with code.
+
 ### Governance flow
 
 ```
@@ -374,11 +435,14 @@ arctool order AIC-3 AIC-1 AIC-2   # re-order task blocks (slot permutation; unna
 arctool order AIC-3 AIC-1 --dry-run   # preview the new order without writing
 arctool archive --dry-run      # preview which DONE blocks would move to plan-archive.md
 arctool archive                # move them (archive written first — crash-safe)
+arctool scan                   # sweep TODO markers into comments.md and out of the code (3 if none)
+arctool scan --dry-run         # what it would record and remove, writing nothing
 ```
 
 Status changes rewrite only the one `- Status:` line and leave every other byte alone. `archive`
-and `order` rewrite the whole file, and both re-parse their own output before they write it. Every
-write is atomic. `arctool` never reformats your plan beyond the block spacing those two commands
+and `order` rewrite the whole file, and both re-parse their own output before they write it. `scan`
+only appends blocks to the register and deletes the comment lines it just recorded, and it verifies
+every file it touched before writing a byte. Every write is atomic. `arctool` never reformats your plan beyond the block spacing those two commands
 normalise.
 
 ## License

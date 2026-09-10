@@ -38,8 +38,16 @@ var archDocPrecedence = []string{
 }
 
 // nonArchDocs are initiative files that are never the architecture document, so
-// they are excluded from the alphabetical fallback in findArchDoc.
-var nonArchDocs = map[string]bool{"plan.md": true, "gap.md": true, "plan-archive.md": true}
+// they are excluded from the alphabetical fallback in findArchDoc. comments.md is
+// the register arctool scan writes; without it here, a folder holding a comment
+// register and no recognised architecture document would take its registry title
+// from that register.
+var nonArchDocs = map[string]bool{
+	"plan.md":         true,
+	"gap.md":          true,
+	"comments.md":     true,
+	"plan-archive.md": true,
+}
 
 // Initiative is one entry in the registry.
 type Initiative struct {

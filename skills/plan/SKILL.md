@@ -16,8 +16,8 @@ the contract `/arcdlc:execute` parses mechanically.
 
 ## Talk simple, write like a human
 
-Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor. Cut
-empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
+Plain English, everywhere: short sentences, common words, one idea each, active voice, a named
+actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
 
 - **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
   Say what you did, what you found, what comes next.
@@ -91,7 +91,8 @@ matters goes into the block.
 - Word every field the way `## Talk simple, write like a human` says: plain sentences, active voice, concrete
   names and paths, no filler, no long dashes. Vague text costs the executor a guess.
 - Every block ends with `- Status: TODO.`
-- If `docs/aics/<slug>/gap.md` exists, keep it in sync per the Gap Register Sync rules in the format guide.
+- If `docs/aics/<slug>/gap.md` or `docs/aics/<slug>/comments.md` exists, keep it in sync per the Register Sync
+  rules in the format guide.
 
 ## Step 2.5 — Risk coverage gate (mandatory)
 

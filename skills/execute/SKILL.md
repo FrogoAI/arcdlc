@@ -12,8 +12,8 @@ enforce — read that file before starting.
 
 ## Talk simple, write like a human
 
-Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor. Cut
-empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
+Plain English, everywhere: short sentences, common words, one idea each, active voice, a named
+actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
 
 - **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
   Say what you did, what you found, what comes next.
@@ -119,6 +119,8 @@ For each task, in order (in orchestrator mode, the spawned subagent performs the
 2. Claim it before touching code: `arctool take <id>` (flips `TODO`→`TAKEN`; refuses a non-`TODO` task). A `TAKEN` block
    with no commit marks a crashed session. *Fallback: edit the block's `- Status: TODO.` to `- Status: TAKEN.`*
 3. Implement ONLY this task, exactly as written — including intentional breaking changes when the task says so.
+   If the task is unclear, contradicts something, or would need a decision it does not carry, do not guess:
+   grill the engineer first, per "When a task is unclear" below.
    Follow the `HOW` decisions when present and leave anything it marks `Out of scope:` untouched, even if you see
    an adjacent improvement. The whole repository is context; changes go in the files/modules named in `WHERE`
    (extend within the same subproject when strictly needed to complete the task).
@@ -131,7 +133,8 @@ For each task, in order (in orchestrator mode, the spawned subagent performs the
    evidenced, not asserted. *Fallback: edit the status line to `- Status: DONE.`*
 6. Commit ONLY this task's changes plus the plan status update. Do not include unrelated pre-existing worktree
    changes. Write the message exactly as specified in "Commit message: Conventional Commits" below. Do not push.
-7. If the task cannot be completed — including any acceptance criterion you cannot satisfy: `arctool block <id> -m
+7. If the task cannot be completed — including any acceptance criterion you cannot satisfy: grill the engineer
+   first when the blocker is a question rather than a defect (see below), then `arctool block <id> -m
    "<one-line reason>"` naming the failing criterion (or `arctool todo <id>` to release it back to the queue), report
    why, and stop — do not continue to the next task on failure. Never `arctool done` a task whose acceptance criteria
    are unmet. The same rule covers an order inversion: while implementing, you find the task needs something a task
@@ -142,6 +145,38 @@ For each task, in order (in orchestrator mode, the spawned subagent performs the
    stops here either way. *Fallback: set the status line to `- Status: BLOCKED — <reason>.` or back to `TODO`.*
 8. Repeat from step 1. When running the whole queue, stop when `arctool next` exits non-zero (code `3` = no `TODO`
    left). *Fallback: stop when no `TODO` block remains.*
+
+## When a task is unclear, grill before you code (mandatory)
+
+A task the plan left ambiguous is not yours to guess. Stop coding and ask the engineer the moment you
+hit one of these:
+
+- The task contradicts itself, the code, an ADR, `CONTEXT.md`, or the architecture document.
+- `HOW` is missing a decision you would otherwise invent: a signature, a name, a data shape, a
+  threshold, an error path, an edge case.
+- An `Acceptance` criterion cannot be satisfied as written, or two criteria pull opposite ways.
+- The change is risky or hard to reverse and the task does not say it is wanted: a data migration, a
+  deleted public interface, a dropped column, a rewritten configuration format, a dependency swap.
+- Two tasks in the queue want the opposite thing.
+- The task tells you to change code you can find no caller for, and the answer decides whether it is
+  dead or called from outside this repository.
+
+How to ask: prefer the bundle's `arcdlc-grilling` skill. If it cannot be invoked here, read its
+`SKILL.md` (`../grilling/SKILL.md`, flat installs: `../arcdlc-grilling/SKILL.md`) and run the same
+protocol inline. **One question per turn**: ask, wait for the answer, then ask the next, each with your
+recommended answer. Never a numbered round of questions, never report a helper skill as missing, and
+never turn a guess into code.
+
+Where the answer goes, so nobody has to answer it twice:
+
+- A decision that outlives this task: write an ADR in `docs/adr/`, name it in the commit body, and
+  cite it in the code comment that needs it.
+- A decision local to this task: put it in the commit body, under the task line.
+- A new term the project will reuse: add it to `CONTEXT.md`.
+- Do not edit another task, and do not rewrite this task's text in `plan.md`. Text edits race with the
+  status writes of a parallel run, and the plan belongs to `/arcdlc:plan`.
+- No answer, or an answer that changes the plan: `arctool block <id> -m "<one-line reason>"`, report
+  what you asked, and stop. The engineer decides whether the plan changes.
 
 ## Commit message: Conventional Commits
 

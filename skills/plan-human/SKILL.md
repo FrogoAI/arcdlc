@@ -21,14 +21,28 @@ The story format is defined in `references/story-format.md`. Read it before writ
 
 ## Talk simple, write like a human
 
-Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
+Plain English, everywhere: short sentences, common words, one idea each, active voice, a named
+actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
 
-- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request. Say what you did, what you found, what comes next.
-- **Files you write:** no AI filler, no warm-up opener, no invented summary. Vary sentence length. Concrete names, numbers, and paths.
+- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
+  Say what you did, what you found, what comes next.
+- **Files you write:** no AI filler ("Furthermore", "In conclusion", "It is important to note",
+  "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
+  invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
+  improves performance".
+- **Be direct, name the thing.** The fewest words that carry the fact; a word that only adds tone
+  comes out. Never a metaphor, a narrative line, or a question. Say what must happen: "The alerter
+  retries three times, then dead-letters." Every title that names work is an instruction, a verb
+  plus its object: "Implement the alerter service", never "One message out, and the three places it
+  goes".
 - **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
-- **Be direct, and name the thing.** Every title is an imperative verb plus its object. The full standard is `source/Writing Style.md` in the bundle's `source-map` skill, sections "Be direct" and "Name the thing".
+  Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
+- **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
+  once in plain words, then use it. Simple English is about the sentence, not the term.
 
-Brevity is for replies, never for the file: never drop a rule, a number, a decision, or an acceptance criterion to save space.
+Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
+decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
+pre-save check, is `source/Writing Style.md` in the bundle's `source-map` skill.
 
 ## Initiative selection
 
@@ -55,8 +69,36 @@ Practical guidance:
 - A story that names a service delivers **that whole service**, however many tasks that takes. Five tasks building one calculator are one story.
 - Bundle two tasks into one story only when they are **one demo**: create a repository and deploy it, add the metrics and run the load test, one screen plus the field it needs.
 - A capability that only exists so another story can be proven is not its own story. Put it in the story it serves, as its first steps.
-- Take the **phase split from `plan.md`**. Do not invent one. If the phases look wrong, say so and stop; moving a phase boundary changes the architecture document, the diagrams and the tracker, and that is a decision for the engineer, not a side effect of writing stories.
+- Take the **phase split from `plan.md`**. Do not invent one. If the phases look wrong, grill the engineer about it and stop; moving a phase boundary changes the architecture document, the diagrams and the tracker, and that is a decision for the engineer, not a side effect of writing stories.
 - Group stories under a phase heading, and keep story numbers stable across runs. When a phase boundary moves, move the heading, not the numbers: a renumbered board loses every reference anyone has written down.
+
+## When the plan is unclear, grill (mandatory)
+
+A ticket is read by somebody who cannot ask you anything, so a story may not carry a guess. Stop and
+ask the engineer the moment you hit one of these:
+
+- A task leaves the story without a value it needs: a field name, a JSON shape, a subject name, an
+  interval, a cap, a limit.
+- Two tasks contradict each other, or a task contradicts the architecture document, an ADR, or
+  `CONTEXT.md`.
+- An `Acceptance` line cannot be reworded into "I do this, I get that" without inventing the
+  observable result.
+- A task names no deployable unit, so you cannot tell which story it belongs to.
+- The phase split in `plan.md` does not match the architecture document.
+
+How to ask: prefer the bundle's `arcdlc-grilling` skill. If it cannot be invoked here, read its
+`SKILL.md` (`../grilling/SKILL.md`, flat installs: `../arcdlc-grilling/SKILL.md`) and run the same
+protocol inline. **One question per turn**: ask, wait for the answer, then ask the next, each with your
+recommended answer. Never a numbered round of questions, and never report a helper skill as missing.
+
+Where the answer goes:
+
+- A concrete value: into the story, written out in full, because the ticket cannot reach this
+  repository.
+- A new term: into `CONTEXT.md`, in the project's own words.
+- An answer that changes the plan itself (a task, a phase boundary, an acceptance criterion): stop and
+  say so. Moving a phase boundary changes the architecture document, the diagrams and the tracker, so
+  it is the engineer's decision and `/arcdlc:plan` writes it, not this skill.
 
 ## Step 3: write each story
 
