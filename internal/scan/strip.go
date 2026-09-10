@@ -61,8 +61,8 @@ func Strip(root string, found []Finding) (edits []Edit, skipped []Skip, err erro
 			for n := f.strip.fromLine; n > 0 && n <= f.strip.toLine; n++ {
 				del[n] = true
 			}
-			if f.strip.cutLine > 0 {
-				cuts[f.strip.cutLine] = [2]int{f.strip.cutFrom, f.strip.cutTo}
+			for _, c := range f.strip.cuts {
+				cuts[c.line] = [2]int{c.from, c.to}
 			}
 			removed++
 		}
@@ -108,14 +108,10 @@ func fileOrder(found []Finding) ([]string, map[string][]Finding) {
 // between the sweep and the strip keeps its comment instead of losing a line of
 // code.
 func stillThere(lines [][]byte, f Finding) bool {
-	n := f.strip.cutLine
-	if n == 0 {
-		n = f.strip.fromLine
-	}
-	if n < 1 || n > len(lines) {
+	if f.Line < 1 || f.Line > len(lines) {
 		return false
 	}
-	return strings.Contains(string(lines[n-1]), f.Marker)
+	return strings.Contains(string(lines[f.Line-1]), f.Marker)
 }
 
 // collapseBlanks drops one of the two blank lines a whole-line deletion would

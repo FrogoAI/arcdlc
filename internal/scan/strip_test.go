@@ -93,12 +93,44 @@ func TestStripLeavesMultiLineBlockComments(t *testing.T) {
 }
 
 func TestStripLeavesAnUnterminatedBlockOpener(t *testing.T) {
-	source := "/* TODO free the buffer\n   and check the size */\nint f(void) { return 0; }\n"
+	source := "/* TODO free the buffer\n   and check the size\nint f(void) { return 0; }\n"
 	got, skipped := stripFile(t, "a.c", source)
 	if got != source {
 		t.Fatalf("an unterminated block comment was cut:\n%s", got)
 	}
 	if len(skipped) != 1 || !strings.Contains(skipped[0].Reason, "does not close") {
+		t.Fatalf("skipped = %+v", skipped)
+	}
+}
+
+func TestStripRemovesABlockCommentThatClosesLowerDown(t *testing.T) {
+	got, skipped := stripFile(t, "a.c", "/* TODO free the buffer\nand check the size\n*/\nint f(void) { return 0; }\n")
+	want := "int f(void) { return 0; }\n"
+	if got != want {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+	if len(skipped) != 0 {
+		t.Fatalf("skipped = %+v, want none", skipped)
+	}
+}
+
+func TestStripKeepsTheCodeBeforeABlockCommentThatClosesLowerDown(t *testing.T) {
+	source := "int f(void) { /* TODO free the buffer\nand check the size\n*/\n  return 0; }\n"
+	got, _ := stripFile(t, "a.c", source)
+	want := "int f(void) {\n  return 0; }\n"
+	if got != want {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+}
+
+func TestStripLeavesABlockCommentWithCodeAfterItsCloser(t *testing.T) {
+	// Cutting the closer off that line would take the code's indentation with it.
+	source := "/* TODO free the buffer\nand check the size\n*/ int f(void) { return 0; }\n"
+	got, skipped := stripFile(t, "a.c", source)
+	if got != source {
+		t.Fatalf("the code line was cut:\n%s", got)
+	}
+	if len(skipped) != 1 || !strings.Contains(skipped[0].Reason, "code follows the closing */") {
 		t.Fatalf("skipped = %+v", skipped)
 	}
 }

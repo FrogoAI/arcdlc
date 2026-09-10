@@ -3,8 +3,13 @@
 //
 // The split of work is deliberate: this package finds evidence (file, line, the
 // marker text, the code line under it) and writes only the lines it owns. The
-// judgement (title, WHAT, HOW, WHY, Acceptance, verdict) belongs to the
-// /arcdlc:assist skill, which fills it in after it grills the engineer.
+// judgement (title, HOW, WHY, Acceptance, verdict) belongs to the
+// /arcdlc:assist skill, which fills it in after it grills the engineer. WHAT is
+// seeded here from the marker text and rewritten there.
+//
+// A marker may carry a group tag, "// TODO:G1 move the rebuild out of main". Every
+// marker with the same tag is one block of the register, however many files it
+// spans, so one change written down in three places is one task.
 //
 // It is a pure, standard-library-only implementation.
 package scan
@@ -20,14 +25,15 @@ import (
 
 // Finding is one marker found in one file.
 type Finding struct {
-	File   string `json:"file"`   // path relative to the sweep root, slash separated
-	Line   int    `json:"line"`   // 1-based line of the marker
-	Marker string `json:"marker"` // the marker word, e.g. "TODO"
-	Text   string `json:"text"`   // the comment from the marker on, continuation lines joined
-	Code   string `json:"code"`   // first code line under the comment, "" when there is none
+	File   string `json:"file"`            // path relative to the sweep root, slash separated
+	Line   int    `json:"line"`            // 1-based line of the marker
+	Marker string `json:"marker"`          // the marker word, e.g. "TODO"
+	Group  string `json:"group,omitempty"` // group tag, upper cased, "" when the marker stands alone
+	Text   string `json:"text"`            // the comment from the marker on, continuation lines joined
+	Code   string `json:"code"`            // first code line under the comment, "" when there is none
 
 	// strip is how Strip removes this comment from its file: which whole lines to
-	// delete, or which span of one line to cut. It is derived by the sweep, which
+	// delete, and which spans of a line to cut. It is derived by the sweep, which
 	// is the only place that knows the comment's exact shape.
 	strip stripPlan
 }
@@ -36,10 +42,26 @@ type Finding struct {
 // Line numbers are 1-based and inclusive.
 type stripPlan struct {
 	ok               bool
-	reason           string // why the comment must stay, when ok is false
-	fromLine, toLine int    // whole lines to delete; 0 when there are none
-	cutLine          int    // line to cut instead of delete (a trailing comment); 0 when none
-	cutFrom, cutTo   int    // byte range to cut out of that line
+	reason           string    // why the comment must stay, when ok is false
+	fromLine, toLine int       // whole lines to delete; 0 when there are none
+	cuts             []lineCut // spans to cut out of a line that keeps its code
+}
+
+// lineCut is one span to cut out of one line, leaving the rest of that line alone.
+type lineCut struct {
+	line     int // 1-based
+	from, to int // byte range to cut
+}
+
+// span is the shape of one comment the sweep matched: the lines it covers, where
+// it opens, and, for a block comment that closes on a later line, where that
+// closer ends.
+type span struct {
+	from, to int    // 0-based line indices, inclusive
+	opener   string // the comment opener on line from
+	at       int    // column of that opener
+	closeAt  int    // column just past the closer on line to; 0 unless the block closes lower down
+	unclosed bool   // a block comment with no closer anywhere below
 }
 
 // Opts configures a sweep.
@@ -194,75 +216,160 @@ func scanFile(rel string, b []byte, markers []string, ops []string) []Finding {
 	lines := strings.Split(strings.ReplaceAll(string(b), "\r\n", "\n"), "\n")
 	var out []Finding
 	for i := 0; i < len(lines); i++ {
-		marker, rest, opener, at, ok := markerHit(lines[i], markers, ops)
+		marker, group, rest, opener, at, ok := markerHit(lines[i], markers, ops)
 		if !ok {
 			continue
 		}
+		s := span{from: i, to: i, opener: opener, at: at}
 		text := rest
-		// Consecutive comment lines below the marker continue the same finding,
-		// so a three-line TODO is one task, not three.
-		j := i + 1
-		for ; j < len(lines); j++ {
-			cont, contOK := continuationOnLine(lines[j], markers, ops)
-			if !contOK {
-				break
-			}
-			if cont != "" {
-				text += " " + cont
-			}
+		closer, isBlock := blockClosers[opener]
+		switch {
+		case isBlock && strings.Contains(lines[i][at+len(opener):], closer):
+			// A block comment that opens and closes on this line: its words are the
+			// finding, its closer is not.
+			body := lines[i][at+len(opener):]
+			text, s.to = lineRun(lines, i, markers, ops, blockLine(body[:strings.Index(body, closer)]))
+		case isBlock:
+			// A block comment that closes further down is one finding, from its
+			// opener to its closer, whatever the lines between look like.
+			text, s.to, s.closeAt = blockSpan(lines, i, at+len(opener), closer, rest)
+			s.unclosed = s.closeAt == 0
+		default:
+			text, s.to = lineRun(lines, i, markers, ops, rest)
 		}
-		plan := planStrip(lines, i, j, opener, at)
+		plan := planStrip(lines, s)
 		// A comment that trails code sits on the line it is about; a standalone
 		// comment is about the first code line under it.
-		code := codeUnder(lines, j, ops)
-		if plan.cutLine == i+1 {
-			code = cutSpan(lines[i], plan.cutFrom, plan.cutTo)
+		code := codeUnder(lines, s.to+1, ops)
+		if len(plan.cuts) > 0 && plan.cuts[0].line == i+1 {
+			code = cutSpan(lines[i], plan.cuts[0].from, plan.cuts[0].to)
 		}
 		out = append(out, Finding{
 			File:   rel,
 			Line:   i + 1,
 			Marker: marker,
+			Group:  group,
 			Text:   Normalize(text, maxTextLen),
 			Code:   Normalize(code, maxCodeLen),
 			strip:  plan,
 		})
-		i = j - 1
+		i = s.to
 	}
 	return out
 }
 
-// planStrip works out how to delete one marker comment without touching a byte
-// of code. lines[i] holds the marker, lines[i:j] is the comment run, opener is
-// the comment start and at its column.
+// lineRun joins the comment lines under the marker's own line. Consecutive comment
+// lines continue the same finding, so a three-line TODO is one task, not three.
+func lineRun(lines []string, from int, markers, ops []string, first string) (text string, to int) {
+	text, to = first, from
+	for n := from + 1; n < len(lines); n++ {
+		cont, ok := continuationOnLine(lines[n], markers, ops)
+		if !ok {
+			break
+		}
+		if cont != "" {
+			text += " " + cont
+		}
+		to = n
+	}
+	return text, to
+}
+
+// blockSpan joins a block comment that closes on a later line: every line after the
+// marker's joins the text with its decoration trimmed, up to the line that holds the
+// closer, and the closer itself is dropped. One block comment is one finding, so a
+// second marker word inside the span does not split it.
 //
-// Two shapes are removable, and nothing else is:
+// A block that closes nowhere below returns the marker line alone and closeAt 0, so
+// the strip leaves the comment in a file it cannot read to the end.
+func blockSpan(lines []string, from, bodyAt int, closer, first string) (text string, to, closeAt int) {
+	text = first
+	for n := from; n < len(lines); n++ {
+		start := 0
+		if n == from {
+			start = bodyAt
+		}
+		k := strings.Index(lines[n][start:], closer)
+		if k < 0 {
+			if n > from {
+				if part := blockLine(lines[n]); part != "" {
+					text += " " + part
+				}
+			}
+			continue
+		}
+		if n > from {
+			if part := blockLine(lines[n][:start+k]); part != "" {
+				text += " " + part
+			}
+		}
+		return text, n, start + k + len(closer)
+	}
+	return first, from, 0
+}
+
+// blockLine trims one line of a block comment down to its words: the decoration a
+// block puts at the start of a line ("* ") and the space around it go.
+func blockLine(line string) string {
+	return strings.TrimSpace(trimDecoration(strings.TrimSpace(line)))
+}
+
+// planStrip works out how to delete one marker comment without touching a byte
+// of code.
+//
+// Three shapes are removable, and nothing else is:
 //   - a standalone comment line (plus its continuation lines): the lines go.
 //   - a comment trailing code on one line: the comment span is cut, the code stays.
+//   - a block comment that closes on a later line: the whole span goes, and code
+//     before the opener is cut free of it first.
 //
-// A marker inside a multi-line block comment is left alone, because deleting one
-// of its lines can leave a dangling opener or an empty comment.
-func planStrip(lines []string, i, j int, opener string, at int) stripPlan {
-	line := lines[i]
-	standalone := strings.TrimSpace(line[:at]) == ""
-
-	if opener == "*" {
+// A marker inside a block comment that another line opened is left alone, because
+// deleting one of its lines can leave a dangling opener or an empty comment. So is a
+// block comment that never closes (that file is broken and the sweep will not guess)
+// and one whose closer shares a line with code.
+func planStrip(lines []string, s span) stripPlan {
+	if s.opener == "*" {
 		return stripPlan{reason: "inside a multi-line block comment"}
 	}
+	if s.unclosed {
+		return stripPlan{reason: "opens a block comment that does not close"}
+	}
+	line := lines[s.from]
+	standalone := strings.TrimSpace(line[:s.at]) == ""
+
+	if s.closeAt > 0 { // a block comment that closes on a later line
+		if strings.TrimSpace(lines[s.to][s.closeAt:]) != "" {
+			// Cutting the closer off this line would take the code's indentation
+			// with it, so the comment stays and the next sweep sees it again.
+			return stripPlan{reason: "code follows the closing " + blockClosers[s.opener]}
+		}
+		p := stripPlan{ok: true}
+		first := s.from + 1 // 1-based
+		if !standalone {
+			p.cuts = append(p.cuts, lineCut{line: first, from: s.at, to: len(line)})
+			first++
+		}
+		if first <= s.to+1 {
+			p.fromLine, p.toLine = first, s.to+1
+		}
+		return p
+	}
+
 	end := len(line) // a line comment runs to the end of the line
-	if closer, isBlock := blockClosers[opener]; isBlock {
-		k := strings.Index(line[at+len(opener):], closer)
+	if closer, isBlock := blockClosers[s.opener]; isBlock {
+		k := strings.Index(line[s.at+len(s.opener):], closer)
 		if k < 0 {
 			return stripPlan{reason: "opens a block comment that does not close on the same line"}
 		}
-		end = at + len(opener) + k + len(closer)
+		end = s.at + len(s.opener) + k + len(closer)
 	}
 
 	if standalone && end >= len(strings.TrimRight(line, " \t")) {
-		return stripPlan{ok: true, fromLine: i + 1, toLine: j}
+		return stripPlan{ok: true, fromLine: s.from + 1, toLine: s.to + 1}
 	}
-	p := stripPlan{ok: true, cutLine: i + 1, cutFrom: at, cutTo: end}
-	if j > i+1 { // continuation lines below the code line are whole-line deletes
-		p.fromLine, p.toLine = i+2, j
+	p := stripPlan{ok: true, cuts: []lineCut{{line: s.from + 1, from: s.at, to: end}}}
+	if s.to > s.from { // continuation lines below the code line are whole-line deletes
+		p.fromLine, p.toLine = s.from+2, s.to+1
 	}
 	return p
 }
@@ -275,16 +382,16 @@ var blockClosers = map[string]string{"/*": "*/", "<!--": "-->"}
 // first word: a sentence that merely mentions TODO is prose about markers, not a
 // marker.
 func markerOnLine(line string, markers []string, ops []string) (marker, rest string, ok bool) {
-	m, text, _, _, found := markerHit(line, markers, ops)
+	m, _, text, _, _, found := markerHit(line, markers, ops)
 	return m, text, found && m != ""
 }
 
-// markerHit is markerOnLine plus the comment opener and its column, which the
-// strip plan needs.
-func markerHit(line string, markers []string, ops []string) (marker, rest, opener string, at int, ok bool) {
+// markerHit is markerOnLine plus the group tag, the comment opener and its column,
+// which the strip plan needs.
+func markerHit(line string, markers []string, ops []string) (marker, group, rest, opener string, at int, ok bool) {
 	body, opener, at, found := commentBody(line, ops)
 	if !found {
-		return "", "", "", -1, false
+		return "", "", "", "", -1, false
 	}
 	body = trimDecoration(body)
 	for _, m := range markers {
@@ -295,9 +402,56 @@ func markerHit(line string, markers []string, ops []string) (marker, rest, opene
 		if after != "" && isWordByte(after[0]) {
 			continue // TODOLIST is a name, not a marker
 		}
-		return m, strings.TrimSpace(body), opener, at, true
+		return m, groupTag(after), strings.TrimSpace(body), opener, at, true
 	}
-	return "", "", "", -1, false
+	return "", "", "", "", -1, false
+}
+
+// groupTag reads the group tag off a marker: a ":" straight after the marker word,
+// then a run of tag bytes that ends at a space or at the end of the line. The tag is
+// folded to upper case, so ":g1" and ":G1" are the same group.
+//
+// Two shapes look like a tag and are not one. A tag with no letter in it
+// ("// TODO:01 fix this") would claim the auto-numbered block ID TODO-CMT-01, so it
+// reads as a plain marker. So does a tag the text runs straight into
+// ("// TODO:refactor(later) x"), which is prose, not a label.
+func groupTag(after string) string {
+	if !strings.HasPrefix(after, ":") {
+		return ""
+	}
+	end, letter := 1, false
+	for ; end < len(after) && isTagByte(after[end]); end++ {
+		if !isDigitByte(after[end]) && after[end] != '_' && after[end] != '-' {
+			letter = true
+		}
+	}
+	if end == 1 || !letter {
+		return ""
+	}
+	if end < len(after) && after[end] != ' ' && after[end] != '\t' {
+		return ""
+	}
+	return strings.ToUpper(after[1:end])
+}
+
+// IgnoredTag returns the tag-shaped text the sweep refused on this finding, or ""
+// when there was nothing to refuse. The sweep reports it, so a tag that quietly
+// became a plain marker is visible to the engineer who typed it.
+func IgnoredTag(f Finding) string {
+	if f.Group != "" || !strings.HasPrefix(f.Text, f.Marker) {
+		return ""
+	}
+	after := f.Text[len(f.Marker):]
+	if !strings.HasPrefix(after, ":") {
+		return ""
+	}
+	end := 1
+	for ; end < len(after) && isTagByte(after[end]); end++ {
+	}
+	if end == 1 || (end < len(after) && after[end] != ' ') {
+		return ""
+	}
+	return after[1:end]
 }
 
 // trimDecoration removes the padding a doc comment puts between the opener and
@@ -383,6 +537,12 @@ func startsWithOpener(trimmed string, ops []string) bool {
 	}
 	return false
 }
+
+func isTagByte(c byte) bool {
+	return c == '_' || c == '-' || isDigitByte(c) || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
+}
+
+func isDigitByte(c byte) bool { return c >= '0' && c <= '9' }
 
 func isWordByte(c byte) bool {
 	return c == '_' || c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'

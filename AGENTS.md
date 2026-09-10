@@ -89,16 +89,27 @@ checks. Do not merge with a red pipeline.
 - **Status mutations stay byte-preserving and atomic.** `take`/`done`/`block`/`todo` rewrite only
   the one `- Status:` line via temp-file + rename; `archive` writes the archive before compacting
   the plan; `order` permutes whole blocks, re-parses its own output before writing, and writes
-  nothing on a failed check. `scan` is append-only on `comments.md` (a block is never
-  rewritten or removed) and is the one command that edits source files: it deletes the marker comment
-  lines it just registered, nothing else, never `plan.md`. It re-parses the register and re-checks
-  every source edit before writing, and writes nothing on a failed check. Preserve these invariants.
-- **The comment register has two owners.** `arctool scan` owns each block's task ID and its
-  `- Marker:` line (the finding's identity: file plus marker text); `/arcdlc:assist` owns the title and
-  every judgement key (`WHAT`, `HOW`, `WHY`, `Acceptance`, the verdict). Neither side writes the
-  other's lines. The register is the only copy of a marker's text once the sweep has removed the
-  comment, so a block is never deleted. See
-  [ADR-0015](docs/adr/0015-comment-register-is-scanned-by-arctool-and-judged-by-the-skill.md).
+  nothing on a failed check. `scan` appends to `comments.md` and may grow one block, never more: a
+  marker whose group tag is already registered adds a `- Marker:` line, more text on `WHAT` and more
+  lines on `WHERE`, and a block is never removed, renumbered, or rewritten anywhere else. `scan` is
+  also the one command that edits source files: it deletes the marker comment lines it just
+  registered, nothing else, never `plan.md`. It re-parses the register and re-checks every source edit
+  before writing, and writes nothing on a failed check. Preserve these invariants.
+- **The comment register has two owners.** `arctool scan` owns each block's task ID, its `- Marker:`
+  lines (the finding's identity: file plus marker text), the `- WHERE:` list, and a first draft of
+  `- WHAT:`; `/arcdlc:assist` owns the title and every judgement key (`WHAT` as rewritten, `HOW`,
+  `WHY`, `Acceptance`, the verdict). Neither side writes the other's lines, and the sweep writes no
+  verdict at all: an empty `- Verdict:` means the block is unjudged. The register is the only copy of a
+  marker's text once the sweep has removed the comment, so a block is never deleted. See
+  [ADR-0015](docs/adr/0015-comment-register-is-scanned-by-arctool-and-judged-by-the-skill.md) and
+  [ADR-0016](docs/adr/0016-comment-markers-group-by-tag.md).
+- **A group tag makes one block.** `// TODO:G1 ...` in three files is one record and one task, named
+  after the tag (`TODO-CMT-G1`), because it is one change written down three times. Tags are folded to
+  upper case, reach across the whole sweep, and belong to one marker word (`FIXME:G1` is another
+  group). A tag with no letter in it is not a tag: `// TODO:01` would claim an auto-numbered ID, so it
+  reads as a plain marker and the run says so. A block comment that closes on a later line is one
+  finding and is removed whole; one whose closer shares a line with code stays in the code, because
+  cutting it would take that line's indentation with it.
 - **Initiatives are folders; selection is mandatory and explicit.** Each initiative lives in
   `docs/aics/<slug>/` (holding the architecture doc, `plan.md`, `gap.md`, `comments.md`,
   `plan-archive.md` — the last three are always siblings of `plan.md`). Selection is always named, never inferred:

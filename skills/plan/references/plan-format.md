@@ -111,11 +111,17 @@ An initiative folder can hold two evidence registers beside `plan.md`, and both 
 When a register is used as an input source, every `### ...` block in it that is meant to be worked on must have a
 matching task block in the same folder's `docs/aics/<slug>/plan.md`. For `gap.md` that is every gap except one carrying
 `- Accepted: <reason>, <date>.`, which records a deviation the engineer accepted and gets no task. For `comments.md` it
-is every block whose `- Verdict:` is `ACTIONABLE`; a finding marked `UNCLEAR`, `STALE`, or `DEFERRED` stays in the
-register and gets no task.
+is every block whose `- Verdict:` is `ACTIONABLE`; a finding marked `UNCLEAR`, `STALE`, or `DEFERRED`, or one whose
+verdict is still empty, stays in the register and gets no task.
 
 A register line that carries a judgement never reaches the plan: `- Accepted:` in `gap.md`, `- Marker:` and
 `- Verdict:` in `comments.md`.
+
+A `comments.md` block carries one `- Marker:` line per marker it holds, because markers that share a group tag
+(`// TODO:G1 ...`) are one block and one task. Such a block is named after its tag, so its task ID reads
+`TODO-CMT-G1` rather than `TODO-CMT-01`. When a later sweep adds a marker to a block whose task is already `TAKEN`,
+`DONE` or `BLOCKED`, the new marker gets a follow-up task, `TODO-CMT-G1-02`, referencing the same block; a task still
+`TODO` is extended in place instead.
 
 The `plan.md` copy must preserve:
 
@@ -123,7 +129,7 @@ The `plan.md` copy must preserve:
 - The same `WHAT`, `HOW` (when present), `WHERE`, `WHY`, and `Acceptance` content.
 - Executor metadata: `References` (pointing at the register the task came from) and `Status`.
 
-The copy must drop the lines that belong to the register alone: `comments.md` carries `- Marker:` (the finding's
+The copy must drop the lines that belong to the register alone: `comments.md` carries `- Marker:` lines (the finding's
 identity: file plus marker text) and `- Verdict:`, and neither means anything to the runner. Comment-derived tasks take
 **no** parenthetical heading tag: the only valid values are `MISSING`, `PARTIAL`, and `DRIFT`, and `arctool validate`
 warns on anything else.

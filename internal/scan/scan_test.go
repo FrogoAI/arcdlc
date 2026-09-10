@@ -210,3 +210,126 @@ func TestSweepRecordsTheCodeATrailingMarkerSitsOn(t *testing.T) {
 		t.Errorf("code = %q, want the line without its comment", found[1].Code)
 	}
 }
+
+func TestSweepReadsTheGroupTag(t *testing.T) {
+	dir := tree(t, map[string]string{
+		"a.go": "package a\n\n" +
+			"// TODO:G1 move the rebuild into internal\n" +
+			"func a() {}\n\n" +
+			"// TODO:g1 change the return format\n" +
+			"func b() {}\n\n" +
+			"// TODO:api-2 rename the handler\n" +
+			"func c() {}\n\n" +
+			"// TODO drop the retry\n" +
+			"func d() {}\n",
+	})
+	found := sweep(t, dir, "TODO")
+	if len(found) != 4 {
+		t.Fatalf("found %d markers, want 4", len(found))
+	}
+	want := []string{"G1", "G1", "API-2", ""}
+	for i, w := range want {
+		if found[i].Group != w {
+			t.Fatalf("finding %d group = %q, want %q (text %q)", i, found[i].Group, w, found[i].Text)
+		}
+	}
+	// The text stays verbatim: file plus text is the finding's identity.
+	if found[1].Text != "TODO:g1 change the return format" {
+		t.Fatalf("text = %q, want it kept as written", found[1].Text)
+	}
+}
+
+func TestSweepRejectsTagShapesThatAreNotTags(t *testing.T) {
+	dir := tree(t, map[string]string{
+		"a.go": "package a\n\n" +
+			"// TODO: drop the retry\n" +
+			"func a() {}\n\n" +
+			"// TODO:01 renumber this\n" +
+			"func b() {}\n\n" +
+			"// TODO:refactor(later) split this\n" +
+			"func c() {}\n",
+	})
+	found := sweep(t, dir, "TODO")
+	if len(found) != 3 {
+		t.Fatalf("found %d markers, want 3", len(found))
+	}
+	for _, f := range found {
+		if f.Group != "" {
+			t.Fatalf("%q read as group %q, want no group", f.Text, f.Group)
+		}
+	}
+	// A digits-only tag would claim the auto-numbered ID, so the sweep says so.
+	if got := IgnoredTag(found[1]); got != "01" {
+		t.Fatalf("IgnoredTag = %q, want %q", got, "01")
+	}
+	if got := IgnoredTag(found[0]); got != "" {
+		t.Fatalf("IgnoredTag on a plain marker = %q, want empty", got)
+	}
+}
+
+func TestSweepJoinsABlockCommentThatClosesLowerDown(t *testing.T) {
+	dir := tree(t, map[string]string{
+		"a.c": "/* TODO:G1 free the buffer\n" +
+			" * and check the size\n" +
+			"before every write\n" +
+			"*/\n" +
+			"int f(void) { return 0; }\n",
+	})
+	found := sweep(t, dir, "TODO")
+	if len(found) != 1 {
+		t.Fatalf("found %d markers, want 1: %+v", len(found), found)
+	}
+	f := found[0]
+	want := "TODO:G1 free the buffer and check the size before every write"
+	if f.Text != want {
+		t.Fatalf("text = %q, want %q", f.Text, want)
+	}
+	if f.Group != "G1" {
+		t.Fatalf("group = %q, want G1", f.Group)
+	}
+	if f.Line != 1 {
+		t.Fatalf("line = %d, want 1", f.Line)
+	}
+	if f.Code != "int f(void) { return 0; }" {
+		t.Fatalf("code = %q, want the line under the closer", f.Code)
+	}
+}
+
+func TestSweepReadsOneBlockCommentAsOneFinding(t *testing.T) {
+	dir := tree(t, map[string]string{
+		"a.c": "/* TODO free the buffer\nTODO and check the size\n*/\nint f(void) { return 0; }\n",
+	})
+	found := sweep(t, dir, "TODO")
+	if len(found) != 1 {
+		t.Fatalf("found %d markers, want 1: a block comment is one finding", len(found))
+	}
+	if want := "TODO free the buffer TODO and check the size"; found[0].Text != want {
+		t.Fatalf("text = %q, want %q", found[0].Text, want)
+	}
+}
+
+func TestSweepKeepsTheMarkerLineOfAnUnterminatedBlock(t *testing.T) {
+	dir := tree(t, map[string]string{
+		"a.c": "/* TODO free the buffer\nand check the size\nint f(void) { return 0; }\n",
+	})
+	found := sweep(t, dir, "TODO")
+	if len(found) != 1 {
+		t.Fatalf("found %d markers, want 1", len(found))
+	}
+	if want := "TODO free the buffer"; found[0].Text != want {
+		t.Fatalf("text = %q, want %q", found[0].Text, want)
+	}
+}
+
+func TestSweepDropsTheCloserOfASingleLineBlock(t *testing.T) {
+	dir := tree(t, map[string]string{
+		"a.c": "/* TODO free the buffer */\nint f(void) { return 0; }\n",
+	})
+	found := sweep(t, dir, "TODO")
+	if len(found) != 1 {
+		t.Fatalf("found %d markers, want 1", len(found))
+	}
+	if want := "TODO free the buffer"; found[0].Text != want {
+		t.Fatalf("text = %q, want %q", found[0].Text, want)
+	}
+}

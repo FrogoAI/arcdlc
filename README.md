@@ -138,7 +138,7 @@ argument (e.g. `/arcdlc:plan checkout`). Details and manual alternatives: [Insta
 | `/arcdlc:plan <slug>` | Decompose the approved architecture document into the executable task queue. | `docs/aics/<slug>/plan.md` |
 | `/arcdlc:plan-human <slug>` | Turn the task queue into the engineer stories a board shows: one story per service, numbered instructions, technical acceptance criteria, each self-contained so a ticket needs no file from this repository. | `docs/aics/<slug>/plan-human.md` + mapping in `CONTEXT.md` |
 | `/arcdlc:examinate <slug> [policy]` | Examine existing code for compliance with a named policy or design (`MDCA`, `DDD`, `SOLID`, …; default: the project's own AIC) and register gaps as plan tasks. | `docs/aics/<slug>/gap.md`, new TODO blocks in `docs/aics/<slug>/plan.md` |
-| `/arcdlc:assist <slug> [MARKER]` | Turn the code comment markers a team already wrote (`TODO` by default, also `FIXME`, `HACK`, `XXX`, `BUG`) into planned work: `arctool scan` sweeps the source and moves each marker out of the code into the register, the skill grills the engineer about the unclear ones, and every marker that names real work becomes a plan task. | `docs/aics/<slug>/comments.md`, new TODO blocks in `docs/aics/<slug>/plan.md`, the marker comments removed from the code |
+| `/arcdlc:assist <slug> [MARKER]` | Turn the code comment markers a team already wrote (`TODO` by default, also `FIXME`, `HACK`, `XXX`, `BUG`) into planned work: `arctool scan` sweeps the source and moves each marker out of the code into the register, markers sharing a tag (`// TODO:G1 ...`) become one record, the skill grills the engineer about the unclear ones, and every marker that names real work becomes a plan task. | `docs/aics/<slug>/comments.md`, new TODO blocks in `docs/aics/<slug>/plan.md`, the marker comments removed from the code |
 | `/arcdlc:execute <slug> [TASK-ID]` | Implement all pending plan tasks (or one by ID): status `TODO→TAKEN→DONE`, tests/lint, one Conventional Commits commit per task. | code, tests, commits |
 | `/arcdlc:remove <slug>` | Delete a completed initiative's folder and clean the registry — always after an explicit confirmation. | removed folder, refreshed `docs/aics/` + registry |
 | `/arcdlc:archive <slug>` | Move `DONE` task blocks into `docs/aics/<slug>/plan-archive.md`, keeping the plan small. | compacted plan + archive |
@@ -365,11 +365,32 @@ arctool scan --aic payments --json             # the new findings as data
 arctool scan --aic review                     # a slug with no folder yet: the folder is created
 ```
 
-Each block in the register keeps the evidence (`- Marker:` with the file, line and comment text) and
-the judgement (`- Verdict:` = `ACTIONABLE`, `UNCLEAR`, `STALE` or `DEFERRED`). Only the actionable ones
-become plan tasks. The register is append-only: a re-run appends what is new and leaves every existing
-block alone. A marker inside a multi-line block comment stays in the code and is reported as skipped,
-because deleting one line of such a comment can leave a dangling opener.
+Each block in the register keeps the evidence (a `- Marker:` line per marker, with the file, line and
+comment text) and the judgement (`- Verdict:` = `ACTIONABLE`, `UNCLEAR`, `STALE` or `DEFERRED`, written
+by the skill; the sweep leaves it empty). Only the actionable ones become plan tasks.
+
+**One change written down in several places is one task.** Tag the markers that belong together and the
+sweep merges them into one block, named after the tag:
+
+```go
+// TODO:G1 move the rebuild into internal
+...
+/* TODO:g1 change the return format
+to the single one
+*/
+```
+
+Both land in `TODO-CMT-G1`, with one `- Marker:` line each, both locations under `WHERE`, and their
+words seeded into `WHAT`. Tags ignore case, reach across the whole sweep, and belong to one marker
+word, so `FIXME:G1` is a different group. An untagged `// TODO` stays a task of its own.
+
+A re-run appends what is new and leaves every existing block alone, with one exception: a marker whose
+tag is already registered is added to that block, as another `- Marker:` line plus more text on `WHAT`
+and `WHERE`. Nothing else in the block moves, so a judgement already written there stands.
+
+A block comment that closes on a later line is one finding and is removed whole. Three shapes stay in
+the code and are reported as skipped: a marker on a decoration line of a block another line opened, a
+block that never closes, and a block whose closing `*/` shares a line with code.
 
 ### Governance flow
 

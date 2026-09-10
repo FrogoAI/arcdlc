@@ -3,6 +3,8 @@
 - Status: Accepted
 - Date: 2026-09-10
 - Initiative: none (bundle-wide, introduced with `/arcdlc:assist`)
+- Amended by: [ADR-0016](0016-comment-markers-group-by-tag.md), which groups markers by tag, gives the
+  sweep the `WHAT` draft, takes the verdict away from it, and lets one block grow
 
 ## Context
 

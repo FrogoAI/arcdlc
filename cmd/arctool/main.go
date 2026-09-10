@@ -25,7 +25,7 @@ import (
 	"github.com/FrogoAI/arcdlc/internal/scan"
 )
 
-const version = "0.12.0"
+const version = "0.13.0"
 
 // aicsDir is the root directory under which each initiative gets its own folder
 // (docs/aics/<slug>/, holding plan.md, gap.md, comments.md, plan-archive.md).
@@ -50,6 +50,7 @@ usage:
                  [--json] [--dry-run] [--aic SLUG | --plan PATH]
                  sweep source comments for markers (default TODO) into comments.md,
                  then delete those comment lines from the code (--dry-run does neither)
+                 markers sharing a tag are one block: // TODO:G1 in three files, one task
                  (exit 3 when no marker is found)
   arctool archive  [--dry-run] [--aic SLUG | --plan PATH]    move DONE blocks to plan-archive.md
   arctool sync     [--check]                                 sync the initiative registry in AGENTS.md/README.md
@@ -107,7 +108,7 @@ func main() {
 }
 
 // loadPlan reads and parses the plan; on read failure it reports and returns exit code 4.
-func loadPlan(path string) (*plan.Plan, int) { // TODO domain/business logic must be moved into internal/ and keep main file clean
+func loadPlan(path string) (*plan.Plan, int) {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "arctool: cannot read %s: %v\n", path, err)
@@ -804,7 +805,7 @@ func cmdScan(args []string) int {
 		fmt.Fprintf(os.Stderr, "arctool: cannot read %s: %v\n", cp, err)
 		return 4
 	}
-	out, res, err := scan.Render(existing, found, markers, time.Now().Format("2006-01-02"))
+	out, res, err := scan.Render(existing, found)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "arctool: %s: %v\n", cp, err)
 		return 1
@@ -879,20 +880,16 @@ func isDir(path string) bool {
 // scanJSON is what --json emits: the sweep's counts plus the blocks this run
 // added, so a skill can start asking about them without opening the register.
 type scanJSON struct {
-	Register string        `json:"register"`
-	Markers  []string      `json:"markers"`
-	Found    int           `json:"found"`
-	Known    int           `json:"known"`
-	Total    int           `json:"total"`
-	Changed  bool          `json:"changed"`
-	New      []newFindJSON `json:"new"`
-	Edited   []scan.Edit   `json:"edited"`
-	Skipped  []scan.Skip   `json:"skipped"`
-}
-
-type newFindJSON struct {
-	ID string `json:"id"`
-	scan.Finding
+	Register string       `json:"register"`
+	Markers  []string     `json:"markers"`
+	Found    int          `json:"found"`
+	Known    int          `json:"known"`
+	Total    int          `json:"total"`
+	Changed  bool         `json:"changed"`
+	New      []scan.Block `json:"new"`
+	Extended []scan.Block `json:"extended"`
+	Edited   []scan.Edit  `json:"edited"`
+	Skipped  []scan.Skip  `json:"skipped"`
 }
 
 func emitScanJSON(register string, markers []string, found []scan.Finding, res scan.Result,
@@ -904,12 +901,10 @@ func emitScanJSON(register string, markers []string, found []scan.Finding, res s
 		Known:    res.Known,
 		Total:    res.Total,
 		Changed:  res.Changed,
-		New:      make([]newFindJSON, 0, len(res.New)),
+		New:      append([]scan.Block{}, res.New...),
+		Extended: append([]scan.Block{}, res.Extended...),
 		Edited:   append([]scan.Edit{}, edits...),
 		Skipped:  append([]scan.Skip{}, skipped...),
-	}
-	for i, f := range res.New {
-		payload.New = append(payload.New, newFindJSON{ID: res.NewIDs[i], Finding: f})
 	}
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
@@ -931,10 +926,19 @@ func reportScan(register, root string, markers []string, found []scan.Finding, r
 		verb = "already current"
 	}
 	fmt.Printf("scanned %s for %s: %d marker(s) found\n", root, strings.Join(markers, "/"), len(found))
-	fmt.Printf("%s %s: %d new, %d already registered, %d block(s) total\n",
-		verb, filepath.ToSlash(register), len(res.New), res.Known, res.Total)
-	for i, f := range res.New {
-		fmt.Printf("  %s  %s:%d  %s\n", res.NewIDs[i], f.File, f.Line, clip(f.Text, 100))
+	fmt.Printf("%s %s: %d new, %d extended, %d already registered, %d block(s) total\n",
+		verb, filepath.ToSlash(register), len(res.New), len(res.Extended), res.Known, res.Total)
+	for _, b := range res.New {
+		reportBlock("  ", b)
+	}
+	for _, b := range res.Extended {
+		fmt.Printf("  %s  extended with %d marker(s)\n", b.ID, len(b.Members))
+		reportBlock("    ", b)
+	}
+	for _, f := range found {
+		if tag := scan.IgnoredTag(f); tag != "" {
+			fmt.Printf("  note %s:%d  tag %q needs a letter: read as a plain marker\n", f.File, f.Line, tag)
+		}
 	}
 
 	removed := 0
@@ -956,6 +960,18 @@ func reportScan(register, root string, markers []string, found []scan.Finding, r
 	}
 	if removed > 0 && !dryRun {
 		fmt.Println("the code changed: review it with git diff")
+	}
+}
+
+// reportBlock names one block and the markers it holds, so the engineer can see
+// which comments a group pulled together without opening the register.
+func reportBlock(indent string, b scan.Block) {
+	for i, f := range b.Members {
+		id := b.ID
+		if i > 0 {
+			id = strings.Repeat(" ", len(b.ID))
+		}
+		fmt.Printf("%s%s  %s:%d  %s\n", indent, id, f.File, f.Line, clip(f.Text, 100))
 	}
 }
 
