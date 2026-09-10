@@ -74,14 +74,59 @@ first. Give every task a fresh context.
 
 Probe once: can this harness spawn subagents with their own clean context (e.g. the Agent/Task tool in Claude Code)?
 
+### Executor tier: ask, never assume
+
+A task block is written to be run by a weaker model than the one that planned it. That is the opening line of
+`../plan/references/plan-format.md` (flat installs: `../arcdlc-plan/references/plan-format.md`) and Step 2 of
+`/arcdlc:plan`. So the task subagent should cost less than you do, and there are two dials, not one: the model, and
+the effort or reasoning level it runs at. A strong model at its lowest effort is often the right answer for a task
+block that already carries every decision.
+
+You pick neither dial on your own. Both belong to the engineer, and you ask once per run.
+
+The floor is capability, not price. Whatever tier the run lands on, the subagent must be able to:
+
+- run shell commands,
+- read and edit files in the repository,
+- run the project's test and lint commands (`make test` and `make lint`, or the ones the project documents),
+- write a git commit.
+
+Resolve the tier in this order, and stop at the first line that answers:
+
+1. **The task names it.** A task's `HOW` names a model or an effort level. The planner decided it, so it binds that
+   task, exactly like every other `HOW` decision.
+2. **The project pin.** A line in `CONTEXT.md` that starts with `Executor tier:`, for example
+   `Executor tier: haiku` or `Executor tier: opus, low effort`. Use it exactly as written and do not ask. The
+   engineer wrote it for the harness they actually run. (`arctool sync` rewrites `AGENTS.md` and `README.md` only,
+   so a pin in `CONTEXT.md` survives every sync.)
+3. **Ask the engineer.** One question, one turn, before the first spawn: which model and which effort level should
+   run this queue. Name the options this harness actually exposes, and carry a recommended answer, which is the
+   cheapest combination that clears the floor. Then use that answer for every task in the run and for the
+   verification subagent, and offer to write it into `CONTEXT.md` as the pin above so the next run does not ask
+   again.
+4. **Nobody to ask, or nothing to choose.** A non-interactive run (`claude -p ...`), or a harness that cannot vary
+   the model or the effort of a subagent. Then use in-session mode below and say so in the report. Never spawn a
+   subagent at your own tier and report it as a cheaper run: a fresh same-tier subagent buys clean context, not a
+   cheaper executor.
+
+Ask only when you are about to spawn. Single-task mode (`/arcdlc:execute <slug> <TASK-ID>`) runs in the current
+session, so there is no tier to choose and no question to ask.
+
+The tier is not a quality dial. When the executor meets a decision its task block does not carry, it grills the
+engineer or blocks the task (per-task contract, step 7). It never retries the task at a higher tier, and you never
+raise the tier to get past it. A block a weaker model cannot execute is a plan defect, and
+`/arcdlc:plan <slug>` sharpens that block at planner tier. Name the tier the run used, and where it came from, in
+the report.
+
 **Orchestrator mode (subagents available).** Run the queue as a thin dispatcher and implement nothing yourself:
 
 1. Get the next task ID: `arctool next --json` (fallback: the first `TODO` block in `plan.md`). None left → go to the
    Verification phase.
-2. Spawn ONE fresh subagent — never several in parallel: the queue is dependency-ordered and commits must not
-   interleave. Its prompt must name the initiative slug, the task ID, the per-task contract to follow (point it at
-   this skill file and `../plan/references/plan-format.md`; flat installs: `../arcdlc-plan/references/plan-format.md`),
-   and the accumulated notes from earlier task reports.
+2. Spawn ONE fresh subagent, never several in parallel: the queue is dependency-ordered and commits must not
+   interleave. Spawn it at the tier resolved above, never at one you picked yourself. Its prompt must name the
+   initiative slug, the task ID, the per-task contract to follow (point it at this skill file and
+   `../plan/references/plan-format.md`; flat installs: `../arcdlc-plan/references/plan-format.md`), and the
+   accumulated notes from earlier task reports.
 3. The subagent executes the full per-task contract below (take → implement → verify acceptance → done → commit) and
    reports back: files changed, test results, commit subject, final status — plus at most one line of notes useful to
    later tasks (e.g. a project convention it discovered).
@@ -92,8 +137,9 @@ Probe once: can this harness spawn subagents with their own clean context (e.g. 
 Keep your own context small: in orchestrator mode never read source files or diffs — only plan state, subagent
 reports, and commit subjects. That is what lets a long queue finish in a single `/arcdlc:execute <slug>` invocation.
 
-**In-session mode (no subagents — flat installs and other harnesses).** Execute tasks yourself, one at a time, with a
-hard boundary discipline. You cannot measure your own context size, so use proxies:
+**In-session mode (no subagents, no tier to choose, or nobody to ask: flat installs and other harnesses).**
+Execute tasks yourself, one at a time, with a hard boundary discipline. You cannot measure your own context size,
+so use proxies:
 
 - Task boundaries (after `done` + commit) are the only legitimate stopping points.
 - After each non-trivial task — or roughly every third small one, or immediately when the harness signals compaction
@@ -233,10 +279,13 @@ When running the full queue (no task-ID argument), finish with a whole-project c
 - Run `make test` and `make lint` in the subproject (skip targets that don't exist).
 - Fix any failures, commit fixes separately (Conventional Commits, as above), and re-run until clean or the same failure repeats
   without progress — then stop and report.
-- In orchestrator mode, delegate this phase to one final subagent (running tests and fixing failures is
-  implementation work, and its output does not belong in the dispatcher's context).
+- In orchestrator mode, delegate this phase to one final subagent, at the tier resolved for the task subagents
+  (running tests and fixing failures is implementation work, and its output does not belong in the dispatcher's
+  context).
 
 ## Report
 
-Summarize per task: what changed, validation results, and the commit. Suggest `/arcdlc:archive <slug>` when several
-`DONE` blocks have accumulated in the plan.
+Summarize per task: what changed, validation results, and the commit. Name the executor tier the run used and where
+it came from: a task's `HOW`, the `CONTEXT.md` pin, the engineer's answer this run, or in-session because there was
+no tier to choose or nobody to ask. Suggest `/arcdlc:archive <slug>` when several `DONE` blocks have accumulated in
+the plan.

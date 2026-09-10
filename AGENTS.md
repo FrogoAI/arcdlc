@@ -145,6 +145,17 @@ checks. Do not merge with a red pipeline.
   only that region (byte-preserving elsewhere, atomic). `sync --check` fails on drift for CI. Never
   hand-edit inside the markers. `/arcdlc:remove <slug>` deletes an initiative folder (always after an
   explicit confirmation) and re-syncs; `arctool` itself performs no deletion.
+- **The executor tier is asked for, never guessed.** A tier is a model plus an effort level, and
+  `/arcdlc:execute` picks neither by itself. The order is fixed, first answer wins: a task's `HOW`,
+  then the `Executor tier: <name>` pin in `CONTEXT.md` (used exactly as written), then one question to
+  the engineer before the first spawn (recommended answer, options this harness has, offered as a new
+  pin), then in-session mode when there is nobody to ask or nothing to choose. Any tier must clear the
+  capability floor: shell commands, file edits, the project's test and lint commands, a commit. Never
+  spawn at the dispatcher's own tier and report it as a cheaper run. The run names the tier it used and
+  where the choice came from. A block a weaker model cannot execute is a plan defect that
+  `/arcdlc:plan` sharpens, never a reason to raise the tier. The rule pays off the promise
+  `skills/plan/references/plan-format.md` and Step 2 of `/arcdlc:plan` both already make. See
+  [ADR-0019](docs/adr/0019-the-executor-tier-is-asked-for-not-guessed.md).
 - **Version bumps:** the CLI version lives in `cmd/arctool/main.go` (`const version`); the plugin
   version lives in `.claude-plugin/plugin.json`, with `.antigravity-plugin/plugin.json` as a second
   plugin manifest kept in lockstep with it. Bump whichever component you changed (both plugin
