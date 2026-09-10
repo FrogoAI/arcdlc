@@ -113,8 +113,8 @@ checks. Do not merge with a red pipeline.
   kept and defined once). Brevity applies to replies, never to files: the block never lets a rule,
   path, decision, or acceptance criterion be dropped. Keep it short but self-sufficient — every rule
   an agent must follow stays inline, and only the tables, examples, and the pre-save grep live in the
-  long form, `skills/source-map/source/Writing Style.md`. CI greps for the heading in all nine skills;
-  copy the block when adding a skill, and change all nine plus the long form together.
+  long form, `skills/source-map/source/Writing Style.md`. CI greps for the heading in all ten skills;
+  copy the block when adding a skill, and change all ten plus the long form together.
 - Reference documents belong in `skills/source-map/source/` and are routed via the table in
   `skills/source-map/SKILL.md` — add a row when adding a document.
 - Adding or renaming a sub-skill requires updating the `SUBSKILLS` list in `install.sh` and the

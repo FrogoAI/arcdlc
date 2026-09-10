@@ -22,7 +22,7 @@ set -euo pipefail
 REPO="FrogoAI/arcdlc"
 PLUGIN="arcdlc"
 TOOL="arctool"
-SUBSKILLS="aic archive examinate execute grilling plan policy remove source-map"
+SUBSKILLS="aic archive examinate execute grilling plan plan-human policy remove source-map"
 
 BINDIR="${ARCDLC_BINDIR:-$HOME/.local/bin}"
 REF="${ARCDLC_REF:-main}"
