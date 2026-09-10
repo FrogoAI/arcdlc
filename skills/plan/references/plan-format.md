@@ -110,7 +110,7 @@ An initiative folder can hold two evidence registers beside `plan.md`, and both 
 
 When a register is used as an input source, every `### ...` block in it that is meant to be worked on must have a
 matching task block in the same folder's `docs/aics/<slug>/plan.md`. For `gap.md` that is every gap. For `comments.md`
-it is every block whose `- Verdict:` is `ACTIONABLE`; a finding marked `UNCLEAR`, `STALE`, `DEFERRED`, or `RESOLVED`
+it is every block whose `- Verdict:` is `ACTIONABLE`; a finding marked `UNCLEAR`, `STALE`, or `DEFERRED`
 stays in the register and gets no task.
 
 The `plan.md` copy must preserve:

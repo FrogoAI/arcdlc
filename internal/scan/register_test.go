@@ -72,7 +72,7 @@ func TestRenderIsIdempotent(t *testing.T) {
 	if string(second) != string(first) {
 		t.Fatalf("second run changed the file:\n%s", second)
 	}
-	if res.Changed || len(res.New) != 0 || len(res.Resolved) != 0 || res.Kept != 2 {
+	if res.Changed || len(res.New) != 0 || res.Known != 2 || res.Kept != 2 {
 		t.Fatalf("result = %+v, want no change", res)
 	}
 	// A moved marker keeps its block: identity is the text, not the line.
@@ -116,54 +116,38 @@ func TestRenderAppendsWithoutTouchingEarlierBlocks(t *testing.T) {
 	}
 }
 
-func TestRenderResolvesAVanishedMarker(t *testing.T) {
+func TestRenderLeavesABlockWhoseMarkerIsGone(t *testing.T) {
 	first, _ := render(t, nil, []Finding{
 		find("a.go", 3, "TODO", "TODO one", ""),
 		find("b.go", 9, "TODO", "TODO two", ""),
 	})
-	out, res := render(t, first, []Finding{find("a.go", 3, "TODO", "TODO one", "")})
-	if len(res.Resolved) != 1 || res.Resolved[0] != "TODO-CMT-02" {
-		t.Fatalf("result = %+v", res)
+	judged := strings.Replace(string(first), "- Verdict: NEW.", "- Verdict: ACTIONABLE.", 1)
+
+	// The sweep deletes each comment once it is registered, so the next sweep
+	// finds nothing. That must not touch a single block.
+	out, res := render(t, []byte(judged), nil)
+	if string(out) != judged {
+		t.Fatalf("an empty sweep rewrote the register:\n%s", out)
 	}
-	if !strings.Contains(string(out), "- Verdict: RESOLVED ("+day+").") {
-		t.Fatalf("verdict was not flipped:\n%s", out)
+	if res.Changed || len(res.New) != 0 || res.Total != 2 {
+		t.Fatalf("result = %+v, want no change", res)
 	}
-	// Only the verdict line may differ.
-	before, after := strings.Split(string(first), "\n"), strings.Split(string(out), "\n")
-	if len(before) != len(after) {
-		t.Fatalf("line count changed: %d -> %d", len(before), len(after))
-	}
-	diff := 0
-	for i := range before {
-		if before[i] != after[i] {
-			diff++
-			if !strings.Contains(after[i], "Verdict") {
-				t.Fatalf("line %d changed and is not a verdict line: %q -> %q", i, before[i], after[i])
-			}
-		}
-	}
-	if diff != 1 {
-		t.Fatalf("%d lines changed, want 1", diff)
-	}
-	// A second run leaves the resolved block alone.
-	again, res := render(t, out, []Finding{find("a.go", 3, "TODO", "TODO one", "")})
-	if string(again) != string(out) || len(res.Resolved) != 0 {
-		t.Fatalf("resolved block was touched twice: %+v", res)
+	if strings.Contains(string(out), "RESOLVED") {
+		t.Error("a verdict was invented for a marker the sweep removed")
 	}
 }
 
-func TestRenderOnlyResolvesSweptMarkers(t *testing.T) {
-	first, _ := render(t, nil, []Finding{
-		find("a.go", 3, "TODO", "TODO one", ""),
-		find("b.go", 9, "FIXME", "FIXME two", ""),
-	}, "TODO", "FIXME")
-	// This run looked for TODO only, so the FIXME block must not be resolved.
-	out, res := render(t, first, nil, "TODO")
-	if len(res.Resolved) != 1 || res.Resolved[0] != "TODO-CMT-01" {
-		t.Fatalf("result = %+v", res)
+func TestRenderCountsAKnownMarkerWithoutAppending(t *testing.T) {
+	found := []Finding{find("a.go", 3, "TODO", "TODO one", "")}
+	first, _ := render(t, nil, found)
+	// Somebody wrote the same comment again: the register already holds it, so no
+	// second block appears, and the sweep still takes the comment out of the code.
+	out, res := render(t, first, found)
+	if string(out) != string(first) {
+		t.Fatalf("a known marker was registered twice:\n%s", out)
 	}
-	if strings.Count(string(out), "- Verdict: RESOLVED ("+day+").") != 1 {
-		t.Fatalf("wrong number of resolutions:\n%s", out)
+	if res.Known != 1 || len(res.New) != 0 {
+		t.Fatalf("result = %+v, want one known finding", res)
 	}
 }
 

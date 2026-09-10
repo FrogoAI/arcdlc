@@ -3,7 +3,6 @@ package scan
 import (
 	"fmt"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -12,12 +11,12 @@ import (
 
 // Result reports what one Render call changed.
 type Result struct {
-	New      []Finding // findings appended by this run, in register order
-	NewIDs   []string  // their task IDs, same order as New
-	Resolved []string  // IDs whose verdict this run flipped to RESOLVED
-	Kept     int       // blocks left untouched
-	Total    int       // blocks in the rendered register
-	Changed  bool      // false when the register is already correct, byte for byte
+	New     []Finding // findings appended by this run, in register order
+	NewIDs  []string  // their task IDs, same order as New
+	Known   int       // findings this sweep saw that the register already held
+	Kept    int       // blocks left untouched
+	Total   int       // blocks in the rendered register
+	Changed bool      // false when the register is already correct, byte for byte
 }
 
 // Entry is one block already in the register.
@@ -40,30 +39,27 @@ var (
 	reID          = regexp.MustCompile(`^([A-Za-z0-9_]+)-CMT-(\d+)$`)
 )
 
-const (
-	// VerdictNew is what scan writes for a finding nobody has judged yet.
-	VerdictNew = "NEW"
-	// VerdictResolved is the only verdict scan ever writes over another one,
-	// and only when the marker has gone from the code.
-	VerdictResolved = "RESOLVED"
-)
+// VerdictNew is what scan writes for a finding nobody has judged yet. It is the
+// only verdict scan ever writes: the rest are the skill's judgement.
+const VerdictNew = "NEW"
 
 const registerHeader = "# Comment register\n" + `
 This file lists every code comment marker ` + "`arctool scan`" + ` found in this repository.
 One block is one marker.
 
-` + "`arctool scan`" + ` owns three things in a block: the task ID, the ` + "`- Marker:`" + ` line, and the
-flip to ` + "`- Verdict: RESOLVED (<date>).`" + ` once the marker is gone from the code. Everything
-else is written by ` + "`/arcdlc:assist`" + ` after it grills the engineer, so do not expect the
-empty keys below to stay empty.
+` + "`arctool scan`" + ` owns two things in a block: the task ID and the ` + "`- Marker:`" + ` line, which
+is the finding's identity. Everything else is written by ` + "`/arcdlc:assist`" + ` after it grills the
+engineer, so do not expect the empty keys below to stay empty.
+
+The sweep also deletes each marker comment from the code once its block is here, so this file is the
+only place the marker text still lives. It is append-only: a block is never rewritten or removed.
 
 A finding whose verdict is ACTIONABLE is mirrored into ` + "`plan.md`" + ` as a task, without its
 ` + "`- Marker:`" + ` and ` + "`- Verdict:`" + ` lines. The mirroring rules live in the plan format guide,
 under register sync.
 
-Verdicts: NEW (not judged yet), ACTIONABLE (mirrored into the plan), UNCLEAR (needs the
-engineer), STALE (the code already does it), DEFERRED (real work, not planned now),
-RESOLVED (the marker is gone).
+Verdicts: NEW (not judged yet), ACTIONABLE (mirrored into the plan as a task), UNCLEAR (needs
+the engineer), STALE (the code already does it), DEFERRED (real work, not planned now).
 `
 
 // ParseEntries reads the blocks of an existing register. It fails when a block
@@ -139,6 +135,7 @@ func Render(existing []byte, found []Finding, markers []string, date string) ([]
 		fp := key + "\x00" + strconv.Itoa(seen[key])
 		seen[key]++
 		if _, ok := byFingerprint[fp]; ok {
+			res.Known++ // already registered: the sweep still removes the comment
 			continue
 		}
 		nextNum[f.Marker]++
@@ -148,60 +145,20 @@ func Render(existing []byte, found []Finding, markers []string, date string) ([]
 		blocks = append(blocks, renderBlock(id, f, nl))
 	}
 
-	// Markers the register knows that the sweep no longer finds.
-	live := make(map[string]bool, len(found))
-	seen = map[string]int{}
-	for _, f := range found {
-		key := f.File + "\x00" + Normalize(f.Text, maxTextLen)
-		live[key+"\x00"+strconv.Itoa(seen[key])] = true
-		seen[key]++
-	}
-	type splice struct {
-		start, end int
-		text       string
-	}
-	var splices []splice
-	for i := range entries {
-		e := &entries[i]
-		if !swept[e.Marker] || live[e.Fingerprint] || strings.HasPrefix(e.Verdict, VerdictResolved) {
-			res.Kept++
-			continue
-		}
-		if e.verdictStart < 0 {
-			res.Kept++ // no verdict line to rewrite: leave the block alone
-			continue
-		}
-		orig := string(existing[e.verdictStart:e.verdictEnd])
-		indent := ""
-		if m := reVerdictLine.FindStringSubmatch(strings.TrimRight(orig, "\r\n")); m != nil {
-			indent = m[1]
-		}
-		term := lineTerm(orig, nl)
-		splices = append(splices, splice{e.verdictStart, e.verdictEnd,
-			fmt.Sprintf("%s- Verdict: %s (%s).%s", indent, VerdictResolved, date, term)})
-		res.Resolved = append(res.Resolved, e.ID)
-	}
-	sort.Slice(splices, func(i, j int) bool { return splices[i].start < splices[j].start })
-
 	out := make([]byte, 0, len(existing)+len(blocks)*400)
 	if len(strings.TrimSpace(string(existing))) == 0 {
 		out = append(out, []byte(withTerm(registerHeader, nl))...)
 	} else {
-		at := 0
-		for _, s := range splices {
-			out = append(out, existing[at:s.start]...)
-			out = append(out, []byte(s.text)...)
-			at = s.end
-		}
-		out = append(out, existing[at:]...)
+		out = append(out, existing...)
 	}
 	if len(blocks) > 0 {
 		out = ensureBlankTail(out, nl)
 		out = append(out, []byte(strings.Join(blocks, nl))...)
 	}
 
+	res.Kept = len(entries)
 	res.Total = len(entries) + len(res.New)
-	res.Changed = len(res.New) > 0 || len(res.Resolved) > 0 || string(out) != string(existing)
+	res.Changed = len(res.New) > 0 || string(out) != string(existing)
 	return out, res, nil
 }
 
@@ -229,10 +186,6 @@ func Verify(existing, out []byte, res Result) error {
 			return fmt.Errorf("task ID %q appears %d times", id, len(got))
 		}
 	}
-	resolved := make(map[string]bool, len(res.Resolved))
-	for _, id := range res.Resolved {
-		resolved[id] = true
-	}
 	for _, b := range before {
 		got, ok := byID[b.ID]
 		if !ok {
@@ -242,17 +195,8 @@ func Verify(existing, out []byte, res Result) error {
 		if a.Fingerprint != b.Fingerprint {
 			return fmt.Errorf("block %q lost its marker line", b.ID)
 		}
-		oldRaw := blockText(existing, b.rawStart, b.rawEnd)
-		newRaw := blockText(out, a.rawStart, a.rawEnd)
-		if oldRaw == newRaw {
-			continue
-		}
-		if !resolved[b.ID] {
-			return fmt.Errorf("block %q changed but was not resolved", b.ID)
-		}
-		if strip(oldRaw, b.verdictStart, b.verdictEnd, b.rawStart) !=
-			strip(newRaw, a.verdictStart, a.verdictEnd, a.rawStart) {
-			return fmt.Errorf("block %q changed outside its verdict line", b.ID)
+		if blockText(existing, b.rawStart, b.rawEnd) != blockText(out, a.rawStart, a.rawEnd) {
+			return fmt.Errorf("block %q changed; the register is append-only", b.ID)
 		}
 	}
 	for _, id := range res.NewIDs {
@@ -268,15 +212,6 @@ func Verify(existing, out []byte, res Result) error {
 // above it.
 func blockText(src []byte, start, end int) string {
 	return strings.TrimRight(string(src[start:end]), " \t\r\n")
-}
-
-// strip removes the verdict line from a block's raw text, so two versions of a
-// resolved block can be compared on everything else.
-func strip(raw string, vStart, vEnd, rawStart int) string {
-	if vStart < 0 || vEnd-rawStart > len(raw) {
-		return raw
-	}
-	return raw[:vStart-rawStart] + raw[vEnd-rawStart:]
 }
 
 // renderBlock writes the lines scan owns and leaves the judgement empty.

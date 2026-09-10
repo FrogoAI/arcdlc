@@ -7,7 +7,8 @@ argument-hint: "<slug> [TODO|FIXME|HACK|XXX|BUG]"
 # ArcDLC Assist (/arcdlc:assist)
 
 Collect the markers the team left in the code, judge each one with the engineer, and feed the real
-work into the executable plan so `/arcdlc:execute` closes it and deletes the comment.
+work into the executable plan. The sweep moves each marker out of the code and into the register, so
+the comment is recorded once and the code stops carrying it.
 
 ## Talk simple, write like a human
 
@@ -55,9 +56,17 @@ Prefer `arctool`, which does the sweep for free and keeps you out of the files:
 
 - Probe once with `command -v arctool` (or install it from the arcdlc repo root: `make install`).
 - Found: `arctool scan --marker <MARKER> --aic <slug>`. It writes `docs/aics/<slug>/comments.md`,
-  one block per marker, and prints a summary: how many markers it found, which blocks are new, which
-  it resolved. Add `--json` when you want the new findings as data instead of prose, `--dry-run` to
-  look before it writes, and `--path <dir>` to sweep one subtree.
+  one block per marker, **and deletes each marker comment from the code**, so the register becomes the
+  one place that marker text lives. It prints a summary: markers found, blocks appended, comments
+  removed per file, and any marker it refused to touch. Add `--json` for the findings as data,
+  `--path <dir>` to sweep one subtree, and `--dry-run` to look first: a dry run writes nothing and
+  edits nothing.
+- The sweep changes the working tree. Say so in your report and point the engineer at `git diff`. Run
+  `--dry-run` first when the engineer has not seen the list yet, or when the tree already has
+  uncommitted changes.
+- A marker inside a multi-line block comment is left in the code and listed as skipped, because
+  deleting one line of such a comment can leave a dangling opener. Its block is still in the register.
+  Delete the comment yourself when you finish the task it produced.
 - Exit `3` means no marker in the tree and nothing to resolve. Report that and stop.
 - Exit `1` means the existing register broke its own format (a block with no `- Marker:` line). Fix
   that block by hand, then scan again.
@@ -67,10 +76,10 @@ Prefer `arctool`, which does the sweep for free and keeps you out of the files:
   `dist`, `bin`, `docs`, and every document (`.md`, `.txt`, `.rst`). Then write the register by hand
   in the block shape below.
 
-**What `arctool scan` owns, and what you must not touch:** the task ID, the `- Marker:` line (the
-finding's identity, file plus marker text), and the flip to `- Verdict: RESOLVED (<date>).` once the
-marker is gone from the code. Never edit an ID or a `- Marker:` line: the next scan matches on them,
-and a changed one is re-registered as a new finding.
+**What `arctool scan` owns, and what you must not touch:** the task ID and the `- Marker:` line (the
+finding's identity, file plus marker text). Never edit either: the next scan matches on them, and a
+changed one is re-registered as a new finding. The register is append-only, so a block is never
+rewritten or removed, only filled in.
 
 ## Step 2 — Judge every finding
 
@@ -80,8 +89,10 @@ Read the register (or `arctool scan --json` for the list alone). Every block arr
 - `ACTIONABLE`: the comment names what changes and where, so you can write `WHAT`, `HOW` and
   `WHERE` without asking anybody. This is the only verdict that becomes a task.
 - `UNCLEAR`: the comment names a wish, not work ("TODO maybe rethink this"). Goes to Step 3.
-- `STALE`: the code already does what the comment asks. No task; the comment still has to go.
-- `DEFERRED`: real work the engineer decided not to plan now. Write the reason in `WHY`.
+- `STALE`: the code already does what the comment asks. No task, and nothing left to do: the sweep
+  already took the comment out.
+- `DEFERRED`: real work the engineer decided not to plan now. Write the reason in `WHY`. The register
+  is the only record of it now, so the reason has to be readable a year later.
 
 Rewrite each heading title into an instruction: an imperative verb plus its object, with the real
 component named (`Move the index rebuild into its own package`), never the marker text as it stands.
@@ -118,7 +129,7 @@ Fill the keys `arctool scan` left empty, writing for a **less capable executor**
 - WHY: <What the marker costs while it stands, one line.>
 - Acceptance:
   - GIVEN <precondition> WHEN <the runnable check: a named test, a command> THEN <observable result>.
-  - GIVEN the repository WHEN `grep -rn "<MARKER>" <file>` runs THEN the marker at that place is gone.
+  - GIVEN <precondition> WHEN <another check> THEN <observable result>.
 ```
 
 Rules that keep the register usable:
@@ -127,16 +138,15 @@ Rules that keep the register usable:
   reads any `name: targets` line in `WHERE` as a layer, so `internal.go:3` would arrive as a layer
   called `internal.go`. `arctool scan` writes `internal.go (marker at line 3)` for that reason.
 
-- The last acceptance criterion of every `ACTIONABLE` finding is the marker's death. The task that
-  does the work deletes the comment, so the next sweep cannot plan it twice.
+- Acceptance criteria are about the work, never about the comment: the sweep already removed it.
 - Prefer a runnable check (a named test, a lint rule, a command) over "look and see". This is also
   what lets the mirrored task pass `arctool validate --strict`, which requires an `Acceptance`
   section.
 - Number blocks sequentially per marker, continuing from what is there: `TODO-CMT-01`,
   `FIXME-CMT-02`. Never renumber, never delete a block, never reuse an ID. `arctool scan` does this
   for you.
-- A finding whose marker is gone stays in the register with `- Verdict: RESOLVED (<date>).` History
-  is the point of a register.
+- Never delete a block, not even for a finding you judged `STALE`. The comment is gone from the code,
+  so the register is the only history left.
 
 ## Step 5 — Mirror the register into the plan
 
@@ -155,14 +165,13 @@ every `ACTIONABLE` finding:
 - Order matters: the runner works top to bottom, so a task may only depend on tasks above it. When
   two markers touch the same file, put the one the other needs first (`arctool order` fixes an
   inversion later).
-- When at least one finding is `STALE`, add one housekeeping task that deletes those marker comments
-  and nothing else, with its own acceptance criterion that the markers are gone.
 - Validate before handing off. Prefer `arctool validate --strict --aic <slug>` and fix every finding;
   exit `0` means clean. If `arctool` is unavailable, say so once and hand-check unique IDs, present
   and uppercase `Status`, and the required keys per the format guide.
 
 ## Step 6 — Report
 
-Say it in four numbers: markers found, findings per verdict, tasks added to the plan, findings
-resolved since the last sweep. Name every marker you grilled and what the engineer decided. Then name
-the next step: `/arcdlc:execute <slug>` implements the queue and deletes the comments as it goes.
+Say it in four numbers: markers found, findings per verdict, tasks added to the plan, comments removed
+from the code (and from how many files). Name every marker you grilled and what the engineer decided,
+and every marker the sweep left in place. Tell the engineer to review the code change with `git diff`.
+Then name the next step: `/arcdlc:execute <slug>` implements the queue.

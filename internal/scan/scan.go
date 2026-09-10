@@ -25,6 +25,21 @@ type Finding struct {
 	Marker string `json:"marker"` // the marker word, e.g. "TODO"
 	Text   string `json:"text"`   // the comment from the marker on, continuation lines joined
 	Code   string `json:"code"`   // first code line under the comment, "" when there is none
+
+	// strip is how Strip removes this comment from its file: which whole lines to
+	// delete, or which span of one line to cut. It is derived by the sweep, which
+	// is the only place that knows the comment's exact shape.
+	strip stripPlan
+}
+
+// stripPlan records the edit that deletes one marker comment and nothing else.
+// Line numbers are 1-based and inclusive.
+type stripPlan struct {
+	ok               bool
+	reason           string // why the comment must stay, when ok is false
+	fromLine, toLine int    // whole lines to delete; 0 when there are none
+	cutLine          int    // line to cut instead of delete (a trailing comment); 0 when none
+	cutFrom, cutTo   int    // byte range to cut out of that line
 }
 
 // Opts configures a sweep.
@@ -179,7 +194,7 @@ func scanFile(rel string, b []byte, markers []string, ops []string) []Finding {
 	lines := strings.Split(strings.ReplaceAll(string(b), "\r\n", "\n"), "\n")
 	var out []Finding
 	for i := 0; i < len(lines); i++ {
-		marker, rest, ok := markerOnLine(lines[i], markers, ops)
+		marker, rest, opener, at, ok := markerHit(lines[i], markers, ops)
 		if !ok {
 			continue
 		}
@@ -196,26 +211,80 @@ func scanFile(rel string, b []byte, markers []string, ops []string) []Finding {
 				text += " " + cont
 			}
 		}
+		plan := planStrip(lines, i, j, opener, at)
+		// A comment that trails code sits on the line it is about; a standalone
+		// comment is about the first code line under it.
+		code := codeUnder(lines, j, ops)
+		if plan.cutLine == i+1 {
+			code = cutSpan(lines[i], plan.cutFrom, plan.cutTo)
+		}
 		out = append(out, Finding{
 			File:   rel,
 			Line:   i + 1,
 			Marker: marker,
 			Text:   Normalize(text, maxTextLen),
-			Code:   codeUnder(lines, j, ops),
+			Code:   Normalize(code, maxCodeLen),
+			strip:  plan,
 		})
 		i = j - 1
 	}
 	return out
 }
 
+// planStrip works out how to delete one marker comment without touching a byte
+// of code. lines[i] holds the marker, lines[i:j] is the comment run, opener is
+// the comment start and at its column.
+//
+// Two shapes are removable, and nothing else is:
+//   - a standalone comment line (plus its continuation lines): the lines go.
+//   - a comment trailing code on one line: the comment span is cut, the code stays.
+//
+// A marker inside a multi-line block comment is left alone, because deleting one
+// of its lines can leave a dangling opener or an empty comment.
+func planStrip(lines []string, i, j int, opener string, at int) stripPlan {
+	line := lines[i]
+	standalone := strings.TrimSpace(line[:at]) == ""
+
+	if opener == "*" {
+		return stripPlan{reason: "inside a multi-line block comment"}
+	}
+	end := len(line) // a line comment runs to the end of the line
+	if closer, isBlock := blockClosers[opener]; isBlock {
+		k := strings.Index(line[at+len(opener):], closer)
+		if k < 0 {
+			return stripPlan{reason: "opens a block comment that does not close on the same line"}
+		}
+		end = at + len(opener) + k + len(closer)
+	}
+
+	if standalone && end >= len(strings.TrimRight(line, " \t")) {
+		return stripPlan{ok: true, fromLine: i + 1, toLine: j}
+	}
+	p := stripPlan{ok: true, cutLine: i + 1, cutFrom: at, cutTo: end}
+	if j > i+1 { // continuation lines below the code line are whole-line deletes
+		p.fromLine, p.toLine = i+2, j
+	}
+	return p
+}
+
+// blockClosers maps a block-comment opener to the token that ends it.
+var blockClosers = map[string]string{"/*": "*/", "<!--": "-->"}
+
 // markerOnLine reports the marker that opens the comment on this line, and
 // returns the comment text from the marker on. The marker must be the comment's
 // first word: a sentence that merely mentions TODO is prose about markers, not a
 // marker.
 func markerOnLine(line string, markers []string, ops []string) (marker, rest string, ok bool) {
-	body, found := commentBody(line, ops)
+	m, text, _, _, found := markerHit(line, markers, ops)
+	return m, text, found && m != ""
+}
+
+// markerHit is markerOnLine plus the comment opener and its column, which the
+// strip plan needs.
+func markerHit(line string, markers []string, ops []string) (marker, rest, opener string, at int, ok bool) {
+	body, opener, at, found := commentBody(line, ops)
 	if !found {
-		return "", "", false
+		return "", "", "", -1, false
 	}
 	body = trimDecoration(body)
 	for _, m := range markers {
@@ -226,9 +295,9 @@ func markerOnLine(line string, markers []string, ops []string) (marker, rest str
 		if after != "" && isWordByte(after[0]) {
 			continue // TODOLIST is a name, not a marker
 		}
-		return m, strings.TrimSpace(body), true
+		return m, strings.TrimSpace(body), opener, at, true
 	}
-	return "", "", false
+	return "", "", "", -1, false
 }
 
 // trimDecoration removes the padding a doc comment puts between the opener and
@@ -248,7 +317,7 @@ func continuationOnLine(line string, markers []string, ops []string) (string, bo
 	if !startsWithOpener(trimmed, ops) {
 		return "", false
 	}
-	body, _ := commentBody(line, ops)
+	body, _, _, _ := commentBody(line, ops)
 	body = strings.TrimSpace(body)
 	if body == "" || body == "/" { // an empty comment or a closing */ ends the run
 		return "", true
@@ -259,8 +328,9 @@ func continuationOnLine(line string, markers []string, ops []string) (string, bo
 	return body, true
 }
 
-// commentBody returns the text after the first comment opener on the line.
-func commentBody(line string, ops []string) (string, bool) {
+// commentBody returns the text after the first comment opener on the line, plus
+// the opener itself and where it starts.
+func commentBody(line string, ops []string) (body, opener string, at int, ok bool) {
 	at, width := -1, 0
 	for _, op := range ops {
 		i := strings.Index(line, op)
@@ -280,9 +350,9 @@ func commentBody(line string, ops []string) (string, bool) {
 		}
 	}
 	if at < 0 {
-		return "", false
+		return "", "", -1, false
 	}
-	return strings.TrimLeft(line[at+width:], " \t"), true
+	return strings.TrimLeft(line[at+width:], " \t"), line[at : at+width], at, true
 }
 
 // insideString reports whether position at sits inside a string literal that

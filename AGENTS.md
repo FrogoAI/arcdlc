@@ -82,13 +82,15 @@ checks. Do not merge with a red pipeline.
 - **Status mutations stay byte-preserving and atomic.** `take`/`done`/`block`/`todo` rewrite only
   the one `- Status:` line via temp-file + rename; `archive` writes the archive before compacting
   the plan; `order` permutes whole blocks, re-parses its own output before writing, and writes
-  nothing on a failed check. `scan` only appends new blocks to `comments.md` and rewrites one
-  `- Verdict:` line (never any other line, never `plan.md`), re-parses its own output before writing,
-  and writes nothing on a failed check. Preserve these invariants.
-- **The comment register has two owners.** `arctool scan` owns each block's task ID, its `- Marker:`
-  line (the finding's identity: file plus marker text) and the flip to `- Verdict: RESOLVED (<date>)`;
-  `/arcdlc:assist` owns the title and every judgement key (`WHAT`, `HOW`, `WHY`, `Acceptance`, the
-  verdict). Neither side writes the other's lines. See
+  nothing on a failed check. `scan` is append-only on `comments.md` (a block is never
+  rewritten or removed) and is the one command that edits source files: it deletes the marker comment
+  lines it just registered, nothing else, never `plan.md`. It re-parses the register and re-checks
+  every source edit before writing, and writes nothing on a failed check. Preserve these invariants.
+- **The comment register has two owners.** `arctool scan` owns each block's task ID and its
+  `- Marker:` line (the finding's identity: file plus marker text); `/arcdlc:assist` owns the title and
+  every judgement key (`WHAT`, `HOW`, `WHY`, `Acceptance`, the verdict). Neither side writes the
+  other's lines. The register is the only copy of a marker's text once the sweep has removed the
+  comment, so a block is never deleted. See
   [ADR-0015](docs/adr/0015-comment-register-is-scanned-by-arctool-and-judged-by-the-skill.md).
 - **Initiatives are folders; selection is mandatory and explicit.** Each initiative lives in
   `docs/aics/<slug>/` (holding the architecture doc, `plan.md`, `gap.md`, `comments.md`,

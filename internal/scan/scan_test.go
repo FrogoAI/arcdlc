@@ -193,3 +193,20 @@ func TestSweepReadsDocCommentDecoration(t *testing.T) {
 		t.Fatalf("found %d, want 3: %+v", len(found), found)
 	}
 }
+
+func TestSweepRecordsTheCodeATrailingMarkerSitsOn(t *testing.T) {
+	dir := tree(t, map[string]string{
+		"a.go": "package a\n\nfunc retry() {} // TODO add a backoff\n\nfunc keep() {}\n",
+		"b.c":  "int a = 1 /* TODO widen this */ + 2;\n",
+	})
+	found := sweep(t, dir, "TODO")
+	if len(found) != 2 {
+		t.Fatalf("found %d, want 2", len(found))
+	}
+	if found[0].Code != "func retry() {}" {
+		t.Errorf("code = %q, want the line the comment trails", found[0].Code)
+	}
+	if found[1].Code != "int a = 1 + 2;" {
+		t.Errorf("code = %q, want the line without its comment", found[1].Code)
+	}
+}

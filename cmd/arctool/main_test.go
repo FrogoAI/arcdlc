@@ -550,46 +550,74 @@ func TestCmdScanNoMarkerIsNotFound(t *testing.T) {
 	}
 }
 
-func TestCmdScanTwiceIsByteIdentical(t *testing.T) {
+func TestCmdScanSecondRunFindsNothingAndKeepsTheRegister(t *testing.T) {
 	root, planPath, register := scanTree(t, twoMarkers)
-	if code, _, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register, "--marker", "TODO,FIXME"); code != 0 {
+	if code, _, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register,
+		"--marker", "TODO,FIXME"); code != 0 {
 		t.Fatalf("first run exit=%d (stderr: %s)", code, stderr)
 	}
 	first := readFile(t, register)
-	code, stdout, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register, "--marker", "TODO,FIXME")
-	if code != 0 {
-		t.Fatalf("second run exit=%d (stderr: %s)", code, stderr)
+	if strings.Count(first, "### ") != 2 {
+		t.Fatalf("register does not hold both findings:\n%s", first)
+	}
+	// Both comments are gone from the code now, so there is nothing left to sweep
+	// and the register must not move a byte.
+	code, _, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register,
+		"--marker", "TODO,FIXME")
+	if code != 3 {
+		t.Fatalf("second run exit=%d, want 3 (stderr: %s)", code, stderr)
 	}
 	if got := readFile(t, register); got != first {
-		t.Fatalf("second run rewrote the register:\n%s", got)
-	}
-	if !strings.Contains(stdout, "already current") {
-		t.Errorf("stdout does not say the register is current:\n%s", stdout)
+		t.Fatalf("the second run rewrote the register:\n%s", got)
 	}
 }
 
-func TestCmdScanResolvesAMarkerThatIsGone(t *testing.T) {
+func TestCmdScanRemovesTheMarkerFromTheCode(t *testing.T) {
 	root, planPath, register := scanTree(t, twoMarkers)
-	if code, _, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register); code != 0 {
-		t.Fatalf("first run exit=%d (stderr: %s)", code, stderr)
-	}
-	// The task that closed the finding deleted its marker.
-	if err := os.WriteFile(filepath.Join(root, "a.go"), []byte("package a\n\nfunc a() {}\n"), 0o644); err != nil {
-		t.Fatal(err)
-	}
 	code, stdout, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register)
 	if code != 0 {
 		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
 	}
-	if !strings.Contains(stdout, "TODO-CMT-01  resolved") {
-		t.Errorf("stdout does not report the resolution:\n%s", stdout)
+	if !strings.Contains(stdout, "removed 1 comment(s) from 1 file(s)") {
+		t.Errorf("stdout does not report the removal:\n%s", stdout)
 	}
-	got := readFile(t, register)
-	if !strings.Contains(got, "- Verdict: RESOLVED (") {
-		t.Errorf("verdict was not flipped:\n%s", got)
+	if !strings.Contains(stdout, "review it with git diff") {
+		t.Errorf("stdout does not point at the code change:\n%s", stdout)
 	}
-	if !strings.Contains(got, "- Marker: `a.go:3` `TODO split the store`") {
-		t.Errorf("the resolved block lost its evidence:\n%s", got)
+	got := readFile(t, filepath.Join(root, "a.go"))
+	if strings.Contains(got, "TODO") {
+		t.Fatalf("the marker is still in the code:\n%s", got)
+	}
+	for _, want := range []string{"package a", "func a() {}", "// FIXME retry never backs off", "func b() {}"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("the strip removed more than the marker comment, %q is gone:\n%s", want, got)
+		}
+	}
+	if !strings.Contains(readFile(t, register), "TODO split the store") {
+		t.Error("the register does not hold the removed marker text")
+	}
+	// A second run has nothing left to sweep.
+	code, stdout, _ = runScan(t, "--path", root, "--plan", planPath, "--comments", register)
+	if code != 3 {
+		t.Fatalf("second run exit=%d, want 3: %s", code, stdout)
+	}
+}
+
+func TestCmdScanDryRunLeavesTheCodeAlone(t *testing.T) {
+	root, planPath, register := scanTree(t, twoMarkers)
+	before := readFile(t, filepath.Join(root, "a.go"))
+	code, stdout, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register, "--dry-run")
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
+	}
+	if !strings.Contains(stdout, "would remove 1 comment(s)") {
+		t.Errorf("stdout does not say what it would remove:\n%s", stdout)
+	}
+	if readFile(t, filepath.Join(root, "a.go")) != before {
+		t.Fatal("a dry run edited the code")
+	}
+	if _, err := os.Stat(register); !os.IsNotExist(err) {
+		t.Fatal("a dry run wrote the register")
 	}
 }
 
@@ -609,8 +637,11 @@ func TestCmdScanJSONShape(t *testing.T) {
 	if got.New[0].ID != "TODO-CMT-01" || got.New[0].Line != 3 || got.New[0].Code != "func a() {}" {
 		t.Fatalf("finding = %+v", got.New[0])
 	}
-	if got.Resolved == nil {
-		t.Error("resolved should be an empty list, not null")
+	if len(got.Edited) != 1 || got.Edited[0].Removed != 1 {
+		t.Fatalf("edited = %+v", got.Edited)
+	}
+	if got.Skipped == nil {
+		t.Error("skipped should be an empty list, not null")
 	}
 }
 

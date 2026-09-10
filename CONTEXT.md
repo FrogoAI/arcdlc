@@ -22,9 +22,10 @@ skills, `arctool`, ADRs, and architecture documents.
 - **Pipeline skills** — `aic`, `plan`, `execute`, `examinate`, `assist`, `archive` (plus the
   lifecycle skills `remove` and `policy`, and `plan-human` beside the chain).
 - **Comment register** — `docs/aics/<slug>/comments.md`: one block per code comment marker (`TODO`,
-  `FIXME` and friends) found in the repository. `arctool scan` writes the evidence, `/arcdlc:assist`
+  `FIXME` and friends) found in the repository. `arctool scan` writes the evidence and deletes the
+  comment from the code, so the register becomes the only copy of that marker text. `/arcdlc:assist`
   writes the judgement, and every block whose verdict is `ACTIONABLE` is mirrored into `plan.md` as a
-  task. See [ADR-0015](docs/adr/0015-comment-register-is-scanned-by-arctool-and-judged-by-the-skill.md).
+  task. The file is append-only: blocks are filled in, never rewritten or removed. See [ADR-0015](docs/adr/0015-comment-register-is-scanned-by-arctool-and-judged-by-the-skill.md).
 - **Marker** — a word that opens a code comment to mark unfinished work: `TODO` by default, also
   `FIXME`, `HACK`, `XXX`, `BUG`. A word that merely appears inside a comment is not a marker.
 - **Plan contract** — the task-block format defined in `skills/plan/references/plan-format.md`,

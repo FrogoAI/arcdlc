@@ -48,8 +48,9 @@ usage:
                  (--strict implies --require-acceptance: every task needs an Acceptance section)
   arctool scan   [--marker LIST] [--path DIR] [--exclude LIST] [--comments PATH]
                  [--json] [--dry-run] [--aic SLUG | --plan PATH]
-                 sweep source comments for markers (default TODO) into comments.md
-                 (exit 3 when no marker is found and nothing needs resolving)
+                 sweep source comments for markers (default TODO) into comments.md,
+                 then delete those comment lines from the code (--dry-run does neither)
+                 (exit 3 when no marker is found)
   arctool archive  [--dry-run] [--aic SLUG | --plan PATH]    move DONE blocks to plan-archive.md
   arctool sync     [--check]                                 sync the initiative registry in AGENTS.md/README.md
   arctool version
@@ -809,12 +810,25 @@ func cmdScan(args []string) int {
 		return 1
 	}
 
+	// Work out the code edits before anything is written: the register holds the
+	// marker text, so the comment can go. Strip only computes and verifies here.
+	edits, skipped, err := scan.Strip(*root, found)
+	if err != nil {
+		var pathErr *os.PathError
+		if errors.As(err, &pathErr) {
+			fmt.Fprintf(os.Stderr, "arctool: scan: %v\n", err)
+			return 4
+		}
+		fmt.Fprintf(os.Stderr, "arctool: scan: self-validation failed: %v; nothing written\n", err)
+		return 5
+	}
+
 	if *asJSON {
-		if code := emitScanJSON(cp, markers, found, res); code != 0 {
+		if code := emitScanJSON(cp, markers, found, res, edits, skipped); code != 0 {
 			return code
 		}
 	}
-	if len(found) == 0 && len(res.New) == 0 && len(res.Resolved) == 0 {
+	if len(found) == 0 {
 		if !*asJSON {
 			fmt.Fprintf(os.Stderr, "arctool: no %s marker found under %s\n", strings.Join(markers, "/"), *root)
 		}
@@ -825,13 +839,7 @@ func cmdScan(args []string) int {
 			if newFolder != "" {
 				fmt.Printf("would create %s/ (new initiative folder)\n", newFolder)
 			}
-			reportScan(cp, *root, markers, found, res, true)
-		}
-		return 0
-	}
-	if !res.Changed {
-		if !*asJSON {
-			reportScan(cp, *root, markers, found, res, false)
+			reportScan(cp, *root, markers, found, res, edits, skipped, true)
 		}
 		return 0
 	}
@@ -839,15 +847,25 @@ func cmdScan(args []string) int {
 		fmt.Fprintf(os.Stderr, "arctool: scan: self-validation failed: %v; nothing written\n", err)
 		return 5
 	}
-	if err := atomicWrite(cp, out); err != nil {
-		fmt.Fprintf(os.Stderr, "arctool: write %s: %v\n", cp, err)
-		return 4
+	// The register first: it must never be the missing half of a removed comment.
+	if res.Changed {
+		if err := atomicWrite(cp, out); err != nil {
+			fmt.Fprintf(os.Stderr, "arctool: write %s: %v\n", cp, err)
+			return 4
+		}
+	}
+	for _, e := range edits {
+		full := filepath.Join(*root, filepath.FromSlash(e.File))
+		if err := atomicWrite(full, e.Bytes); err != nil {
+			fmt.Fprintf(os.Stderr, "arctool: write %s: %v\n", e.File, err)
+			return 4
+		}
 	}
 	if !*asJSON {
 		if newFolder != "" {
 			fmt.Printf("created %s/ (new initiative folder)\n", newFolder)
 		}
-		reportScan(cp, *root, markers, found, res, false)
+		reportScan(cp, *root, markers, found, res, edits, skipped, false)
 	}
 	return 0
 }
@@ -864,10 +882,12 @@ type scanJSON struct {
 	Register string        `json:"register"`
 	Markers  []string      `json:"markers"`
 	Found    int           `json:"found"`
+	Known    int           `json:"known"`
 	Total    int           `json:"total"`
 	Changed  bool          `json:"changed"`
-	Resolved []string      `json:"resolved"`
 	New      []newFindJSON `json:"new"`
+	Edited   []scan.Edit   `json:"edited"`
+	Skipped  []scan.Skip   `json:"skipped"`
 }
 
 type newFindJSON struct {
@@ -875,15 +895,18 @@ type newFindJSON struct {
 	scan.Finding
 }
 
-func emitScanJSON(register string, markers []string, found []scan.Finding, res scan.Result) int {
+func emitScanJSON(register string, markers []string, found []scan.Finding, res scan.Result,
+	edits []scan.Edit, skipped []scan.Skip) int {
 	payload := scanJSON{
 		Register: filepath.ToSlash(register),
 		Markers:  markers,
 		Found:    len(found),
+		Known:    res.Known,
 		Total:    res.Total,
 		Changed:  res.Changed,
-		Resolved: append([]string{}, res.Resolved...),
 		New:      make([]newFindJSON, 0, len(res.New)),
+		Edited:   append([]scan.Edit{}, edits...),
+		Skipped:  append([]scan.Skip{}, skipped...),
 	}
 	for i, f := range res.New {
 		payload.New = append(payload.New, newFindJSON{ID: res.NewIDs[i], Finding: f})
@@ -898,7 +921,8 @@ func emitScanJSON(register string, markers []string, found []scan.Finding, res s
 }
 
 // reportScan prints the summary a reader (or an agent) acts on.
-func reportScan(register, root string, markers []string, found []scan.Finding, res scan.Result, dryRun bool) {
+func reportScan(register, root string, markers []string, found []scan.Finding, res scan.Result,
+	edits []scan.Edit, skipped []scan.Skip, dryRun bool) {
 	verb := "wrote"
 	switch {
 	case dryRun:
@@ -907,13 +931,31 @@ func reportScan(register, root string, markers []string, found []scan.Finding, r
 		verb = "already current"
 	}
 	fmt.Printf("scanned %s for %s: %d marker(s) found\n", root, strings.Join(markers, "/"), len(found))
-	fmt.Printf("%s %s: %d new, %d resolved, %d unchanged, %d block(s) total\n",
-		verb, filepath.ToSlash(register), len(res.New), len(res.Resolved), res.Kept, res.Total)
+	fmt.Printf("%s %s: %d new, %d already registered, %d block(s) total\n",
+		verb, filepath.ToSlash(register), len(res.New), res.Known, res.Total)
 	for i, f := range res.New {
 		fmt.Printf("  %s  %s:%d  %s\n", res.NewIDs[i], f.File, f.Line, clip(f.Text, 100))
 	}
-	for _, id := range res.Resolved {
-		fmt.Printf("  %s  resolved: the marker is gone from the code\n", id)
+
+	removed := 0
+	for _, e := range edits {
+		removed += e.Removed
+	}
+	if removed > 0 {
+		verb = "removed"
+		if dryRun {
+			verb = "would remove"
+		}
+		fmt.Printf("%s %d comment(s) from %d file(s):\n", verb, removed, len(edits))
+		for _, e := range edits {
+			fmt.Printf("  %s (%d)\n", e.File, e.Removed)
+		}
+	}
+	for _, sk := range skipped {
+		fmt.Printf("  left %s:%d in place: %s\n", sk.File, sk.Line, sk.Reason)
+	}
+	if removed > 0 && !dryRun {
+		fmt.Println("the code changed: review it with git diff")
 	}
 }
 
