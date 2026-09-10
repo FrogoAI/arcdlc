@@ -118,10 +118,10 @@ A register line that carries a judgement never reaches the plan: `- Accepted:` i
 `- Verdict:` in `comments.md`.
 
 A `comments.md` block carries one `- Marker:` line per marker it holds, because markers that share a group tag
-(`// TODO:G1 ...`) are one block and one task. Such a block is named after its tag, so its task ID reads
-`TODO-CMT-G1` rather than `TODO-CMT-01`. When a later sweep adds a marker to a block whose task is already `TAKEN`,
-`DONE` or `BLOCKED`, the new marker gets a follow-up task, `TODO-CMT-G1-02`, referencing the same block; a task still
-`TODO` is extended in place instead.
+(`// ARCDLC:T1 ...`) are one block and one task. Such a block is named after its tag, so its task ID reads
+`ARCDLC-CMT-T1` rather than `ARCDLC-CMT-01`. When a later sweep adds a marker to a block whose task is already
+`TAKEN`, `DONE` or `BLOCKED`, the new marker gets a follow-up task, `ARCDLC-CMT-T1-02`, referencing the same block; a
+task still `TODO` is extended in place instead.
 
 The `plan.md` copy must preserve:
 

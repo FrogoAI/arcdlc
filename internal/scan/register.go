@@ -62,7 +62,7 @@ var (
 
 const registerHeader = "# Comment register\n" + `
 This file lists every code comment marker ` + "`arctool scan`" + ` found in this repository.
-One block is one marker, or one group of markers that share a tag: ` + "`// TODO:G1 ...`" + ` in
+One block is one marker, or one group of markers that share a tag: ` + "`// ARCDLC:T1 ...`" + ` in
 three files is one block, because it is one change.
 
 ` + "`arctool scan`" + ` owns the task ID, the ` + "`- Marker:`" + ` lines that are the finding's
@@ -70,10 +70,11 @@ identity, the ` + "`- WHERE:`" + ` list, and a first draft of ` + "`- WHAT:`" + 
 written by ` + "`/arcdlc:assist`" + ` after it grills the engineer, so do not expect the empty keys
 below to stay empty. The verdict is the skill's alone: the sweep never writes one.
 
-The sweep also deletes each marker comment from the code once its block is here, so this file is the
-only place the marker text still lives. A block is never removed, and a sweep never rewrites the
-judgement in one. A marker whose group tag is already registered is appended to that block: another
-` + "`- Marker:`" + ` line, its words on the end of WHAT, its file on the end of WHERE.
+The sweep leaves the code alone. When the engineer asks for it (` + "`arctool scan --strip`" + `, which
+` + "`/arcdlc:assist`" + ` only runs after a yes), each registered marker comment is deleted from the code,
+and this file becomes the only place that marker text lives. A block is never removed, and a sweep never
+rewrites the judgement in one. A marker whose group tag is already registered is appended to that block:
+another ` + "`- Marker:`" + ` line, its words on the end of WHAT, its file on the end of WHERE.
 
 A finding whose verdict is ACTIONABLE is mirrored into ` + "`plan.md`" + ` as a task, without its
 ` + "`- Marker:`" + ` and ` + "`- Verdict:`" + ` lines. The mirroring rules live in the plan format guide,

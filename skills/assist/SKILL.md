@@ -1,7 +1,7 @@
 ---
 name: arcdlc-assist
-description: Turn the code comment markers a team already wrote (TODO by default, also FIXME, HACK, XXX, BUG) into planned work. Sweeps the source with `arctool scan`, records every marker in docs/aics/<slug>/comments.md, groups the markers that share a tag (`// TODO:G1 ...`) into one record, grills the engineer about the unclear ones, then adds a TODO task to docs/aics/<slug>/plan.md for each marker that names real work. The initiative slug is the required first argument; the marker is an optional second one (e.g. /arcdlc:assist payments FIXME). Use when the user runs /arcdlc:assist, invokes arcdlc-assist, or asks to turn code TODOs into tasks.
-argument-hint: "<slug> [TODO|FIXME|HACK|XXX|BUG]"
+description: Turn code comment markers into planned work. Sweeps the source with `arctool scan` for the ARCDLC marker (`// ARCDLC ...`, or TODO, FIXME, HACK, XXX, BUG when asked), records every marker in docs/aics/<slug>/comments.md, groups the markers that share a tag (`// ARCDLC:T1 ...`) into one record, grills the engineer about the unclear ones, then adds a TODO task to docs/aics/<slug>/plan.md for each marker that names real work. Removing the comments from the code is a separate, always-asked step. The initiative slug is the required first argument; the marker is an optional second one (e.g. /arcdlc:assist payments TODO). Use when the user runs /arcdlc:assist, invokes arcdlc-assist, or asks to turn code markers or TODOs into tasks.
+argument-hint: "<slug> [ARCDLC|TODO|FIXME|HACK|XXX|BUG]"
 ---
 
 # ArcDLC Assist (/arcdlc:assist)
@@ -10,10 +10,16 @@ Collect the markers the team left in the code, judge each one with the engineer,
 work into the executable plan. The sweep moves each marker out of the code and into the register, so
 the comment is recorded once and the code stops carrying it.
 
-One change is often written down in several places. A marker can carry a group tag, `// TODO:G1 move
+The marker is `ARCDLC`, the bundle's own word: `// ARCDLC move the rebuild into internal`. It is not
+`TODO` by default on purpose, so a sweep never picks up the notes a team already had. Ask for those
+explicitly when the engineer wants them.
+
+One change is often written down in several places. A marker can carry a group tag, `// ARCDLC:T1 move
 the rebuild into internal`, and every marker with that tag becomes **one** record, however many files
-it spans: one heading, one `- Marker:` line each, one task. An untagged `// TODO` stays a record of
+it spans: one heading, one `- Marker:` line each, one task. An untagged `// ARCDLC` stays a record of
 its own.
+
+The sweep records. It does not touch the code unless the engineer says so, and asking is Step 6.
 
 ## Talk simple, write like a human
 
@@ -51,7 +57,7 @@ engineer before you sweep: `arctool scan` creates the folder itself and says so,
 would invent an initiative nobody asked for. If `docs/aics/<slug>/plan.md` does not exist yet, create it
 per `../plan/references/plan-format.md` (flat installs: `../arcdlc-plan/references/plan-format.md`).
 
-`MARKER` is the optional second argument and defaults to `TODO`. One marker per run keeps the
+`MARKER` is the optional second argument and defaults to `ARCDLC`. One marker per run keeps the
 register and the report about one kind of debt. Pass a comma-separated list only when the engineer
 asks for several at once.
 
@@ -60,36 +66,38 @@ asks for several at once.
 Prefer `arctool`, which does the sweep for free and keeps you out of the files:
 
 - Probe once with `command -v arctool` (or install it from the arcdlc repo root: `make install`).
-- Found: `arctool scan --marker <MARKER> --aic <slug>`. It writes `docs/aics/<slug>/comments.md`,
-  one block per marker or per group tag, **and deletes each marker comment from the code**, so the
-  register becomes the one place that marker text lives. It prints a summary: markers found, blocks
-  appended, blocks extended, comments removed per file, and any marker it refused to touch. Add
-  `--json` for the findings as data, `--path <dir>` to sweep one subtree, and `--dry-run` to look
-  first: a dry run writes nothing and edits nothing.
-- The sweep changes the working tree. Say so in your report and point the engineer at `git diff`. Run
-  `--dry-run` first when the engineer has not seen the list yet, or when the tree already has
-  uncommitted changes.
-- **Group tags.** `MARKER:TAG` right after the marker word, ended by a space: `// TODO:G1 move the
-  rebuild into internal`. Tags are folded to upper case, so `:g1` and `:G1` are one group, and the
-  block is named after the tag: `TODO-CMT-G1`. The tag reaches across the whole sweep, so the same tag
-  in three files is one block. `FIXME:G1` is a different group, because the marker word leads the ID.
-  A tag with no letter in it (`// TODO:01`) is read as a plain marker and reported, so it can never
-  land on an auto-numbered block. Tell the engineer to tag only markers that are genuinely one task.
+- Found: `arctool scan --marker <MARKER> --aic <slug>`. It writes `docs/aics/<slug>/comments.md`, one
+  block per marker or per group tag, and **leaves the code exactly as it is**. It prints a summary:
+  markers found, blocks appended, blocks extended, and the markers it left in the code. Add `--json`
+  for the findings as data, `--path <dir>` to sweep one subtree, and `--dry-run` to look first: a dry
+  run writes nothing.
+- **Never pass `--strip` here.** That flag is what deletes the comments, and it is only for Step 6,
+  after the engineer has said yes.
+- A marker counts only inside a comment. `// ARCDLC ...` written inside a string or a long constant is
+  text in that constant, and the sweep steps over it. When a marker you expected is missing, that is
+  usually why.
+- **Group tags.** `MARKER:TAG` right after the marker word, ended by a space: `// ARCDLC:T1 move the
+  rebuild into internal`. Tags are folded to upper case, so `:t1` and `:T1` are one group, and the
+  block is named after the tag: `ARCDLC-CMT-T1`. The tag reaches across the whole sweep, so the same
+  tag in three files is one block. `TODO:T1` is a different group, because the marker word leads the
+  ID. A tag with no letter in it (`// ARCDLC:01`) is read as a plain marker and reported, so it can
+  never land on an auto-numbered block. Tell the engineer to tag only markers that are one task.
 - **A tag the register already holds grows its block** instead of opening a second one: the sweep adds
   a `- Marker:` line, puts the new words on the end of `WHAT`, and adds the file to `WHERE`. It
   touches nothing else, so a judgement already in that block stands. The run reports it as
-  `extended TODO-CMT-G1 with 1 marker(s)`. When that happens, mirror it into the plan per Step 5.
-- Block comments are swept too. `/* TODO free the buffer` ... `*/` is one finding whose text runs to
-  the closer, and the whole comment is removed. Three shapes stay in the code and are listed as
-  skipped: a marker on a decoration line of a block another line opened (`/*` alone, then ` * TODO
-  ...`), a block that never closes, and a block whose closing `*/` shares a line with code. Each one
-  is still registered. Delete the comment yourself when you finish the task it produced.
+  `extended ARCDLC-CMT-T1 with 1 marker(s)`. When that happens, mirror it into the plan per Step 5.
+- Block comments are swept too. `/* ARCDLC free the buffer` ... `*/` is one finding whose text runs to
+  the closer, and the whole comment goes when Step 6 removes it. Three shapes can never be removed and
+  are listed as skipped then: a marker on a decoration line of a block another line opened (`/*` alone,
+  then ` * ARCDLC ...`), a block that never closes, and a block whose closing `*/` shares a line with
+  code. Each one is still registered. Delete those by hand when you finish the task they produced.
 - Exit `3` means no marker in the tree and nothing to resolve. Report that and stop.
 - Exit `1` means the existing register broke its own format (a block with no `- Marker:` line). Fix
   that block by hand, then scan again.
 - If `arctool` is unavailable, say so once and sweep by hand with the same rules: the marker must be
-  the first word of a comment (`// TODO …`, `# TODO …`), matched with word boundaries, so `TODOLIST`
-  and a sentence that merely mentions TODO are not findings; read a group tag the same way and merge
+  the first word of a comment (`// ARCDLC …`, `# ARCDLC …`), matched with word boundaries, so
+  `ARCDLCLIST` is not a finding, and neither is a marker inside a string or a constant, however much
+  the line looks like a comment; read a group tag the same way and merge
   the markers that share one; join the lines of a block comment up to its `*/`; skip `.git`, `vendor`,
   `node_modules`, `dist`, `bin`, `docs`, and every document (`.md`, `.txt`, `.rst`). Then write the
   register by hand in the block shape below.
@@ -107,9 +115,9 @@ Read the register (or `arctool scan --json` for the list alone). Every block arr
 
 - `ACTIONABLE`: the comment names what changes and where, so you can write `WHAT`, `HOW` and
   `WHERE` without asking anybody. This is the only verdict that becomes a task.
-- `UNCLEAR`: the comment names a wish, not work ("TODO maybe rethink this"). Goes to Step 3.
-- `STALE`: the code already does what the comment asks. No task, and nothing left to do: the sweep
-  already took the comment out.
+- `UNCLEAR`: the comment names a wish, not work ("ARCDLC maybe rethink this"). Goes to Step 3.
+- `STALE`: the code already does what the comment asks. No task. The comment is still in the code, so
+  it is one of the ones to remove in Step 6.
 - `DEFERRED`: real work the engineer decided not to plan now. Write the reason in `WHY`. The register
   is the only record of it now, so the reason has to be readable a year later.
 
@@ -122,7 +130,7 @@ in `HOW` under `Out of scope`, with the reason. When the members pull in differe
 was wrong: say so, grill the engineer per Step 3, and record the answer in `HOW`. Never split a block:
 the register is not rewritten, so a split would lose a marker's text.
 
-**A block the sweep extended** (the run said `extended TODO-CMT-G1 with 1 marker(s)`) carries a
+**A block the sweep extended** (the run said `extended ARCDLC-CMT-T1 with 1 marker(s)`) carries a
 judgement that no longer covers all of its markers. Judge the new markers, fold them into `WHAT`,
 `HOW` and `Acceptance`, and mirror the result per Step 5.
 
@@ -170,12 +178,12 @@ Rules that keep the register usable:
   reads any `name: targets` line in `WHERE` as a layer, so `internal.go:3` would arrive as a layer
   called `internal.go`. `arctool scan` writes `internal.go (marker at line 3)` for that reason.
 
-- Acceptance criteria are about the work, never about the comment: the sweep already removed it.
+- Acceptance criteria are about the work, never about the comment.
 - Prefer a runnable check (a named test, a lint rule, a command) over "look and see". This is also
   what lets the mirrored task pass `arctool validate --strict`, which requires an `Acceptance`
   section.
-- Number blocks sequentially per marker, continuing from what is there: `TODO-CMT-01`,
-  `FIXME-CMT-02`. A group block is named after its tag instead: `TODO-CMT-G1`. Never renumber, never
+- Number blocks sequentially per marker, continuing from what is there: `ARCDLC-CMT-01`,
+  `ARCDLC-CMT-02`. A group block is named after its tag instead: `ARCDLC-CMT-T1`. Never renumber, never
   delete a block, never reuse an ID. `arctool scan` does this for you.
 - A group block keeps every `- Marker:` line it has, and gains one whenever the sweep finds that tag
   again. Fold a new one into `WHAT`, `WHERE` and `Acceptance`; never drop it.
@@ -189,7 +197,7 @@ Per the Register Sync rules in `../plan/references/plan-format.md` (flat install
 every `ACTIONABLE` finding:
 
 - Same task ID and heading; same `WHAT`, `HOW`, `WHERE`, `WHY` and `Acceptance` content. A group
-  block's ID carries its tag, so its task is `TODO-CMT-G1`.
+  block's ID carries its tag, so its task is `ARCDLC-CMT-T1`.
 - Drop every `- Marker:` line and the `- Verdict:` line: they belong to the register, not to the runner.
 - Add runner metadata: `- References:` must include `docs/aics/<slug>/comments.md`, plus the
   architecture document or any ADR the task relies on. Close the block with `- Status: TODO.`
@@ -199,7 +207,7 @@ every `ACTIONABLE` finding:
   plan.
 - **A block the sweep extended already has a task in the plan.** Read that task's `- Status:` first.
   Still `TODO`: extend it in place, adding the new location to `WHERE` and a criterion to `Acceptance`.
-  `TAKEN`, `DONE` or `BLOCKED`: leave it alone and append a follow-up task instead, `TODO-CMT-G1-02`,
+  `TAKEN`, `DONE` or `BLOCKED`: leave it alone and append a follow-up task instead, `ARCDLC-CMT-T1-02`,
   covering the new markers only, with `- References:` pointing at the same register block. Work that
   was signed off is never reopened by an edit.
 - Order matters: the runner works top to bottom, so a task may only depend on tasks above it. When
@@ -209,11 +217,35 @@ every `ACTIONABLE` finding:
   exit `0` means clean. If `arctool` is unavailable, say so once and hand-check unique IDs, present
   and uppercase `Status`, and the required keys per the format guide.
 
-## Step 6 — Report
+## Step 6 — Ask before you touch the code (mandatory)
+
+The sweep left every comment where it was. Removing them is a separate decision, and it is the
+engineer's, not yours. Ask once, after the plan is written, so the question is about work that is
+already queued:
+
+- **One question, and wait for the answer.** "The register and the plan now hold every marker. Remove
+  those comments from the code? Recommended: yes, so the same note is not planned twice." Never remove
+  anything before the answer, and never assume it from an earlier session.
+- Say what will change before they answer: how many comments, in how many files, and that the register
+  is the only copy of the text afterwards.
+- **Yes:** run `arctool scan --marker <MARKER> --aic <slug> --strip`. It re-reads the register, sees
+  every marker is already there, and deletes only the comment lines it registered. Prefer `--dry-run`
+  first when the tree already has uncommitted changes. Then tell the engineer to review it with
+  `git diff`. Without `arctool`, delete the comment lines by hand, one file at a time, and change
+  nothing else on those lines.
+- **No, or no answer yet:** leave every comment alone and say so in the report. Nothing breaks. The
+  register already holds each marker, so the next sweep recognises them and no block is duplicated.
+- **Some, not all:** ask which, then delete those comment lines by hand. `--strip` removes every
+  marker of the sweep, so it is the wrong tool for a partial answer.
+- A marker `--strip` cannot remove safely is reported and stays in the code (a marker inside a block
+  comment another line opened, a block that never closes, a closing `*/` that shares a line with
+  code). Name those in the report and remove them by hand when the task is done.
+
+## Step 7 — Report
 
 Say it in five numbers: markers found, blocks written, blocks extended, findings per verdict, tasks
 added to the plan, and comments removed from the code (and from how many files). Name each group and
 the markers it pulled together, every marker you grilled and what the engineer decided, every marker
-the sweep left in place, and every tag it refused. Tell the engineer to review the code change with
-`git diff`.
+the sweep left in place, and every tag it refused. Say whether the comments were removed, and on whose
+answer. When they were, tell the engineer to review the code change with `git diff`.
 Then name the next step: `/arcdlc:execute <slug>` implements the queue.

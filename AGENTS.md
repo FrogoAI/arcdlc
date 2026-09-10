@@ -92,9 +92,10 @@ checks. Do not merge with a red pipeline.
   nothing on a failed check. `scan` appends to `comments.md` and may grow one block, never more: a
   marker whose group tag is already registered adds a `- Marker:` line, more text on `WHAT` and more
   lines on `WHERE`, and a block is never removed, renumbered, or rewritten anywhere else. `scan` is
-  also the one command that edits source files: it deletes the marker comment lines it just
-  registered, nothing else, never `plan.md`. It re-parses the register and re-checks every source edit
-  before writing, and writes nothing on a failed check. Preserve these invariants.
+  also the one command that can edit source files, and only when asked: `--strip` deletes the marker
+  comment lines it just registered, nothing else, never `plan.md`. Without that flag the code is left
+  exactly as it was. It re-parses the register and re-checks every source edit before writing, and
+  writes nothing on a failed check. Preserve these invariants.
 - **The comment register has two owners.** `arctool scan` owns each block's task ID, its `- Marker:`
   lines (the finding's identity: file plus marker text), the `- WHERE:` list, and a first draft of
   `- WHAT:`; `/arcdlc:assist` owns the title and every judgement key (`WHAT` as rewritten, `HOW`,
@@ -103,13 +104,21 @@ checks. Do not merge with a red pipeline.
   marker's text once the sweep has removed the comment, so a block is never deleted. See
   [ADR-0015](docs/adr/0015-comment-register-is-scanned-by-arctool-and-judged-by-the-skill.md) and
   [ADR-0016](docs/adr/0016-comment-markers-group-by-tag.md).
-- **A group tag makes one block.** `// TODO:G1 ...` in three files is one record and one task, named
-  after the tag (`TODO-CMT-G1`), because it is one change written down three times. Tags are folded to
-  upper case, reach across the whole sweep, and belong to one marker word (`FIXME:G1` is another
-  group). A tag with no letter in it is not a tag: `// TODO:01` would claim an auto-numbered ID, so it
+- **A group tag makes one block.** `// ARCDLC:T1 ...` in three files is one record and one task, named
+  after the tag (`ARCDLC-CMT-T1`), because it is one change written down three times. Tags are folded to
+  upper case, reach across the whole sweep, and belong to one marker word (`TODO:T1` is another
+  group). A tag with no letter in it is not a tag: `// ARCDLC:01` would claim an auto-numbered ID, so it
   reads as a plain marker and the run says so. A block comment that closes on a later line is one
   finding and is removed whole; one whose closer shares a line with code stays in the code, because
   cutting it would take that line's indentation with it.
+- **The default marker is `ARCDLC`, and removing a comment is asked for.** `scan.DefaultMarkers` is the
+  bundle's own word, so a sweep never touches the TODO and FIXME notes a repository already had;
+  `--marker TODO` is how a team opts in. Cutting a comment out of the code needs `--strip`, and
+  `/arcdlc:assist` only passes it after the engineer answers yes (Step 6 of that skill). A marker also
+  counts only inside a comment: `internal/scan`'s line scanner follows string literals, including the
+  ones that span lines, and reports no comment when it cannot tell. Both rules exist so a sweep cannot
+  rewrite code nobody pointed it at. See
+  [ADR-0017](docs/adr/0017-a-marker-is-arcdlc-in-a-comment-and-cutting-it-is-asked-for.md).
 - **Initiatives are folders; selection is mandatory and explicit.** Each initiative lives in
   `docs/aics/<slug>/` (holding the architecture doc, `plan.md`, `gap.md`, `comments.md`,
   `plan-archive.md` — the last three are always siblings of `plan.md`). Selection is always named, never inferred:

@@ -333,3 +333,64 @@ func TestSweepDropsTheCloserOfASingleLineBlock(t *testing.T) {
 		t.Fatalf("text = %q, want %q", found[0].Text, want)
 	}
 }
+
+func TestSweepIgnoresMarkersInsideMultiLineStrings(t *testing.T) {
+	dir := tree(t, map[string]string{
+		// A Go raw string that spans lines: every line of it is text in a constant,
+		// however much it looks like code with comments in it.
+		"help.go": "package a\n\nconst usage = `arctool scan\n" +
+			"  markers sharing a tag are one block: // TODO:G1 in three files, one task\n" +
+			"  // TODO not a marker either\n" +
+			"`\n\n// TODO this one is real\nfunc a() {}\n",
+		// A Python docstring, same shape with a different delimiter.
+		"doc.py": "def f():\n    \"\"\"Docs.\n    # TODO written in a docstring\n    \"\"\"\n    return 1\n\n# TODO this one is real\n",
+		// The literal closes, so the comment after it on the same line is a comment.
+		"tail.go": "package a\n\nvar s = `raw` // TODO after a closed literal\n",
+	})
+	found := sweep(t, dir, "TODO")
+	var got []string
+	for _, f := range found {
+		got = append(got, f.File+": "+f.Text)
+	}
+	want := []string{
+		"doc.py: TODO this one is real",
+		"help.go: TODO this one is real",
+		"tail.go: TODO after a closed literal",
+	}
+	if len(got) != len(want) {
+		t.Fatalf("found %d markers, want %d: %q", len(got), len(want), got)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("finding %d = %q, want %q", i, got[i], want[i])
+		}
+	}
+}
+
+func TestSweepIgnoresAMarkerInsideACharLiteralOrString(t *testing.T) {
+	dir := tree(t, map[string]string{
+		"a.go": "package a\n\nvar q = '/'\nvar s = \"// TODO quoted\"\nvar t = `// TODO raw`\n" +
+			"var u = \"a\\\"b\" // TODO real one\n",
+	})
+	found := sweep(t, dir, "TODO")
+	if len(found) != 1 {
+		t.Fatalf("found %d markers, want 1: %+v", len(found), found)
+	}
+	if found[0].Text != "TODO real one" {
+		t.Fatalf("text = %q", found[0].Text)
+	}
+}
+
+func TestDefaultMarkerIsTheBundlesOwnWord(t *testing.T) {
+	dir := tree(t, map[string]string{
+		"a.go": "package a\n\n// TODO a note this team already had\nfunc a() {}\n\n" +
+			"// ARCDLC:T1 plan this one\nfunc b() {}\n",
+	})
+	found := sweep(t, dir) // no marker named: the default applies
+	if len(found) != 1 {
+		t.Fatalf("found %d markers, want only the ARCDLC one: %+v", len(found), found)
+	}
+	if found[0].Marker != "ARCDLC" || found[0].Group != "T1" {
+		t.Fatalf("finding = %+v, want the ARCDLC marker with tag T1", found[0])
+	}
+}

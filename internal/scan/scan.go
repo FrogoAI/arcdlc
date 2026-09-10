@@ -71,8 +71,10 @@ type Opts struct {
 	Exclude []string // directory names to skip; nil means DefaultExclude
 }
 
-// DefaultMarkers is what a sweep looks for when the caller names nothing.
-var DefaultMarkers = []string{"TODO"}
+// DefaultMarkers is what a sweep looks for when the caller names nothing. ARCDLC is
+// the bundle's own word, so a sweep never touches the TODO and FIXME notes a team
+// already had. A team that wants those swept asks for them: --marker TODO.
+var DefaultMarkers = []string{"ARCDLC"}
 
 // DefaultExclude lists directory names a sweep never enters. docs is on the
 // list because the register itself lives there: a plan task or a gap block is
@@ -214,12 +216,14 @@ func isBinary(b []byte) bool {
 // scanFile finds every marker in one file's bytes.
 func scanFile(rel string, b []byte, markers []string, ops []string) []Finding {
 	lines := strings.Split(strings.ReplaceAll(string(b), "\r\n", "\n"), "\n")
+	lcs := lexFile(lines, ops)
 	var out []Finding
 	for i := 0; i < len(lines); i++ {
-		marker, group, rest, opener, at, ok := markerHit(lines[i], markers, ops)
+		marker, group, rest, ok := markerHit(lines[i], lcs[i], markers)
 		if !ok {
 			continue
 		}
+		opener, at := lcs[i].opener, lcs[i].at
 		s := span{from: i, to: i, opener: opener, at: at}
 		text := rest
 		closer, isBlock := blockClosers[opener]
@@ -228,19 +232,19 @@ func scanFile(rel string, b []byte, markers []string, ops []string) []Finding {
 			// A block comment that opens and closes on this line: its words are the
 			// finding, its closer is not.
 			body := lines[i][at+len(opener):]
-			text, s.to = lineRun(lines, i, markers, ops, blockLine(body[:strings.Index(body, closer)]))
+			text, s.to = lineRun(lines, lcs, i, markers, blockLine(body[:strings.Index(body, closer)]))
 		case isBlock:
 			// A block comment that closes further down is one finding, from its
 			// opener to its closer, whatever the lines between look like.
 			text, s.to, s.closeAt = blockSpan(lines, i, at+len(opener), closer, rest)
 			s.unclosed = s.closeAt == 0
 		default:
-			text, s.to = lineRun(lines, i, markers, ops, rest)
+			text, s.to = lineRun(lines, lcs, i, markers, rest)
 		}
 		plan := planStrip(lines, s)
 		// A comment that trails code sits on the line it is about; a standalone
 		// comment is about the first code line under it.
-		code := codeUnder(lines, s.to+1, ops)
+		code := codeUnder(lines, lcs, s.to+1)
 		if len(plan.cuts) > 0 && plan.cuts[0].line == i+1 {
 			code = cutSpan(lines[i], plan.cuts[0].from, plan.cuts[0].to)
 		}
@@ -260,10 +264,10 @@ func scanFile(rel string, b []byte, markers []string, ops []string) []Finding {
 
 // lineRun joins the comment lines under the marker's own line. Consecutive comment
 // lines continue the same finding, so a three-line TODO is one task, not three.
-func lineRun(lines []string, from int, markers, ops []string, first string) (text string, to int) {
+func lineRun(lines []string, lcs []lineComment, from int, markers []string, first string) (text string, to int) {
 	text, to = first, from
 	for n := from + 1; n < len(lines); n++ {
-		cont, ok := continuationOnLine(lines[n], markers, ops)
+		cont, ok := continuationOnLine(lines[n], lcs[n], markers)
 		if !ok {
 			break
 		}
@@ -377,34 +381,25 @@ func planStrip(lines []string, s span) stripPlan {
 // blockClosers maps a block-comment opener to the token that ends it.
 var blockClosers = map[string]string{"/*": "*/", "<!--": "-->"}
 
-// markerOnLine reports the marker that opens the comment on this line, and
-// returns the comment text from the marker on. The marker must be the comment's
-// first word: a sentence that merely mentions TODO is prose about markers, not a
-// marker.
-func markerOnLine(line string, markers []string, ops []string) (marker, rest string, ok bool) {
-	m, _, text, _, _, found := markerHit(line, markers, ops)
-	return m, text, found && m != ""
-}
-
-// markerHit is markerOnLine plus the group tag, the comment opener and its column,
-// which the strip plan needs.
-func markerHit(line string, markers []string, ops []string) (marker, group, rest, opener string, at int, ok bool) {
-	body, opener, at, found := commentBody(line, ops)
-	if !found {
-		return "", "", "", "", -1, false
+// markerHit reports the marker that opens the comment on this line, its group tag,
+// and the comment text from the marker on. The marker must be the comment's first
+// word: a sentence that merely mentions ARCDLC is prose about markers, not a marker.
+func markerHit(line string, lc lineComment, markers []string) (marker, group, rest string, ok bool) {
+	if lc.at < 0 {
+		return "", "", "", false
 	}
-	body = trimDecoration(body)
+	body := trimDecoration(commentBody(line, lc))
 	for _, m := range markers {
 		if m == "" || !strings.HasPrefix(body, m) {
 			continue
 		}
 		after := body[len(m):]
 		if after != "" && isWordByte(after[0]) {
-			continue // TODOLIST is a name, not a marker
+			continue // ARCDLCLIST is a name, not a marker
 		}
-		return m, groupTag(after), strings.TrimSpace(body), opener, at, true
+		return m, groupTag(after), strings.TrimSpace(body), true
 	}
-	return "", "", "", "", -1, false
+	return "", "", "", false
 }
 
 // groupTag reads the group tag off a marker: a ":" straight after the marker word,
@@ -463,79 +458,151 @@ func trimDecoration(body string) string {
 // continuationOnLine reports whether the line is a plain comment line that
 // continues the marker above it. A line that starts its own marker ends the
 // previous finding, and so does anything that is not a comment.
-func continuationOnLine(line string, markers []string, ops []string) (string, bool) {
-	trimmed := strings.TrimSpace(line)
-	if trimmed == "" {
+func continuationOnLine(line string, lc lineComment, markers []string) (string, bool) {
+	if !onlyComment(line, lc) {
 		return "", false
 	}
-	if !startsWithOpener(trimmed, ops) {
-		return "", false
-	}
-	body, _, _, _ := commentBody(line, ops)
-	body = strings.TrimSpace(body)
+	body := strings.TrimSpace(commentBody(line, lc))
 	if body == "" || body == "/" { // an empty comment or a closing */ ends the run
 		return "", true
 	}
-	if _, _, isNew := markerOnLine(line, markers, ops); isNew {
+	if m, _, _, isNew := markerHit(line, lc, markers); isNew && m != "" {
 		return "", false // a second marker starts its own finding
 	}
 	return body, true
 }
 
-// commentBody returns the text after the first comment opener on the line, plus
-// the opener itself and where it starts.
-func commentBody(line string, ops []string) (body, opener string, at int, ok bool) {
-	at, width := -1, 0
-	for _, op := range ops {
-		i := strings.Index(line, op)
-		if i < 0 {
+// lineComment says where a comment opens on one line, after the sweep has followed
+// the string literals of the file. at is -1 when the line carries no comment.
+type lineComment struct {
+	at     int
+	opener string
+}
+
+// commentBody returns the text after the comment opener on this line.
+func commentBody(line string, lc lineComment) string {
+	return strings.TrimLeft(line[lc.at+len(lc.opener):], " \t")
+}
+
+// onlyComment reports whether the line holds nothing but a comment, so that it can
+// continue the marker above it and is not code a marker sits on.
+func onlyComment(line string, lc lineComment) bool {
+	return lc.at >= 0 && strings.TrimSpace(line[:lc.at]) == ""
+}
+
+// lexFile works out, line by line, where a comment opens, following the string
+// literals of the file as it goes.
+//
+// This is what keeps the sweep off constants. A marker counts only inside a comment,
+// and "// ARCDLC ..." written inside a string is text in that string. The single-line
+// case needs no state, but a Go or JavaScript raw string and a Python triple quote run
+// past the end of their line, so the pending delimiter is carried to the next one.
+//
+// It is a scanner, not a parser, and it is blunt in one direction on purpose: when it
+// cannot tell, it reports no comment. A missed marker costs one sweep. A marker read
+// out of a constant costs an edit to code nobody asked it to touch.
+func lexFile(lines []string, ops []string) []lineComment {
+	out := make([]lineComment, len(lines))
+	open := ""
+	for i, line := range lines {
+		at, opener, still := lexLine(line, ops, open)
+		out[i] = lineComment{at: at, opener: opener}
+		open = still
+	}
+	return out
+}
+
+// multiQuotes are the string delimiters that can run past the end of a line: a Go or
+// JavaScript raw string, and a Python or Kotlin triple quote.
+var multiQuotes = []string{`"""`, "'''", "`"}
+
+// lexLine walks one line and returns where its comment opens, plus the multi-line
+// string delimiter still waiting to close when the line ends. open is that delimiter
+// carried from the line before, "" when nothing is pending.
+//
+// The walk stops at the comment opener, so a quote in comment text is never read as a
+// string delimiter: a lone backtick in prose cannot swallow the lines below it.
+func lexLine(line string, ops []string, open string) (at int, opener, still string) {
+	i := 0
+	if open != "" {
+		k := strings.Index(line, open)
+		if k < 0 {
+			return -1, "", open // the whole line sits inside the literal
+		}
+		i = k + len(open)
+	}
+	for i < len(line) {
+		if op, ok := openerAt(line, i, ops); ok {
+			return i, op, ""
+		}
+		if q := quoteAt(line, i); q != "" {
+			k := closeQuote(line, i+len(q), q)
+			if k < 0 {
+				if isMultiQuote(q) {
+					return -1, "", q // the literal runs on into the next line
+				}
+				return -1, "", "" // an unterminated quote ends with its line
+			}
+			i = k + len(q)
 			continue
 		}
-		// A bare "*" only opens a comment at the start of a line: it is a
-		// multiplication sign anywhere else.
+		i++
+	}
+	return -1, "", ""
+}
+
+// openerAt reports the comment opener that starts at this column, the longest one
+// when two of them match. A bare "*" only opens a comment at the start of a line: it
+// is a multiplication sign anywhere else.
+func openerAt(line string, i int, ops []string) (string, bool) {
+	best := ""
+	for _, op := range ops {
+		if len(op) <= len(best) || !strings.HasPrefix(line[i:], op) {
+			continue
+		}
 		if op == "*" && strings.TrimSpace(line[:i]) != "" {
 			continue
 		}
-		if insideString(line, i) {
-			continue // a comment quoted in a string literal, as test fixtures do
-		}
-		if at < 0 || i < at || (i == at && len(op) > width) {
-			at, width = i, len(op)
-		}
+		best = op
 	}
-	if at < 0 {
-		return "", "", -1, false
-	}
-	return strings.TrimLeft(line[at+width:], " \t"), line[at : at+width], at, true
+	return best, best != ""
 }
 
-// insideString reports whether position at sits inside a string literal that
-// opens earlier on the same line. Counting unescaped quotes is enough for the
-// one case that matters: source that quotes a comment, which every scanner test
-// fixture does.
-func insideString(line string, at int) bool {
-	dquote, backtick := 0, 0
-	for i := 0; i < at; i++ {
-		switch line[i] {
-		case '\\':
-			i++ // skip the escaped byte
-		case '"':
-			dquote++
-		case '`':
-			backtick++
+// quoteAt reports the string delimiter that starts at this column.
+func quoteAt(line string, i int) string {
+	for _, q := range multiQuotes {
+		if strings.HasPrefix(line[i:], q) {
+			return q
 		}
 	}
-	return dquote%2 == 1 || backtick%2 == 1
+	if line[i] == '"' || line[i] == '\'' {
+		return line[i : i+1]
+	}
+	return ""
 }
 
-// startsWithOpener reports whether an already-trimmed line begins a comment.
-func startsWithOpener(trimmed string, ops []string) bool {
-	for _, op := range ops {
-		if strings.HasPrefix(trimmed, op) {
+func isMultiQuote(q string) bool {
+	for _, m := range multiQuotes {
+		if q == m {
 			return true
 		}
 	}
 	return false
+}
+
+// closeQuote returns the column where the delimiter closes, or -1 when it does not
+// close on this line. A backslash escapes the byte after it.
+func closeQuote(line string, from int, q string) int {
+	for i := from; i < len(line); i++ {
+		if line[i] == '\\' {
+			i++
+			continue
+		}
+		if strings.HasPrefix(line[i:], q) {
+			return i
+		}
+	}
+	return -1
 }
 
 func isTagByte(c byte) bool {
@@ -550,10 +617,10 @@ func isWordByte(c byte) bool {
 
 // codeUnder returns the first line at or after idx that is neither blank nor a
 // comment, trimmed and capped. It is the code the marker sits on.
-func codeUnder(lines []string, idx int, ops []string) string {
+func codeUnder(lines []string, lcs []lineComment, idx int) string {
 	for ; idx < len(lines); idx++ {
 		trimmed := strings.TrimSpace(lines[idx])
-		if trimmed == "" || startsWithOpener(trimmed, ops) {
+		if trimmed == "" || onlyComment(lines[idx], lcs[idx]) {
 			continue
 		}
 		return Normalize(trimmed, maxCodeLen)

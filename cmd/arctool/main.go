@@ -25,7 +25,7 @@ import (
 	"github.com/FrogoAI/arcdlc/internal/scan"
 )
 
-const version = "0.13.0"
+const version = "0.14.0"
 
 // aicsDir is the root directory under which each initiative gets its own folder
 // (docs/aics/<slug>/, holding plan.md, gap.md, comments.md, plan-archive.md).
@@ -47,10 +47,12 @@ usage:
   arctool validate [--strict] [--json] [--warn-as-error] [--require-acceptance] [--aic SLUG | --plan PATH]
                  (--strict implies --require-acceptance: every task needs an Acceptance section)
   arctool scan   [--marker LIST] [--path DIR] [--exclude LIST] [--comments PATH]
-                 [--json] [--dry-run] [--aic SLUG | --plan PATH]
-                 sweep source comments for markers (default TODO) into comments.md,
-                 then delete those comment lines from the code (--dry-run does neither)
-                 markers sharing a tag are one block: // TODO:G1 in three files, one task
+                 [--strip] [--json] [--dry-run] [--aic SLUG | --plan PATH]
+                 sweep source comments for markers (default ARCDLC) into comments.md
+                 markers sharing a tag are one block: ARCDLC:T1 in three files, one task
+                 --strip also deletes those comment lines from the code; without it the
+                 code is left alone (--dry-run writes nothing either way)
+                 a marker counts only inside a comment, never inside a string literal
                  (exit 3 when no marker is found)
   arctool archive  [--dry-run] [--aic SLUG | --plan PATH]    move DONE blocks to plan-archive.md
   arctool sync     [--check]                                 sync the initiative registry in AGENTS.md/README.md
@@ -768,10 +770,11 @@ func cmdScan(args []string) int {
 	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic)")
 	aicFlag := fs.String("aic", "", "initiative slug under docs/aics/")
 	commentsPath := fs.String("comments", "", "register path (default: comments.md beside the plan)")
-	markerList := fs.String("marker", "TODO", "comma-separated marker words to look for")
+	markerList := fs.String("marker", strings.Join(scan.DefaultMarkers, ","), "comma-separated marker words to look for")
 	root := fs.String("path", ".", "directory to sweep")
 	excludeList := fs.String("exclude", "", "comma-separated directory names to skip (default: "+strings.Join(scan.DefaultExclude, ",")+")")
 	asJSON := fs.Bool("json", false, "emit this sweep as JSON")
+	strip := fs.Bool("strip", false, "also delete the marker comments this run registered (default: leave the code alone)")
 	dryRun := fs.Bool("dry-run", false, "show what would change without writing")
 	if err := fs.Parse(args); err != nil {
 		return 2
@@ -811,17 +814,22 @@ func cmdScan(args []string) int {
 		return 1
 	}
 
-	// Work out the code edits before anything is written: the register holds the
-	// marker text, so the comment can go. Strip only computes and verifies here.
-	edits, skipped, err := scan.Strip(*root, found)
-	if err != nil {
-		var pathErr *os.PathError
-		if errors.As(err, &pathErr) {
-			fmt.Fprintf(os.Stderr, "arctool: scan: %v\n", err)
-			return 4
+	// Removing a comment is asked for, never assumed: without --strip this sweep only
+	// records. When it is asked for, the edits are worked out before anything is
+	// written, because the register must hold the text before the comment can go.
+	var edits []scan.Edit
+	var skipped []scan.Skip
+	if *strip {
+		edits, skipped, err = scan.Strip(*root, found)
+		if err != nil {
+			var pathErr *os.PathError
+			if errors.As(err, &pathErr) {
+				fmt.Fprintf(os.Stderr, "arctool: scan: %v\n", err)
+				return 4
+			}
+			fmt.Fprintf(os.Stderr, "arctool: scan: self-validation failed: %v; nothing written\n", err)
+			return 5
 		}
-		fmt.Fprintf(os.Stderr, "arctool: scan: self-validation failed: %v; nothing written\n", err)
-		return 5
 	}
 
 	if *asJSON {
@@ -840,7 +848,7 @@ func cmdScan(args []string) int {
 			if newFolder != "" {
 				fmt.Printf("would create %s/ (new initiative folder)\n", newFolder)
 			}
-			reportScan(cp, *root, markers, found, res, edits, skipped, true)
+			reportScan(cp, *root, markers, found, res, edits, skipped, *strip, true)
 		}
 		return 0
 	}
@@ -866,7 +874,7 @@ func cmdScan(args []string) int {
 		if newFolder != "" {
 			fmt.Printf("created %s/ (new initiative folder)\n", newFolder)
 		}
-		reportScan(cp, *root, markers, found, res, edits, skipped, false)
+		reportScan(cp, *root, markers, found, res, edits, skipped, *strip, false)
 	}
 	return 0
 }
@@ -917,7 +925,7 @@ func emitScanJSON(register string, markers []string, found []scan.Finding, res s
 
 // reportScan prints the summary a reader (or an agent) acts on.
 func reportScan(register, root string, markers []string, found []scan.Finding, res scan.Result,
-	edits []scan.Edit, skipped []scan.Skip, dryRun bool) {
+	edits []scan.Edit, skipped []scan.Skip, strip, dryRun bool) {
 	verb := "wrote"
 	switch {
 	case dryRun:
@@ -941,6 +949,11 @@ func reportScan(register, root string, markers []string, found []scan.Finding, r
 		}
 	}
 
+	if !strip {
+		fmt.Printf("left every marker comment in the code: pass --strip to remove the %d this run registered\n",
+			len(found))
+		return
+	}
 	removed := 0
 	for _, e := range edits {
 		removed += e.Removed
