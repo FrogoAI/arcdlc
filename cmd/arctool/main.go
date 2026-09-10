@@ -59,6 +59,7 @@ initiative selection (required):
   --plan PATH  operate on an explicit path (overrides --aic)
   Selection is mandatory: with neither flag, arctool lists the initiatives under
   docs/aics/ and exits 2. The legacy flat docs/aics/plan.md is reachable via --plan.
+  A write into a slug that has no folder yet creates the folder and says so.
 
 exit codes:
   0  ok / clean
@@ -105,7 +106,7 @@ func main() {
 }
 
 // loadPlan reads and parses the plan; on read failure it reports and returns exit code 4.
-func loadPlan(path string) (*plan.Plan, int) {
+func loadPlan(path string) (*plan.Plan, int) { // TODO domain/business logic must be moved into internal/ and keep main file clean
 	b, err := os.ReadFile(path)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "arctool: cannot read %s: %v\n", path, err)
@@ -670,9 +671,15 @@ func scanInitiatives(dir string) []registry.Initiative {
 }
 
 // atomicWrite writes data to path via a temp file in the same directory
-// followed by rename, so a crash never leaves a half-written plan.
+// followed by rename, so a crash never leaves a half-written plan. The parent
+// directory is created when it is missing, so a write into a slug that has no
+// folder yet (arctool scan --aic <new-slug>) lands instead of failing.
 func atomicWrite(path string, data []byte) error {
-	tmp, err := os.CreateTemp(filepath.Dir(path), ".arctool-*.tmp")
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	tmp, err := os.CreateTemp(dir, ".arctool-*.tmp")
 	if err != nil {
 		return err
 	}
@@ -779,6 +786,12 @@ func cmdScan(args []string) int {
 	if len(markers) == 0 {
 		markers = scan.DefaultMarkers
 	}
+	// A fresh slug has no folder yet. The write creates it; say so, because a
+	// mistyped slug would otherwise invent an initiative in silence.
+	newFolder := ""
+	if dir := filepath.Dir(cp); !isDir(dir) {
+		newFolder = filepath.ToSlash(dir)
+	}
 
 	found, err := scan.Sweep(scan.Opts{Root: *root, Markers: markers, Exclude: splitList(*excludeList)})
 	if err != nil {
@@ -809,6 +822,9 @@ func cmdScan(args []string) int {
 	}
 	if *dryRun {
 		if !*asJSON {
+			if newFolder != "" {
+				fmt.Printf("would create %s/ (new initiative folder)\n", newFolder)
+			}
 			reportScan(cp, *root, markers, found, res, true)
 		}
 		return 0
@@ -828,9 +844,18 @@ func cmdScan(args []string) int {
 		return 4
 	}
 	if !*asJSON {
+		if newFolder != "" {
+			fmt.Printf("created %s/ (new initiative folder)\n", newFolder)
+		}
 		reportScan(cp, *root, markers, found, res, false)
 	}
 	return 0
+}
+
+// isDir reports whether path exists and is a directory.
+func isDir(path string) bool {
+	fi, err := os.Stat(path)
+	return err == nil && fi.IsDir()
 }
 
 // scanJSON is what --json emits: the sweep's counts plus the blocks this run

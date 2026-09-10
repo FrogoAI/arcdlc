@@ -643,3 +643,82 @@ func TestUsageDocumentsScan(t *testing.T) {
 		}
 	}
 }
+
+func TestCmdScanCreatesAMissingInitiativeFolder(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "a.go"), []byte(twoMarkers), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// The initiative has no folder yet: no docs/, no docs/aics/, no slug dir.
+	planPath := filepath.Join(root, "docs", "aics", "review", "plan.md")
+	register := filepath.Join(filepath.Dir(planPath), "comments.md")
+
+	code, stdout, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register)
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
+	}
+	if !strings.Contains(stdout, "new initiative folder") {
+		t.Errorf("stdout does not report the folder it created:\n%s", stdout)
+	}
+	if !isDir(filepath.Dir(register)) {
+		t.Fatalf("%s was not created", filepath.Dir(register))
+	}
+	if !strings.Contains(readFile(t, register), "### TODO-CMT-01") {
+		t.Error("the register was not written into the new folder")
+	}
+	// A second run finds the folder and says nothing about creating it.
+	_, stdout, _ = runScan(t, "--path", root, "--plan", planPath, "--comments", register)
+	if strings.Contains(stdout, "initiative folder") {
+		t.Errorf("stdout reports a folder that already existed:\n%s", stdout)
+	}
+}
+
+func TestCmdScanDryRunCreatesNoFolder(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "a.go"), []byte(twoMarkers), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	planPath := filepath.Join(root, "docs", "aics", "review", "plan.md")
+	code, stdout, stderr := runScan(t, "--path", root, "--plan", planPath, "--dry-run")
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
+	}
+	if !strings.Contains(stdout, "would create") {
+		t.Errorf("stdout does not say the folder would be created:\n%s", stdout)
+	}
+	if isDir(filepath.Dir(planPath)) {
+		t.Fatalf("dry run created %s", filepath.Dir(planPath))
+	}
+}
+
+func TestCmdScanCreatesTheFolderFromTheSlug(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "a.go"), []byte(twoMarkers), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := os.Chdir(wd); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	// Exactly what the request names: arctool scan --marker TODO --aic review,
+	// with docs/aics/review/ absent.
+	code, stdout, stderr := runScan(t, "--marker", "TODO", "--aic", "review")
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
+	}
+	if !strings.Contains(stdout, "created docs/aics/review/ (new initiative folder)") {
+		t.Errorf("stdout does not name the created folder:\n%s", stdout)
+	}
+	if !strings.Contains(readFile(t, filepath.Join("docs", "aics", "review", "comments.md")), "TODO-CMT-01") {
+		t.Error("the register is not in docs/aics/review/")
+	}
+}

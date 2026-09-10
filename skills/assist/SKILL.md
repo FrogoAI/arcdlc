@@ -41,7 +41,8 @@ The register and its mirrored tasks are filed into `docs/aics/<slug>/` (as `comm
 `plan.md`), and the slug is passed to `arctool` as `--aic <slug>`. If the slug is missing, stop and
 report the error, listing the existing initiatives under `docs/aics/` — never guess. If the named
 initiative folder does not exist yet (a fresh sweep, e.g. `comment-debt`), confirm the slug with the
-engineer and create `docs/aics/<slug>/`. If `docs/aics/<slug>/plan.md` does not exist yet, create it
+engineer before you sweep: `arctool scan` creates the folder itself and says so, so a mistyped slug
+would invent an initiative nobody asked for. If `docs/aics/<slug>/plan.md` does not exist yet, create it
 per `../plan/references/plan-format.md` (flat installs: `../arcdlc-plan/references/plan-format.md`).
 
 `MARKER` is the optional second argument and defaults to `TODO`. One marker per run keeps the

@@ -96,8 +96,10 @@ checks. Do not merge with a red pipeline.
   skills take the slug as their first positional argument (missing → error listing initiatives), and
   `arctool` requires `--aic <slug>` or `--plan PATH` (neither → lists initiatives, exit 2). The
   resolver lives in `cmd/arctool` (`resolvePlan`); keep the skills' manual fallback describing the
-  same rule. The legacy flat `docs/aics/plan.md` is reachable only via `--plan`. Task IDs are unique
-  per plan, not globally. ADRs (`docs/adr/`) and `CONTEXT.md` stay global, not per-initiative.
+  same rule. A folder is created lazily: `atomicWrite` makes the parent directory, so a write into a
+  slug that has no folder yet (`arctool scan --aic <new-slug>`) lands and reports the folder it
+  created. Creation is cheap and visible; deletion stays with `/arcdlc:remove`. The legacy flat
+  `docs/aics/plan.md` is reachable only via `--plan`. Task IDs are unique per plan, not globally. ADRs (`docs/adr/`) and `CONTEXT.md` stay global, not per-initiative.
 - **The initiative registry is generated.** `arctool sync` keeps the initiative list (title +
   summary, parsed from each arch doc's `# ` H1 and the `> ` blockquote under it, per `internal/registry`)
   inside the `<!-- arcdlc:initiatives -->` marker blocks in `AGENTS.md` and `README.md`, rewriting

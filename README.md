@@ -358,6 +358,7 @@ arctool scan --aic payments                    # write docs/aics/payments/commen
 arctool scan --aic payments --marker FIXME     # another marker, same register
 arctool scan --aic payments --dry-run          # look without writing
 arctool scan --aic payments --json             # the new findings as data
+arctool scan --aic review                     # a slug with no folder yet: the folder is created
 ```
 
 Each block in the register keeps the evidence (`- Marker:` with the file, line and comment text) and
