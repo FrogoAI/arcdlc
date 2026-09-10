@@ -66,8 +66,15 @@ checks. Do not merge with a red pipeline.
   as missing. What is mandatory is the behaviour (the grilled interview), never the invocation.
 - **The interview is one question at a time.** `skills/grilling` asks exactly one question per turn,
   waits for the answer, then asks the next — never a numbered round. Every question carries a
-  recommended answer. `/arcdlc:aic`, `/arcdlc:policy`, and `/arcdlc:plan` restate this rule for their
-  inline fallback; change it in all four together.
+  recommended answer. Seven skills restate this rule for their inline fallback (`aic`, `policy`,
+  `plan`, `plan-human`, `examinate`, `assist`, `execute`); change it in all eight together.
+- **Unclear is a question, not a guess.** A skill that hits a contradiction, a missing decision,
+  code that looks dead, or a change that is risky or hard to reverse escalates to the grilled
+  interview instead of picking for the engineer. `aic`, `policy` and `plan` grill up front; `examinate`
+  (Step 2.5), `assist` (Step 3), `plan-human` and `execute` grill mid-flight. Every answer is recorded
+  where the next session reads it (an ADR, `CONTEXT.md`, the gap's `HOW`, the story, the commit body),
+  never only in the chat. An answer that changes the plan stops the run: `/arcdlc:plan` owns the plan
+  text.
 - **Everything the skills write is written for humans.** Every file every skill produces — the
   architecture documents of `/arcdlc:aic` in any format, Markdown or HTML, plus policies, ADRs,
   `CONTEXT.md`, plan tasks, gap blocks, and commit messages — is plain English: short active

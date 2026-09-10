@@ -142,7 +142,7 @@ argument (e.g. `/arcdlc:plan checkout`). Details and manual alternatives: [Insta
 | `/arcdlc:execute <slug> [TASK-ID]` | Implement all pending plan tasks (or one by ID): status `TODO→TAKEN→DONE`, tests/lint, one Conventional Commits commit per task. | code, tests, commits |
 | `/arcdlc:remove <slug>` | Delete a completed initiative's folder and clean the registry — always after an explicit confirmation. | removed folder, refreshed `docs/aics/` + registry |
 | `/arcdlc:archive <slug>` | Move `DONE` task blocks into `docs/aics/<slug>/plan-archive.md`, keeping the plan small. | compacted plan + archive |
-| `/arcdlc:grilling [topic]` | The interview stage `/arcdlc:aic` and `/arcdlc:policy` run on, usable on its own: relentless questions, **one at a time**, each with a recommended answer, until nothing is silently assumed. | settled decisions, `CONTEXT.md` terms, ADRs |
+| `/arcdlc:grilling [topic]` | The interview every other command falls back to when something is unclear, contradictory, risky, or needs a human, usable on its own: relentless questions, **one at a time**, each with a recommended answer, until nothing is silently assumed. | settled decisions, `CONTEXT.md` terms, ADRs |
 | `source-map` skill | Routing table into the bundled architecture & engineering reference library (AIC, arc42, Tech Stack Canvas, TOGAF, C4, ADR, DDD, SOLID, MDCA, Go guides, Twelve-Factor, Conventional Commits, …). | reference guidance |
 
 While any of these skills is running, the agent talks in plain, short English — short sentences,

@@ -69,8 +69,36 @@ Practical guidance:
 - A story that names a service delivers **that whole service**, however many tasks that takes. Five tasks building one calculator are one story.
 - Bundle two tasks into one story only when they are **one demo**: create a repository and deploy it, add the metrics and run the load test, one screen plus the field it needs.
 - A capability that only exists so another story can be proven is not its own story. Put it in the story it serves, as its first steps.
-- Take the **phase split from `plan.md`**. Do not invent one. If the phases look wrong, say so and stop; moving a phase boundary changes the architecture document, the diagrams and the tracker, and that is a decision for the engineer, not a side effect of writing stories.
+- Take the **phase split from `plan.md`**. Do not invent one. If the phases look wrong, grill the engineer about it and stop; moving a phase boundary changes the architecture document, the diagrams and the tracker, and that is a decision for the engineer, not a side effect of writing stories.
 - Group stories under a phase heading, and keep story numbers stable across runs. When a phase boundary moves, move the heading, not the numbers: a renumbered board loses every reference anyone has written down.
+
+## When the plan is unclear, grill (mandatory)
+
+A ticket is read by somebody who cannot ask you anything, so a story may not carry a guess. Stop and
+ask the engineer the moment you hit one of these:
+
+- A task leaves the story without a value it needs: a field name, a JSON shape, a subject name, an
+  interval, a cap, a limit.
+- Two tasks contradict each other, or a task contradicts the architecture document, an ADR, or
+  `CONTEXT.md`.
+- An `Acceptance` line cannot be reworded into "I do this, I get that" without inventing the
+  observable result.
+- A task names no deployable unit, so you cannot tell which story it belongs to.
+- The phase split in `plan.md` does not match the architecture document.
+
+How to ask: prefer the bundle's `arcdlc-grilling` skill. If it cannot be invoked here, read its
+`SKILL.md` (`../grilling/SKILL.md`, flat installs: `../arcdlc-grilling/SKILL.md`) and run the same
+protocol inline. **One question per turn**: ask, wait for the answer, then ask the next, each with your
+recommended answer. Never a numbered round of questions, and never report a helper skill as missing.
+
+Where the answer goes:
+
+- A concrete value: into the story, written out in full, because the ticket cannot reach this
+  repository.
+- A new term: into `CONTEXT.md`, in the project's own words.
+- An answer that changes the plan itself (a task, a phase boundary, an acceptance criterion): stop and
+  say so. Moving a phase boundary changes the architecture document, the diagrams and the tracker, so
+  it is the engineer's decision and `/arcdlc:plan` writes it, not this skill.
 
 ## Step 3: write each story
 
