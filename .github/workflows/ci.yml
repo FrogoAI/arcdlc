@@ -51,6 +51,19 @@ jobs:
           test -f 'skills/source-map/source/Writing Style.md' \
             || { echo "missing skills/source-map/source/Writing Style.md" >&2; exit 1; }
 
+      - name: Check the writing-style block is the same in every skill
+        run: |
+          extract() {
+            awk '/^## Talk simple, write like a human$/{f=1;print;next} f&&/^## /{exit} f{print}' "$1"
+          }
+          extract skills/aic/SKILL.md > /tmp/style-block.txt
+          test -s /tmp/style-block.txt || { echo "cannot read the reference style block" >&2; exit 1; }
+          for skill in aic archive assist examinate execute grilling plan plan-human policy remove source-map; do
+            extract "skills/$skill/SKILL.md" > /tmp/block-$skill.txt
+            diff -u /tmp/style-block.txt "/tmp/block-$skill.txt" \
+              || { echo "skills/$skill/SKILL.md has a different 'Talk simple' block; all eleven must match" >&2; exit 1; }
+          done
+
       - name: shellcheck installer
         run: shellcheck install.sh
 

@@ -70,8 +70,8 @@ checks. Do not merge with a red pipeline.
   inline fallback; change it in all four together.
 - **Everything the skills write is written for humans.** Every file every skill produces — the
   architecture documents of `/arcdlc:aic` in any format, Markdown or HTML, plus policies, ADRs,
-  `CONTEXT.md`, plan tasks, gap blocks, and commit messages — is plain B2 English: short active
-  sentences, expanded acronyms, no stacked noun phrases, no AI filler, no empty intensifiers
+  `CONTEXT.md`, plan tasks, gap blocks, and commit messages — is plain English: short active
+  sentences, common words, expanded acronyms, no stacked noun phrases, no AI filler, no empty intensifiers
   (`honestly`, `genuinely`, `truly`, `clearly`, `obviously`), and no long dashes (`—`, `–`) in prose. Domain terms survive: a word like *provenance* is defined once in plain words, never
   swapped for a vaguer one. Plain words never mean less content: every decision, constraint,
   trade-off, and open question the template asks for still has to be there. The full standard is
@@ -120,13 +120,14 @@ checks. Do not merge with a red pipeline.
   flat form).
 - **Every `SKILL.md` carries the same `## Talk simple, write like a human` block**, verbatim, placed
   after the intro and before the first step. It covers both audiences in one place: how the agent
-  talks to the user while the skill runs (plain B2 English, bullets, no filler) and how it writes the
+  talks to the user while the skill runs (plain English, bullets, no filler) and how it writes the
   files the skill produces (no AI filler, no long dashes, varied rhythm, concrete facts, domain terms
   kept and defined once). Brevity applies to replies, never to files: the block never lets a rule,
   path, decision, or acceptance criterion be dropped. Keep it short but self-sufficient — every rule
   an agent must follow stays inline, and only the tables, examples, and the pre-save grep live in the
-  long form, `skills/source-map/source/Writing Style.md`. CI greps for the heading in all eleven
-  skills; copy the block when adding a skill, and change all eleven plus the long form together.
+  long form, `skills/source-map/source/Writing Style.md`. CI checks that all eleven blocks are byte
+  identical, so copy the block when adding a skill, and change all eleven plus the long form
+  together.
 - Reference documents belong in `skills/source-map/source/` and are routed via the table in
   `skills/source-map/SKILL.md` — add a row when adding a document.
 - Adding or renaming a sub-skill requires updating the `SUBSKILLS` list in `install.sh` and the

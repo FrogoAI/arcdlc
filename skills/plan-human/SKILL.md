@@ -21,14 +21,28 @@ The story format is defined in `references/story-format.md`. Read it before writ
 
 ## Talk simple, write like a human
 
-Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
+Plain English, everywhere: short sentences, common words, one idea each, active voice, a named
+actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
 
-- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request. Say what you did, what you found, what comes next.
-- **Files you write:** no AI filler, no warm-up opener, no invented summary. Vary sentence length. Concrete names, numbers, and paths.
+- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
+  Say what you did, what you found, what comes next.
+- **Files you write:** no AI filler ("Furthermore", "In conclusion", "It is important to note",
+  "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
+  invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
+  improves performance".
+- **Be direct, name the thing.** The fewest words that carry the fact; a word that only adds tone
+  comes out. Never a metaphor, a narrative line, or a question. Say what must happen: "The alerter
+  retries three times, then dead-letters." Every title that names work is an instruction, a verb
+  plus its object: "Implement the alerter service", never "One message out, and the three places it
+  goes".
 - **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
-- **Be direct, and name the thing.** Every title is an imperative verb plus its object. The full standard is `source/Writing Style.md` in the bundle's `source-map` skill, sections "Be direct" and "Name the thing".
+  Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
+- **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
+  once in plain words, then use it. Simple English is about the sentence, not the term.
 
-Brevity is for replies, never for the file: never drop a rule, a number, a decision, or an acceptance criterion to save space.
+Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
+decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
+pre-save check, is `source/Writing Style.md` in the bundle's `source-map` skill.
 
 ## Initiative selection
 

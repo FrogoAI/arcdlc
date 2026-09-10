@@ -11,8 +11,8 @@ executable plan so `/arcdlc:execute` can close them.
 
 ## Talk simple, write like a human
 
-Plain B2 English, everywhere: short sentences, one idea each, active voice, a named actor. Cut
-empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
+Plain English, everywhere: short sentences, common words, one idea each, active voice, a named
+actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
 
 - **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
   Say what you did, what you found, what comes next.
