@@ -101,18 +101,30 @@ Because `Acceptance` lives inside the task block, `/arcdlc:archive` carries it v
 A block missing its `- Status:` line, or whose status is not exactly `TODO` (after trimming spaces and a trailing
 period), is skipped by the executor — check this first when a plan appears to have no pending work.
 
-## Gap Register Sync
+## Register Sync
 
-When `docs/aics/<slug>/gap.md` is used as an input source (e.g. produced by `/arcdlc:examinate`), every `### ...` gap
-must have a matching task block in the same folder's `docs/aics/<slug>/plan.md`.
+An initiative folder can hold two evidence registers beside `plan.md`, and both mirror into it the same way:
+
+- `docs/aics/<slug>/gap.md` — compliance gaps, produced by `/arcdlc:examinate`.
+- `docs/aics/<slug>/comments.md` — code comment markers, swept by `arctool scan` and judged by `/arcdlc:assist`.
+
+When a register is used as an input source, every `### ...` block in it that is meant to be worked on must have a
+matching task block in the same folder's `docs/aics/<slug>/plan.md`. For `gap.md` that is every gap. For `comments.md`
+it is every block whose `- Verdict:` is `ACTIONABLE`; a finding marked `UNCLEAR`, `STALE`, `DEFERRED`, or `RESOLVED`
+stays in the register and gets no task.
 
 The `plan.md` copy must preserve:
 
-- The same task ID and heading (including the `(MISSING|PARTIAL|DRIFT)` tag).
+- The same task ID and heading (including the `(MISSING|PARTIAL|DRIFT)` tag, which only gap-derived tasks carry).
 - The same `WHAT`, `HOW` (when present), `WHERE`, `WHY`, and `Acceptance` content.
-- Executor metadata: `References` and `Status`.
+- Executor metadata: `References` (pointing at the register the task came from) and `Status`.
 
-Use `gap.md` as the evidence register and `plan.md` as the executable queue — both within the same initiative folder.
+The copy must drop the lines that belong to the register alone: `comments.md` carries `- Marker:` (the finding's
+identity: file plus marker text) and `- Verdict:`, and neither means anything to the runner. Comment-derived tasks take
+**no** parenthetical heading tag: the only valid values are `MISSING`, `PARTIAL`, and `DRIFT`, and `arctool validate`
+warns on anything else.
+
+Use the register as the evidence, and `plan.md` as the executable queue — both within the same initiative folder.
 
 ## Authoring Rules
 

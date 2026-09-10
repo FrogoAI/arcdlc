@@ -120,7 +120,7 @@ Precision rules for each gap block:
 
 ## Step 4 — Sync gaps into the plan
 
-Per the Gap Register Sync rules in `../plan/references/plan-format.md` (flat installs:
+Per the Register Sync rules in `../plan/references/plan-format.md` (flat installs:
 `../arcdlc-plan/references/plan-format.md`), append a matching task block to `docs/aics/<slug>/plan.md` for every new
 gap:
 

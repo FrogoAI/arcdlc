@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -457,5 +458,188 @@ func TestUsageDocumentsOrderAndTheWidenedExitFive(t *testing.T) {
 	}
 	if bad := "5  archive self-validation failed"; strings.Contains(help, bad) {
 		t.Errorf("help output still carries the pre-ADR-0014 line %q", bad)
+	}
+}
+
+// --- scan ---
+
+// scanTree writes a source file with markers plus an initiative folder, and
+// returns the tree root, the plan path that selects the initiative, and the
+// register path scan should write beside it.
+func scanTree(t *testing.T, source string) (root, planPath, register string) {
+	t.Helper()
+	root = t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "a.go"), []byte(source), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	planPath = mkPlan(t, root, filepath.Join("docs", "aics", "demo", "plan.md"))
+	return root, planPath, filepath.Join(filepath.Dir(planPath), "comments.md")
+}
+
+func runScan(t *testing.T, args ...string) (code int, stdout, stderr string) {
+	t.Helper()
+	stderr = captureStderr(t, func() {
+		stdout = captureStdout(t, func() { code = cmdScan(args) })
+	})
+	return code, stdout, stderr
+}
+
+const twoMarkers = "package a\n\n// TODO split the store\nfunc a() {}\n\n// FIXME retry never backs off\nfunc b() {}\n"
+
+func TestCmdScanNoSelectionIsUsageError(t *testing.T) {
+	root, _, _ := scanTree(t, twoMarkers)
+	code, _, stderr := runScan(t, "--path", root)
+	if code != 2 {
+		t.Fatalf("exit=%d, want 2", code)
+	}
+	if !strings.Contains(stderr, "no initiative selected") {
+		t.Errorf("stderr missing the selection error:\n%s", stderr)
+	}
+}
+
+func TestCmdScanWritesTheRegister(t *testing.T) {
+	root, planPath, register := scanTree(t, twoMarkers)
+	code, stdout, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register)
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
+	}
+	if !strings.Contains(stdout, "TODO-CMT-01") || !strings.Contains(stdout, "1 new") {
+		t.Errorf("stdout does not report the new block:\n%s", stdout)
+	}
+	got := readFile(t, register)
+	for _, want := range []string{
+		"# Comment register",
+		"### TODO-CMT-01: Split the store",
+		"- Marker: `a.go:3` `TODO split the store`",
+		"- Verdict: NEW.",
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("register missing %q:\n%s", want, got)
+		}
+	}
+	if strings.Contains(got, "FIXME") {
+		t.Errorf("FIXME was swept without being asked for:\n%s", got)
+	}
+}
+
+func TestCmdScanDryRunWritesNothing(t *testing.T) {
+	root, planPath, register := scanTree(t, twoMarkers)
+	code, stdout, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register, "--dry-run")
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
+	}
+	if !strings.Contains(stdout, "would write") {
+		t.Errorf("stdout does not say it wrote nothing:\n%s", stdout)
+	}
+	if _, err := os.Stat(register); !os.IsNotExist(err) {
+		t.Fatalf("dry run created %s", register)
+	}
+}
+
+func TestCmdScanNoMarkerIsNotFound(t *testing.T) {
+	root, planPath, register := scanTree(t, "package a\n\nfunc a() {}\n")
+	code, _, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register)
+	if code != 3 {
+		t.Fatalf("exit=%d, want 3", code)
+	}
+	if !strings.Contains(stderr, "no TODO marker found") {
+		t.Errorf("stderr missing the not-found line:\n%s", stderr)
+	}
+	if _, err := os.Stat(register); !os.IsNotExist(err) {
+		t.Fatalf("an empty sweep created %s", register)
+	}
+}
+
+func TestCmdScanTwiceIsByteIdentical(t *testing.T) {
+	root, planPath, register := scanTree(t, twoMarkers)
+	if code, _, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register, "--marker", "TODO,FIXME"); code != 0 {
+		t.Fatalf("first run exit=%d (stderr: %s)", code, stderr)
+	}
+	first := readFile(t, register)
+	code, stdout, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register, "--marker", "TODO,FIXME")
+	if code != 0 {
+		t.Fatalf("second run exit=%d (stderr: %s)", code, stderr)
+	}
+	if got := readFile(t, register); got != first {
+		t.Fatalf("second run rewrote the register:\n%s", got)
+	}
+	if !strings.Contains(stdout, "already current") {
+		t.Errorf("stdout does not say the register is current:\n%s", stdout)
+	}
+}
+
+func TestCmdScanResolvesAMarkerThatIsGone(t *testing.T) {
+	root, planPath, register := scanTree(t, twoMarkers)
+	if code, _, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register); code != 0 {
+		t.Fatalf("first run exit=%d (stderr: %s)", code, stderr)
+	}
+	// The task that closed the finding deleted its marker.
+	if err := os.WriteFile(filepath.Join(root, "a.go"), []byte("package a\n\nfunc a() {}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	code, stdout, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register)
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
+	}
+	if !strings.Contains(stdout, "TODO-CMT-01  resolved") {
+		t.Errorf("stdout does not report the resolution:\n%s", stdout)
+	}
+	got := readFile(t, register)
+	if !strings.Contains(got, "- Verdict: RESOLVED (") {
+		t.Errorf("verdict was not flipped:\n%s", got)
+	}
+	if !strings.Contains(got, "- Marker: `a.go:3` `TODO split the store`") {
+		t.Errorf("the resolved block lost its evidence:\n%s", got)
+	}
+}
+
+func TestCmdScanJSONShape(t *testing.T) {
+	root, planPath, register := scanTree(t, twoMarkers)
+	code, stdout, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register, "--json")
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
+	}
+	var got scanJSON
+	if err := json.Unmarshal([]byte(stdout), &got); err != nil {
+		t.Fatalf("output is not JSON: %v\n%s", err, stdout)
+	}
+	if got.Found != 1 || got.Total != 1 || !got.Changed || len(got.New) != 1 {
+		t.Fatalf("payload = %+v", got)
+	}
+	if got.New[0].ID != "TODO-CMT-01" || got.New[0].Line != 3 || got.New[0].Code != "func a() {}" {
+		t.Fatalf("finding = %+v", got.New[0])
+	}
+	if got.Resolved == nil {
+		t.Error("resolved should be an empty list, not null")
+	}
+}
+
+func TestCmdScanRejectsARegisterWithoutMarkerLines(t *testing.T) {
+	root, planPath, register := scanTree(t, twoMarkers)
+	if err := os.WriteFile(register, []byte("# Comment register\n\n### TODO-CMT-01: hand written\n\n- WHAT: x.\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	before := readFile(t, register)
+	code, _, stderr := runScan(t, "--path", root, "--plan", planPath, "--comments", register)
+	if code != 1 {
+		t.Fatalf("exit=%d, want 1", code)
+	}
+	if !strings.Contains(stderr, "Marker:") {
+		t.Errorf("stderr does not name the broken line:\n%s", stderr)
+	}
+	if readFile(t, register) != before {
+		t.Error("a broken register was rewritten")
+	}
+}
+
+func TestUsageDocumentsScan(t *testing.T) {
+	help := fmt.Sprintf(usage, version)
+	for _, want := range []string{
+		"arctool scan   [--marker LIST] [--path DIR] [--exclude LIST] [--comments PATH]",
+		"sweep source comments for markers (default TODO) into comments.md",
+	} {
+		if !strings.Contains(help, want) {
+			t.Errorf("help output missing %q:\n%s", want, help)
+		}
 	}
 }

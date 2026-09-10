@@ -8,10 +8,11 @@ Guidance for AI coding agents working **on this repository**. (If you are lookin
 ArcDLC is two deliverables in one repo, and they share a contract:
 
 1. **A skill bundle** (`skills/`, packaged by `.claude-plugin/`) — the `/arcdlc:*` delivery
-   workflow (aic, policy, plan, examinate, execute, remove, archive), the `grilling` interview skill
-   they all run on, plus the `source-map` reference library.
-2. **The `arctool` CLI** (`cmd/arctool`, `internal/plan`, `internal/registry`) — a deterministic
-   runner for the plan format those skills produce and consume, plus the initiative registry sync.
+   workflow (aic, policy, plan, plan-human, examinate, assist, execute, remove, archive), the
+   `grilling` interview skill they all run on, plus the `source-map` reference library.
+2. **The `arctool` CLI** (`cmd/arctool`, `internal/plan`, `internal/registry`, `internal/scan`) — a
+   deterministic runner for the plan format those skills produce and consume, the initiative registry
+   sync, and the code comment sweep (`arctool scan`) that writes the comment register.
 
 The shared contract is `skills/plan/references/plan-format.md`. It is parsed mechanically by
 `internal/plan`; treat it as an API, not prose.
@@ -81,10 +82,17 @@ checks. Do not merge with a red pipeline.
 - **Status mutations stay byte-preserving and atomic.** `take`/`done`/`block`/`todo` rewrite only
   the one `- Status:` line via temp-file + rename; `archive` writes the archive before compacting
   the plan; `order` permutes whole blocks, re-parses its own output before writing, and writes
-  nothing on a failed check. Preserve these invariants.
+  nothing on a failed check. `scan` only appends new blocks to `comments.md` and rewrites one
+  `- Verdict:` line (never any other line, never `plan.md`), re-parses its own output before writing,
+  and writes nothing on a failed check. Preserve these invariants.
+- **The comment register has two owners.** `arctool scan` owns each block's task ID, its `- Marker:`
+  line (the finding's identity: file plus marker text) and the flip to `- Verdict: RESOLVED (<date>)`;
+  `/arcdlc:assist` owns the title and every judgement key (`WHAT`, `HOW`, `WHY`, `Acceptance`, the
+  verdict). Neither side writes the other's lines. See
+  [ADR-0015](docs/adr/0015-comment-register-is-scanned-by-arctool-and-judged-by-the-skill.md).
 - **Initiatives are folders; selection is mandatory and explicit.** Each initiative lives in
-  `docs/aics/<slug>/` (holding the architecture doc, `plan.md`, `gap.md`, `plan-archive.md` — the
-  latter two are always siblings of `plan.md`). Selection is always named, never inferred:
+  `docs/aics/<slug>/` (holding the architecture doc, `plan.md`, `gap.md`, `comments.md`,
+  `plan-archive.md` — the last three are always siblings of `plan.md`). Selection is always named, never inferred:
   skills take the slug as their first positional argument (missing → error listing initiatives), and
   `arctool` requires `--aic <slug>` or `--plan PATH` (neither → lists initiatives, exit 2). The
   resolver lives in `cmd/arctool` (`resolvePlan`); keep the skills' manual fallback describing the
@@ -113,8 +121,8 @@ checks. Do not merge with a red pipeline.
   kept and defined once). Brevity applies to replies, never to files: the block never lets a rule,
   path, decision, or acceptance criterion be dropped. Keep it short but self-sufficient — every rule
   an agent must follow stays inline, and only the tables, examples, and the pre-save grep live in the
-  long form, `skills/source-map/source/Writing Style.md`. CI greps for the heading in all ten skills;
-  copy the block when adding a skill, and change all ten plus the long form together.
+  long form, `skills/source-map/source/Writing Style.md`. CI greps for the heading in all eleven
+  skills; copy the block when adding a skill, and change all eleven plus the long form together.
 - Reference documents belong in `skills/source-map/source/` and are routed via the table in
   `skills/source-map/SKILL.md` — add a row when adding a document.
 - Adding or renaming a sub-skill requires updating the `SUBSKILLS` list in `install.sh` and the

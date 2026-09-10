@@ -91,7 +91,8 @@ matters goes into the block.
 - Word every field the way `## Talk simple, write like a human` says: plain sentences, active voice, concrete
   names and paths, no filler, no long dashes. Vague text costs the executor a guess.
 - Every block ends with `- Status: TODO.`
-- If `docs/aics/<slug>/gap.md` exists, keep it in sync per the Gap Register Sync rules in the format guide.
+- If `docs/aics/<slug>/gap.md` or `docs/aics/<slug>/comments.md` exists, keep it in sync per the Register Sync
+  rules in the format guide.
 
 ## Step 2.5 — Risk coverage gate (mandatory)
 
