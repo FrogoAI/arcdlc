@@ -3,6 +3,7 @@ package scan
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -25,7 +26,7 @@ func tree(t *testing.T, files map[string]string) string {
 
 func sweep(t *testing.T, dir string, markers ...string) []Finding {
 	t.Helper()
-	found, err := Sweep(Opts{Root: dir, Markers: markers})
+	found, _, err := Sweep(Opts{Root: dir, Markers: markers})
 	if err != nil {
 		t.Fatalf("Sweep: %v", err)
 	}
@@ -34,20 +35,25 @@ func sweep(t *testing.T, dir string, markers ...string) []Finding {
 
 func TestSweepFindsMarkersBehindEveryOpener(t *testing.T) {
 	dir := tree(t, map[string]string{
-		"go/a.go":     "package a\n\n// TODO rename this\nfunc A() {}\n",
-		"py/b.py":     "# TODO drop the shim\ndef b(): pass\n",
-		"sql/c.sql":   "-- TODO add an index\nSELECT 1;\n",
-		"lisp/d.el":   "; TODO port this\n(defun d ())\n",
-		"tex/e.tex":   "% TODO check the table\n\\table\n",
-		"c/f.c":       "/* TODO free the buffer */\nint f(void) { return 0; }\n",
-		"go/trail.go": "package a\n\nfunc T() {} // TODO split this\n",
+		"go/a.go":       "package a\n\n// TODO rename this\nfunc A() {}\n",
+		"py/b.py":       "# TODO drop the shim\ndef b(): pass\n",
+		"sql/c.sql":     "-- TODO add an index\nSELECT 1;\n",
+		"lisp/d.el":     "; TODO port this\n(defun d ())\n",
+		"tex/e.tex":     "% TODO check the table\n\\table\n",
+		"ada/f.adb":     "-- TODO widen the buffer\nnull;\n",
+		"fortran/g.f90": "! TODO use double precision\nend program\n",
+		"vb/h.vb":       "' TODO rename this\nEnd Function\n",
+		"vim/i.vim":     "\" TODO drop this mapping\nset ts=4\n",
+		"bat/j.bat":     ":: TODO quote the path\necho hi\n",
+		"bat/k.cmd":     "REM TODO quote the path\necho hi\n",
+		"go/trail.go":   "package a\n\nfunc T() {} // TODO split this\n",
 	})
 	found := sweep(t, dir, "TODO")
-	if len(found) != 7 {
+	if len(found) != 12 {
 		for _, f := range found {
 			t.Logf("%s:%d %q", f.File, f.Line, f.Text)
 		}
-		t.Fatalf("found %d markers, want 7", len(found))
+		t.Fatalf("found %d markers, want 12", len(found))
 	}
 }
 
@@ -185,19 +191,20 @@ func TestSweepRequiresTheMarkerToOpenTheComment(t *testing.T) {
 
 func TestSweepReadsDocCommentDecoration(t *testing.T) {
 	dir := tree(t, map[string]string{
-		"a.rs": "/// TODO rewrite the doc\nfn a() {}\n",
-		"b.sh": "#!/bin/sh\n# TODO handle the flag\n",
-		"c.c":  "/*\n * TODO free the buffer\n */\nint c(void) { return 0; }\n",
+		"a.rs":  "/// TODO rewrite the doc\nfn a() {}\n",
+		"b.sh":  "#!/bin/sh\n# TODO handle the flag\n",
+		"c.el":  ";;; TODO port this\n(defun c ())\n",
+		"d.tex": "%% TODO check the table\n\\table\n",
 	})
-	if found := sweep(t, dir, "TODO"); len(found) != 3 {
-		t.Fatalf("found %d, want 3: %+v", len(found), found)
+	if found := sweep(t, dir, "TODO"); len(found) != 4 {
+		t.Fatalf("found %d, want 4: %+v", len(found), found)
 	}
 }
 
 func TestSweepRecordsTheCodeATrailingMarkerSitsOn(t *testing.T) {
 	dir := tree(t, map[string]string{
 		"a.go": "package a\n\nfunc retry() {} // TODO add a backoff\n\nfunc keep() {}\n",
-		"b.c":  "int a = 1 /* TODO widen this */ + 2;\n",
+		"b.py": "value = 1 + 2  # TODO widen this\n",
 	})
 	found := sweep(t, dir, "TODO")
 	if len(found) != 2 {
@@ -206,7 +213,7 @@ func TestSweepRecordsTheCodeATrailingMarkerSitsOn(t *testing.T) {
 	if found[0].Code != "func retry() {}" {
 		t.Errorf("code = %q, want the line the comment trails", found[0].Code)
 	}
-	if found[1].Code != "int a = 1 + 2;" {
+	if found[1].Code != "value = 1 + 2" {
 		t.Errorf("code = %q, want the line without its comment", found[1].Code)
 	}
 }
@@ -264,73 +271,6 @@ func TestSweepRejectsTagShapesThatAreNotTags(t *testing.T) {
 	}
 	if got := IgnoredTag(found[0]); got != "" {
 		t.Fatalf("IgnoredTag on a plain marker = %q, want empty", got)
-	}
-}
-
-func TestSweepJoinsABlockCommentThatClosesLowerDown(t *testing.T) {
-	dir := tree(t, map[string]string{
-		"a.c": "/* TODO:G1 free the buffer\n" +
-			" * and check the size\n" +
-			"before every write\n" +
-			"*/\n" +
-			"int f(void) { return 0; }\n",
-	})
-	found := sweep(t, dir, "TODO")
-	if len(found) != 1 {
-		t.Fatalf("found %d markers, want 1: %+v", len(found), found)
-	}
-	f := found[0]
-	want := "TODO:G1 free the buffer and check the size before every write"
-	if f.Text != want {
-		t.Fatalf("text = %q, want %q", f.Text, want)
-	}
-	if f.Group != "G1" {
-		t.Fatalf("group = %q, want G1", f.Group)
-	}
-	if f.Line != 1 {
-		t.Fatalf("line = %d, want 1", f.Line)
-	}
-	if f.Code != "int f(void) { return 0; }" {
-		t.Fatalf("code = %q, want the line under the closer", f.Code)
-	}
-}
-
-func TestSweepReadsOneBlockCommentAsOneFinding(t *testing.T) {
-	dir := tree(t, map[string]string{
-		"a.c": "/* TODO free the buffer\nTODO and check the size\n*/\nint f(void) { return 0; }\n",
-	})
-	found := sweep(t, dir, "TODO")
-	if len(found) != 1 {
-		t.Fatalf("found %d markers, want 1: a block comment is one finding", len(found))
-	}
-	if want := "TODO free the buffer TODO and check the size"; found[0].Text != want {
-		t.Fatalf("text = %q, want %q", found[0].Text, want)
-	}
-}
-
-func TestSweepKeepsTheMarkerLineOfAnUnterminatedBlock(t *testing.T) {
-	dir := tree(t, map[string]string{
-		"a.c": "/* TODO free the buffer\nand check the size\nint f(void) { return 0; }\n",
-	})
-	found := sweep(t, dir, "TODO")
-	if len(found) != 1 {
-		t.Fatalf("found %d markers, want 1", len(found))
-	}
-	if want := "TODO free the buffer"; found[0].Text != want {
-		t.Fatalf("text = %q, want %q", found[0].Text, want)
-	}
-}
-
-func TestSweepDropsTheCloserOfASingleLineBlock(t *testing.T) {
-	dir := tree(t, map[string]string{
-		"a.c": "/* TODO free the buffer */\nint f(void) { return 0; }\n",
-	})
-	found := sweep(t, dir, "TODO")
-	if len(found) != 1 {
-		t.Fatalf("found %d markers, want 1", len(found))
-	}
-	if want := "TODO free the buffer"; found[0].Text != want {
-		t.Fatalf("text = %q, want %q", found[0].Text, want)
 	}
 }
 
@@ -393,4 +333,89 @@ func TestDefaultMarkerIsTheBundlesOwnWord(t *testing.T) {
 	if found[0].Marker != "ARCDLC" || found[0].Group != "T1" {
 		t.Fatalf("finding = %+v, want the ARCDLC marker with tag T1", found[0])
 	}
+}
+
+func TestSweepReadsPastARawStringEndingInABackslash(t *testing.T) {
+	// A Go raw string has no escapes, so the closing backtick of `/\` closes it.
+	// Reading that as an escape once swallowed every line below it.
+	dir := tree(t, map[string]string{
+		"a.go": "package a\n\n" +
+			"func bad(s string) bool {\n" +
+			"\treturn strings.ContainsAny(s, `/\\`) || strings.Contains(s, \"..\")\n" +
+			"}\n\n" +
+			"// ARCDLC:T01 this marker is below the raw string\nfunc b() {}\n",
+	})
+	found := sweep(t, dir)
+	if len(found) != 1 {
+		t.Fatalf("found %d markers, want 1: a raw string swallowed the rest of the file", len(found))
+	}
+	if found[0].Line != 7 || found[0].Group != "T01" {
+		t.Fatalf("finding = %+v", found[0])
+	}
+}
+
+func TestSweepRereadsAFileThatEndsInsideAStringLiteral(t *testing.T) {
+	// Source that ends inside a literal does not compile, so the scanner misread a
+	// delimiter. It reads the file again line by line rather than losing the rest.
+	dir := tree(t, map[string]string{
+		"a.go": "package a\n\nvar s = `never closed\n\n// ARCDLC keep finding this\nfunc a() {}\n",
+	})
+	found := sweep(t, dir)
+	if len(found) != 1 {
+		t.Fatalf("found %d markers, want 1: the misread literal lost the rest of the file", len(found))
+	}
+	if found[0].Text != "ARCDLC keep finding this" {
+		t.Fatalf("finding = %+v", found[0])
+	}
+}
+
+// TestDocumentedCommentStylesMatchTheTable keeps docs/comment-markers.md and the
+// openers table honest about each other. A language nobody can read is worse than a
+// language nobody documented, so the check runs both ways.
+func TestDocumentedCommentStylesMatchTheTable(t *testing.T) {
+	const doc = "../../docs/comment-markers.md"
+	b, err := os.ReadFile(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(b)
+
+	for ext := range openersByExt {
+		if !strings.Contains(text, "`"+ext+"`") {
+			t.Errorf("%s does not list %s; add it to the table of comment styles", doc, ext)
+		}
+	}
+	for name := range openersByName {
+		if !strings.Contains(text, "`"+name+"`") {
+			t.Errorf("%s does not list the file name %s", doc, name)
+		}
+	}
+
+	// Every file type the page names must be one the sweep really knows.
+	for _, token := range regexp.MustCompile("`(\\.[A-Za-z0-9_]+)`").FindAllStringSubmatch(text, -1) {
+		ext := token[1]
+		if _, ok := openersByExt[ext]; ok {
+			continue
+		}
+		if docExt[ext] {
+			continue // named as a document the sweep skips
+		}
+		if _, ok := openersByName[ext]; ok {
+			continue // a dotfile listed by name, such as .gitignore
+		}
+		if excluded(ext) {
+			continue // named as a directory the sweep never enters, such as .git
+		}
+		t.Errorf("%s promises %s, which is not in openersByExt", doc, ext)
+	}
+}
+
+// excluded reports whether the name is one of the directories a sweep skips.
+func excluded(name string) bool {
+	for _, d := range DefaultExclude {
+		if d == name {
+			return true
+		}
+	}
+	return false
 }

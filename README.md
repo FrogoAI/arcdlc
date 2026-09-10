@@ -399,9 +399,12 @@ A re-run appends what is new and leaves every existing block alone, with one exc
 tag is already registered is added to that block, as another `- Marker:` line plus more text on `WHAT`
 and `WHERE`. Nothing else in the block moves, so a judgement already written there stands.
 
-A block comment that closes on a later line is one finding and is removed whole. Three shapes stay in
-the code and are reported as skipped: a marker on a decoration line of a block another line opened, a
-block that never closes, and a block whose closing `*/` shares a line with code.
+**Only single-line comments carry markers.** `// ARCDLC ...` counts, `/* ARCDLC ... */` does not, in
+every language. One rule instead of a family of them: a single-line comment ends where its line ends,
+so the note needs no closing token and removing it is a whole-line delete or a cut to the end of a
+line, which is safe in every language. A language whose only comment is a block comment (HTML, CSS,
+OCaml) therefore carries no markers. Every style the sweep reads is listed in
+[docs/comment-markers.md](docs/comment-markers.md).
 
 ### Governance flow
 

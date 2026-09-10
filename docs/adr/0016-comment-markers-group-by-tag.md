@@ -7,6 +7,8 @@
 - Amended by: [ADR-0017](0017-a-marker-is-arcdlc-in-a-comment-and-cutting-it-is-asked-for.md): the
   default marker is now `ARCDLC`, so the `TODO:G1` and `TODO-CMT-G1` examples below read `ARCDLC:T1` and
   `ARCDLC-CMT-T1` today, and the sweep only removes a comment when asked (`--strip`)
+- Amended by: [ADR-0018](0018-only-single-line-comments-carry-markers.md): block comments are no
+  longer findings, so the block-comment span described below is gone
 
 ## Context
 

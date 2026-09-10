@@ -5,6 +5,8 @@
 - Initiative: none (bundle-wide, tightens `arctool scan` and `/arcdlc:assist`)
 - Amends: [ADR-0015](0015-comment-register-is-scanned-by-arctool-and-judged-by-the-skill.md) and
   [ADR-0016](0016-comment-markers-group-by-tag.md)
+- Amended by: [ADR-0018](0018-only-single-line-comments-carry-markers.md): a marker counts in a
+  single-line comment only
 
 ## Context
 

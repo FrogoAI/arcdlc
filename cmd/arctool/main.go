@@ -25,7 +25,7 @@ import (
 	"github.com/FrogoAI/arcdlc/internal/scan"
 )
 
-const version = "0.14.0"
+const version = "0.15.0"
 
 // aicsDir is the root directory under which each initiative gets its own folder
 // (docs/aics/<slug>/, holding plan.md, gap.md, comments.md, plan-archive.md).
@@ -798,7 +798,7 @@ func cmdScan(args []string) int {
 		newFolder = filepath.ToSlash(dir)
 	}
 
-	found, err := scan.Sweep(scan.Opts{Root: *root, Markers: markers, Exclude: splitList(*excludeList)})
+	found, guessed, err := scan.Sweep(scan.Opts{Root: *root, Markers: markers, Exclude: splitList(*excludeList)})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "arctool: scan %s: %v\n", *root, err)
 		return 4
@@ -833,7 +833,7 @@ func cmdScan(args []string) int {
 	}
 
 	if *asJSON {
-		if code := emitScanJSON(cp, markers, found, res, edits, skipped); code != 0 {
+		if code := emitScanJSON(cp, markers, guessed, found, res, edits, skipped); code != 0 {
 			return code
 		}
 	}
@@ -848,7 +848,7 @@ func cmdScan(args []string) int {
 			if newFolder != "" {
 				fmt.Printf("would create %s/ (new initiative folder)\n", newFolder)
 			}
-			reportScan(cp, *root, markers, found, res, edits, skipped, *strip, true)
+			reportScan(cp, *root, markers, guessed, found, res, edits, skipped, *strip, true)
 		}
 		return 0
 	}
@@ -874,7 +874,7 @@ func cmdScan(args []string) int {
 		if newFolder != "" {
 			fmt.Printf("created %s/ (new initiative folder)\n", newFolder)
 		}
-		reportScan(cp, *root, markers, found, res, edits, skipped, *strip, false)
+		reportScan(cp, *root, markers, guessed, found, res, edits, skipped, *strip, false)
 	}
 	return 0
 }
@@ -894,17 +894,19 @@ type scanJSON struct {
 	Known    int          `json:"known"`
 	Total    int          `json:"total"`
 	Changed  bool         `json:"changed"`
+	Guessed  []string     `json:"guessedTypes"`
 	New      []scan.Block `json:"new"`
 	Extended []scan.Block `json:"extended"`
 	Edited   []scan.Edit  `json:"edited"`
 	Skipped  []scan.Skip  `json:"skipped"`
 }
 
-func emitScanJSON(register string, markers []string, found []scan.Finding, res scan.Result,
+func emitScanJSON(register string, markers, guessed []string, found []scan.Finding, res scan.Result,
 	edits []scan.Edit, skipped []scan.Skip) int {
 	payload := scanJSON{
 		Register: filepath.ToSlash(register),
 		Markers:  markers,
+		Guessed:  append([]string{}, guessed...),
 		Found:    len(found),
 		Known:    res.Known,
 		Total:    res.Total,
@@ -924,7 +926,7 @@ func emitScanJSON(register string, markers []string, found []scan.Finding, res s
 }
 
 // reportScan prints the summary a reader (or an agent) acts on.
-func reportScan(register, root string, markers []string, found []scan.Finding, res scan.Result,
+func reportScan(register, root string, markers, guessed []string, found []scan.Finding, res scan.Result,
 	edits []scan.Edit, skipped []scan.Skip, strip, dryRun bool) {
 	verb := "wrote"
 	switch {
@@ -947,6 +949,12 @@ func reportScan(register, root string, markers []string, found []scan.Finding, r
 		if tag := scan.IgnoredTag(f); tag != "" {
 			fmt.Printf("  note %s:%d  tag %q needs a letter: read as a plain marker\n", f.File, f.Line, tag)
 		}
+	}
+	if len(guessed) > 0 {
+		// A language the openers table does not name is read with // and #. Say so, so
+		// that "no marker found" is never mistaken for "this tree is clean".
+		fmt.Printf("  note %d file type(s) the sweep does not know (%s) were read with the default // and # comment style\n",
+			len(guessed), strings.Join(clipList(guessed, 5), ", "))
 	}
 
 	if !strip {
@@ -971,6 +979,7 @@ func reportScan(register, root string, markers []string, found []scan.Finding, r
 	for _, sk := range skipped {
 		fmt.Printf("  left %s:%d in place: %s\n", sk.File, sk.Line, sk.Reason)
 	}
+
 	if removed > 0 && !dryRun {
 		fmt.Println("the code changed: review it with git diff")
 	}
@@ -986,6 +995,14 @@ func reportBlock(indent string, b scan.Block) {
 		}
 		fmt.Printf("%s%s  %s:%d  %s\n", indent, id, f.File, f.Line, clip(f.Text, 100))
 	}
+}
+
+// clipList shortens a list for a report line, naming how many it left out.
+func clipList(in []string, max int) []string {
+	if len(in) <= max {
+		return in
+	}
+	return append(in[:max:max], fmt.Sprintf("and %d more", len(in)-max))
 }
 
 // splitList turns a comma-separated flag value into a trimmed list.
@@ -1053,16 +1070,20 @@ func cmdArchive(args []string) int {
 	if code != 0 {
 		return code
 	}
+
 	// Archive first (additive), then plan (destructive).
 	if err := atomicWrite(ap, archiveContent); err != nil {
 		fmt.Fprintf(os.Stderr, "arctool: write %s: %v\n", ap, err)
 		return 4
 	}
+
 	if err := atomicWrite(planPath, res.NewPlan); err != nil {
 		fmt.Fprintf(os.Stderr, "arctool: write %s: %v\n", planPath, err)
 		return 4
 	}
+
 	fmt.Printf("archived %d, pending %d\n", len(res.Archived), pending)
+
 	return 0
 }
 

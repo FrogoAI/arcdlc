@@ -770,9 +770,8 @@ func TestCmdScanCreatesTheFolderFromTheSlug(t *testing.T) {
 const groupedMarkers = "package a\n\n" +
 	"// ARCDLC:T1 move the rebuild into internal\n" +
 	"func a() {}\n\n" +
-	"/* ARCDLC:t1 change the return format\n" +
-	"to the single one\n" +
-	"*/\n" +
+	"// ARCDLC:t1 change the return format\n" +
+	"// to the single one\n" +
 	"func b() {}\n\n" +
 	"// ARCDLC drop the retry\n" +
 	"func c() {}\n"
@@ -795,7 +794,7 @@ func TestCmdScanGroupsTaggedMarkersIntoOneBlock(t *testing.T) {
 		"- WHERE:\n  a.go (marker at line 3)",
 		"  a.go (marker at line 6)",
 		"### ARCDLC-CMT-01:",
-		"- Marker: `a.go:11` `ARCDLC drop the retry`",
+		"- Marker: `a.go:10` `ARCDLC drop the retry`",
 	} {
 		if !strings.Contains(got, want) {
 			t.Errorf("register missing %q:\n%s", want, got)

@@ -49,10 +49,6 @@ func Strip(root string, found []Finding) (edits []Edit, skipped []Skip, err erro
 		cuts := map[int][2]int{}
 		removed := 0
 		for _, f := range byFile[rel] {
-			if !f.strip.ok {
-				skipped = append(skipped, Skip{File: rel, Line: f.Line, Marker: f.Marker, Reason: f.strip.reason})
-				continue
-			}
 			if !stillThere(lines, f) {
 				skipped = append(skipped, Skip{File: rel, Line: f.Line, Marker: f.Marker,
 					Reason: "the file changed since the sweep"})

@@ -108,17 +108,27 @@ checks. Do not merge with a red pipeline.
   after the tag (`ARCDLC-CMT-T1`), because it is one change written down three times. Tags are folded to
   upper case, reach across the whole sweep, and belong to one marker word (`TODO:T1` is another
   group). A tag with no letter in it is not a tag: `// ARCDLC:01` would claim an auto-numbered ID, so it
-  reads as a plain marker and the run says so. A block comment that closes on a later line is one
-  finding and is removed whole; one whose closer shares a line with code stays in the code, because
-  cutting it would take that line's indentation with it.
+  reads as a plain marker and the run says so.
+- **Only a single-line comment carries a marker.** `// ARCDLC ...` counts; `/* ARCDLC ... */` and every
+  other block comment is prose to the sweep, in every language. A single-line comment ends where its
+  line ends, so the note's extent needs no per-language closing token, and removing one is a whole-line
+  delete or a cut to the end of a line: safe everywhere, with no shape to refuse. A language whose only
+  comment is a block comment carries no markers, and `openersByExt` says so with an empty entry.
 - **The default marker is `ARCDLC`, and removing a comment is asked for.** `scan.DefaultMarkers` is the
   bundle's own word, so a sweep never touches the TODO and FIXME notes a repository already had;
   `--marker TODO` is how a team opts in. Cutting a comment out of the code needs `--strip`, and
   `/arcdlc:assist` only passes it after the engineer answers yes (Step 6 of that skill). A marker also
-  counts only inside a comment: `internal/scan`'s line scanner follows string literals, including the
-  ones that span lines, and reports no comment when it cannot tell. Both rules exist so a sweep cannot
-  rewrite code nobody pointed it at. See
+  counts only inside a comment: `internal/scan`'s line scanner follows string literals and block
+  comments across lines, and reports no comment when it cannot tell. A file that ends inside a literal
+  proves the scanner misread one, so it re-reads that file line by line rather than losing everything
+  below. Both rules exist so a sweep cannot rewrite code nobody pointed it at. See
   [ADR-0017](docs/adr/0017-a-marker-is-arcdlc-in-a-comment-and-cutting-it-is-asked-for.md).
+- **The comment styles the sweep reads are documented, and the document is checked.**
+  [docs/comment-markers.md](docs/comment-markers.md) is the contract: the marker, the tag, every shape a
+  marker may sit in, and the single-line comment style of every file type in `openersByExt` and
+  `openersByName`. Adding a language means two edits in one change set: the table in
+  `internal/scan/scan.go` and the table on that page. `TestDocumentedCommentStylesMatchTheTable` fails
+  when they disagree, in either direction.
 - **Initiatives are folders; selection is mandatory and explicit.** Each initiative lives in
   `docs/aics/<slug>/` (holding the architecture doc, `plan.md`, `gap.md`, `comments.md`,
   `plan-archive.md` — the last three are always siblings of `plan.md`). Selection is always named, never inferred:

@@ -86,19 +86,25 @@ Prefer `arctool`, which does the sweep for free and keeps you out of the files:
   a `- Marker:` line, puts the new words on the end of `WHAT`, and adds the file to `WHERE`. It
   touches nothing else, so a judgement already in that block stands. The run reports it as
   `extended ARCDLC-CMT-T1 with 1 marker(s)`. When that happens, mirror it into the plan per Step 5.
-- Block comments are swept too. `/* ARCDLC free the buffer` ... `*/` is one finding whose text runs to
-  the closer, and the whole comment goes when Step 6 removes it. Three shapes can never be removed and
-  are listed as skipped then: a marker on a decoration line of a block another line opened (`/*` alone,
-  then ` * ARCDLC ...`), a block that never closes, and a block whose closing `*/` shares a line with
-  code. Each one is still registered. Delete those by hand when you finish the task they produced.
+- **Only single-line comments carry markers.** `// ARCDLC ...` and `# ARCDLC ...` count. A block
+  comment does not, in any language: `/* ARCDLC ... */` is prose to the sweep. Tell the engineer that
+  when a marker they wrote never appears in the register. A note may still run over several lines, as
+  long as every line is its own comment:
+
+  ```go
+  // ARCDLC:T1 move the rebuild into internal
+  // and return one value instead of two
+  ```
+- A language whose only comment is a block comment (HTML, CSS, XML, OCaml) carries no markers at all.
+  The note has to go in a file that can hold one.
 - Exit `3` means no marker in the tree and nothing to resolve. Report that and stop.
 - Exit `1` means the existing register broke its own format (a block with no `- Marker:` line). Fix
   that block by hand, then scan again.
 - If `arctool` is unavailable, say so once and sweep by hand with the same rules: the marker must be
-  the first word of a comment (`// ARCDLC …`, `# ARCDLC …`), matched with word boundaries, so
-  `ARCDLCLIST` is not a finding, and neither is a marker inside a string or a constant, however much
-  the line looks like a comment; read a group tag the same way and merge
-  the markers that share one; join the lines of a block comment up to its `*/`; skip `.git`, `vendor`,
+  the first word of a **single-line** comment (`// ARCDLC …`, `# ARCDLC …`), matched with word
+  boundaries, so `ARCDLCLIST` is not a finding, and neither is a marker in a block comment, a string or
+  a constant, however much the line looks like a comment; read a group tag the same way and merge
+  the markers that share one; join the comment lines that continue a note; skip `.git`, `vendor`,
   `node_modules`, `dist`, `bin`, `docs`, and every document (`.md`, `.txt`, `.rst`). Then write the
   register by hand in the block shape below.
 
@@ -237,9 +243,9 @@ already queued:
   register already holds each marker, so the next sweep recognises them and no block is duplicated.
 - **Some, not all:** ask which, then delete those comment lines by hand. `--strip` removes every
   marker of the sweep, so it is the wrong tool for a partial answer.
-- A marker `--strip` cannot remove safely is reported and stays in the code (a marker inside a block
-  comment another line opened, a block that never closes, a closing `*/` that shares a line with
-  code). Name those in the report and remove them by hand when the task is done.
+- Every marker can be removed, because every marker is in a single-line comment: the comment lines go,
+  or the comment is cut off the end of a line of code. The one exception is a file edited between the
+  sweep and the removal, which keeps its comment and is reported. Name those in your report.
 
 ## Step 7 — Report
 

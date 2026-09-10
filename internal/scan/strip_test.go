@@ -15,7 +15,7 @@ func stripFile(t *testing.T, name, source string, markers ...string) (string, []
 		markers = []string{"TODO"}
 	}
 	dir := tree(t, map[string]string{name: source})
-	found, err := Sweep(Opts{Root: dir, Markers: markers})
+	found, _, err := Sweep(Opts{Root: dir, Markers: markers})
 	if err != nil {
 		t.Fatalf("Sweep: %v", err)
 	}
@@ -62,79 +62,6 @@ func TestStripKeepsTheCodeOnATrailingComment(t *testing.T) {
 	}
 }
 
-func TestStripKeepsTheCodeAroundABlockComment(t *testing.T) {
-	got, _ := stripFile(t, "a.c", "int a = 1 /* TODO widen this */ + 2;\n")
-	want := "int a = 1 + 2;\n"
-	if got != want {
-		t.Fatalf("got %q, want %q", got, want)
-	}
-}
-
-func TestStripRemovesASingleLineBlockComment(t *testing.T) {
-	got, _ := stripFile(t, "a.c", "/* TODO free the buffer */\nint f(void) { return 0; }\n")
-	want := "int f(void) { return 0; }\n"
-	if got != want {
-		t.Fatalf("got %q, want %q", got, want)
-	}
-}
-
-func TestStripLeavesMultiLineBlockComments(t *testing.T) {
-	source := "/*\n * TODO free the buffer\n */\nint f(void) { return 0; }\n"
-	got, skipped := stripFile(t, "a.c", source)
-	if got != source {
-		t.Fatalf("the code was edited inside a block comment:\n%s", got)
-	}
-	if len(skipped) != 1 || !strings.Contains(skipped[0].Reason, "block comment") {
-		t.Fatalf("skipped = %+v", skipped)
-	}
-	if skipped[0].Line != 2 || skipped[0].Marker != "TODO" {
-		t.Fatalf("skip = %+v", skipped[0])
-	}
-}
-
-func TestStripLeavesAnUnterminatedBlockOpener(t *testing.T) {
-	source := "/* TODO free the buffer\n   and check the size\nint f(void) { return 0; }\n"
-	got, skipped := stripFile(t, "a.c", source)
-	if got != source {
-		t.Fatalf("an unterminated block comment was cut:\n%s", got)
-	}
-	if len(skipped) != 1 || !strings.Contains(skipped[0].Reason, "does not close") {
-		t.Fatalf("skipped = %+v", skipped)
-	}
-}
-
-func TestStripRemovesABlockCommentThatClosesLowerDown(t *testing.T) {
-	got, skipped := stripFile(t, "a.c", "/* TODO free the buffer\nand check the size\n*/\nint f(void) { return 0; }\n")
-	want := "int f(void) { return 0; }\n"
-	if got != want {
-		t.Fatalf("got %q, want %q", got, want)
-	}
-	if len(skipped) != 0 {
-		t.Fatalf("skipped = %+v, want none", skipped)
-	}
-}
-
-func TestStripKeepsTheCodeBeforeABlockCommentThatClosesLowerDown(t *testing.T) {
-	source := "int f(void) { /* TODO free the buffer\nand check the size\n*/\n  return 0; }\n"
-	got, _ := stripFile(t, "a.c", source)
-	want := "int f(void) {\n  return 0; }\n"
-	if got != want {
-		t.Fatalf("got %q, want %q", got, want)
-	}
-}
-
-func TestStripLeavesABlockCommentWithCodeAfterItsCloser(t *testing.T) {
-	// Cutting the closer off that line would take the code's indentation with it.
-	source := "/* TODO free the buffer\nand check the size\n*/ int f(void) { return 0; }\n"
-	got, skipped := stripFile(t, "a.c", source)
-	if got != source {
-		t.Fatalf("the code line was cut:\n%s", got)
-	}
-	if len(skipped) != 1 || !strings.Contains(skipped[0].Reason, "code follows the closing */") {
-		t.Fatalf("skipped = %+v", skipped)
-	}
-}
-
 func TestStripCollapsesTheBlankLineItWouldDouble(t *testing.T) {
 	got, _ := stripFile(t, "a.go", "package a\n\nfunc A() {}\n\n// TODO drop B\n\nfunc B() {}\n")
 	want := "package a\n\nfunc A() {}\n\nfunc B() {}\n"
@@ -161,7 +88,7 @@ func TestStripKeepsCRLF(t *testing.T) {
 
 func TestStripSkipsAFileThatChangedSinceTheSweep(t *testing.T) {
 	dir := tree(t, map[string]string{"a.go": "package a\n\n// TODO rename this\nfunc A() {}\n"})
-	found, err := Sweep(Opts{Root: dir, Markers: []string{"TODO"}})
+	found, _, err := Sweep(Opts{Root: dir, Markers: []string{"TODO"}})
 	if err != nil {
 		t.Fatal(err)
 	}
