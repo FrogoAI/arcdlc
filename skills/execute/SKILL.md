@@ -40,8 +40,8 @@ be long. The full standard, with examples and a pre-save check, is
 
 - **Wisdom.** Unclear is a question, not a guess. A contradiction, a missing decision, code that looks
   dead, a change that is risky or hard to reverse: grill it, never pick for the engineer.
-- **Courage.** Say the hard thing. A plan a weaker model cannot execute is a plan defect, not a reason
-  to raise the tier. Never stop to report a helper skill as missing.
+- **Courage.** Say the hard thing. A task that is not mechanical is a plan defect, not a reason to
+  raise the tier. Never stop to report a helper skill as missing.
 - **Justice.** Write every answer where the next session reads it, never only in the chat. Name the
   tier you actually used. Never report a same-tier spawn as a cheaper run.
 - **Temperance.** Touch only what you were pointed at. Cutting a comment out of the code is asked for,
@@ -86,9 +86,11 @@ Probe once: can this harness spawn subagents with their own clean context (e.g. 
 
 ### Executor tier: ask, never assume
 
-A task block is written to be run by a weaker model than the one that planned it, so the subagent should
-cost less than you do. A tier is two dials, not one: the model, and the effort level it runs at. A strong
-model at its lowest effort often fits a block that already carries every decision.
+A task block is written to be mechanical: executable by a model with no context but the block and the
+files it names. That is a property of the plan, not a bet on which model is cheap this year. What it
+buys you is freedom to run the queue on a cheaper tier, and a tier is two dials, not one: the model,
+and the effort level it runs at. A strong model at its lowest effort often fits a block that already
+carries every decision, and usually beats a weaker model at the same price.
 
 You pick neither dial on your own. Both belong to the engineer, and you ask once per run.
 
@@ -121,9 +123,10 @@ Ask only when you are about to spawn. Single-task mode (`/arcdlc:execute <slug> 
 session, so there is no tier to choose and no question to ask.
 
 The tier is not a quality dial. When the executor meets a decision its block does not carry, it grills the
-engineer or blocks the task (per-task contract, step 7). Never retry at a higher tier: a block a weaker
-model cannot execute is a plan defect that `/arcdlc:plan <slug>` sharpens. Name the tier the run used,
-and where it came from, in the report.
+engineer or blocks the task (per-task contract, step 7). Never retry at a higher tier. A block that is not
+mechanical is a plan defect, and raising the tier hides it: the task gets done by judgement nobody
+recorded, and the next run of that plan behaves differently. `/arcdlc:plan <slug>` sharpens the block
+instead. Name the tier the run used, and where it came from, in the report.
 
 **Orchestrator mode (subagents available).** Run the queue as a thin dispatcher and implement nothing yourself:
 

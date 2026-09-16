@@ -24,6 +24,7 @@ Every decision that was hard, surprising, or expensive to reverse. Newest last.
 | 0018 | [Only single-line comments carry markers](0018-only-single-line-comments-carry-markers.md) | Accepted |
 | 0019 | [The executor tier is asked for, not guessed](0019-the-executor-tier-is-asked-for-not-guessed.md) | Accepted |
 | 0020 | [The reference library is dissolved into the skills that use it](0020-reference-library-dissolved-into-the-skills.md) | Accepted |
+| 0021 | [A planned task must be mechanical, not merely cheap to run](0021-a-planned-task-must-be-mechanical.md) | Accepted |
 
 A decision that changes an earlier one carries `Amends` or `Supersedes` in its header, and the
 earlier record points forward. Nothing here is deleted: a superseded ADR is how you find out why the

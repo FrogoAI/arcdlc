@@ -39,8 +39,8 @@ be long. The full standard, with examples and a pre-save check, is
 
 - **Wisdom.** Unclear is a question, not a guess. A contradiction, a missing decision, code that looks
   dead, a change that is risky or hard to reverse: grill it, never pick for the engineer.
-- **Courage.** Say the hard thing. A plan a weaker model cannot execute is a plan defect, not a reason
-  to raise the tier. Never stop to report a helper skill as missing.
+- **Courage.** Say the hard thing. A task that is not mechanical is a plan defect, not a reason to
+  raise the tier. Never stop to report a helper skill as missing.
 - **Justice.** Write every answer where the next session reads it, never only in the chat. Name the
   tier you actually used. Never report a same-tier spawn as a cheaper run.
 - **Temperance.** Touch only what you were pointed at. Cutting a comment out of the code is asked for,
@@ -134,7 +134,7 @@ Each answer lands in the gap register, one way or the other:
 ## Step 3 — Write the gap register
 
 Write or update `docs/aics/<slug>/gap.md` — the evidence register. One gap per `###` block, using the plan heading
-format so it can be mirrored into the plan verbatim. Write each block for a **less capable executor**: the mirrored
+format so it can be mirrored into the plan verbatim. Write each block to be **mechanical**: the mirrored
 task will be implemented by whatever model runs `/arcdlc:execute`, reading only the block and its references — so
 the block must carry the fix decision, not just the complaint. Word every field the way
 `## Talk simple, write like a human` says: name the file, the rule, and the effect, in plain

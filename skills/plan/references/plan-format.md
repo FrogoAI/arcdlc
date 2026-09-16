@@ -3,9 +3,16 @@
 **Reviewed**: 2026-09-16
 
 This guide defines the `docs/aics/<slug>/plan.md` task format. The plan is an executable queue: `/arcdlc:execute` (or
-any compatible runner) picks tasks off it mechanically, so the format is a contract, not a style preference. It is
-written to be executed by a **less capable model than the one that planned it**: every decision that matters belongs
-in the task block, not in the executor's judgment.
+any compatible runner) picks tasks off it mechanically, so the format is a contract, not a style preference.
+
+**Every task must be mechanical.** The bar is not "a weaker model could probably manage it", which is a bet on
+pricing. The bar is: **executable by a model that has no context but this block and the files it names.** No
+judgement call, no decision left open, nothing to infer from a conversation the executor never saw.
+
+That is why the pipeline has three stages and not one. `/arcdlc:aic` is where the hard thinking happens: the
+trade-offs, the ownership boundaries, the data model. `/arcdlc:plan` turns those settled decisions into mechanical
+steps. `/arcdlc:execute` carries them out. A task that cannot be made mechanical is not a task that needs a stronger
+executor. It is a design that is not finished, or a task that is not split far enough.
 
 Keep format rules in this file. Each `plan.md` contains only the plan content and a short link back to this guide —
 no runner instructions. `gap.md` (evidence register) and `plan-archive.md` (archive) are always siblings of `plan.md`
@@ -154,13 +161,18 @@ Use the register as the evidence, and `plan.md` as the executable queue — both
    while authoring, resolve it now — do not defer it to the executor.
 7. `arctool validate --strict` fails a task with a missing or empty `Acceptance` section, an empty
    `References` list, or a `WHERE` with no concrete file/module.
-8. **Every `Acceptance` criterion must name something a reader can run or observe**: a command or
+8. **A task that cannot be made mechanical is not ready.** `HOW` records decisions: signatures, naming, data
+   shapes, algorithm choice, edge cases, error handling. It does not record code. When you find yourself writing
+   the implementation line by line in `HOW`, stop: either the task is too big and splits into several, or a
+   decision is still open and belongs back in the architecture document. Writing the code twice, once as prose and
+   once as code, is the failure this format exists to prevent.
+9. **Every `Acceptance` criterion must name something a reader can run or observe**: a command or
    path in backticks, a test name, an exit code, or a `GIVEN … WHEN … THEN` scenario. `--strict`
    reports `unverifiable-acceptance` when a section has none of these, because "the feature works
    correctly" gives the executor nothing to check. The executor is a weaker model than the planner:
    it will not notice a criterion it cannot verify, it will decide it passed. A runnable check fails
    loudly where a guess passes silently.
-9. Do not place executor instructions inside `plan.md`; update this file instead.
+10. Do not place executor instructions inside `plan.md`; update this file instead.
 
 ## Minimal Example
 

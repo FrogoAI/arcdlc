@@ -44,8 +44,8 @@ be long. The full standard, with examples and a pre-save check, is
 
 - **Wisdom.** Unclear is a question, not a guess. A contradiction, a missing decision, code that looks
   dead, a change that is risky or hard to reverse: grill it, never pick for the engineer.
-- **Courage.** Say the hard thing. A plan a weaker model cannot execute is a plan defect, not a reason
-  to raise the tier. Never stop to report a helper skill as missing.
+- **Courage.** Say the hard thing. A task that is not mechanical is a plan defect, not a reason to
+  raise the tier. Never stop to report a helper skill as missing.
 - **Justice.** Write every answer where the next session reads it, never only in the chat. Name the
   tier you actually used. Never report a same-tier spawn as a cheaper run.
 - **Temperance.** Touch only what you were pointed at. Cutting a comment out of the code is asked for,
@@ -71,9 +71,16 @@ it into a `docs/aics/<slug>/` folder.
 
 ## Step 2 — Decompose into tasks
 
-Write every task for a **less capable executor than you**: the model running `/arcdlc:execute` may be
-weaker, and it only sees the task block plus its references — not your reasoning. Every decision that
-matters goes into the block.
+**Every task must be mechanical.** Write for an executor that has no context but the block and the
+files it names: not your reasoning, not this conversation, not the architecture document unless the
+block points at a section of it. Every decision that matters goes into the block.
+
+Mechanical does not mean small. It means nothing is left to judgement. A task that you cannot make
+mechanical is telling you one of two things, and neither is "use a stronger model":
+
+- **It is too big.** Split it until each piece carries one coherent change.
+- **A decision is still open.** That belongs in the architecture document, not in the plan. Stop and
+  grill it, then record the answer where `/arcdlc:aic` put the rest of the design.
 
 - One task per `###` block, exactly in the format from `references/plan-format.md`
   (keys `WHAT`, `HOW`, `WHERE`, `WHY`, `Acceptance`, `References`, `Status` — exact casing; `HOW` is optional).
@@ -91,9 +98,13 @@ matters goes into the block.
   re-derive it here. Two judgements are yours, not the contract's: `HOW` must resolve every decision
   the architecture document settles, so the executor never re-derives one, and `References` must name
   the architecture document plus every ADR the task relies on.
+- **`HOW` records decisions, never code.** Signatures, naming, data shapes, algorithm choice, edge
+  cases, error handling: yes. The implementation line by line: no. If you are writing the code in
+  prose, the task is too big or a decision is still open. Writing it twice, once as prose and once as
+  code, costs more than it saves and is the failure this format exists to prevent.
 - A task with no `Acceptance` criteria is not plannable, and a criterion the executor cannot check is
   no better. Name a command, a path, a test, an exit code, or write `GIVEN … WHEN … THEN`. "Works
-  correctly" is not a criterion: the executor is a weaker model and will decide it passed.
+  correctly" is not a criterion: the executor has no context to judge it and will decide it passed.
   `arctool validate --strict` reports this as `unverifiable-acceptance`.
 - Word every field the way `## Talk simple, write like a human` says. Vague text costs the executor a
   guess.
@@ -141,7 +152,7 @@ no-op — note that and continue.
     `- Status:` line.
   - Reorder between `/arcdlc:execute` runs, not during one. Nothing stops a reorder while a task is
     `TAKEN`, and the agent holding that task keeps working from the block it already read.
-- Self-sufficiency check (the litmus test): reread each block as if you were a weaker model that has
+- Mechanical check (the litmus test): reread each block as if you were a model that has
   read **only** the block and its `References`. If implementing it would require asking a question,
   guessing a design decision, or hunting for an unnamed file, fix the block now — put the decision in
   `HOW`, the file in `WHERE` — do not defer it to the executor.

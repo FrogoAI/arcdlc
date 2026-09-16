@@ -51,6 +51,11 @@ checks. Do not merge with a red pipeline.
 - **The plan format is a contract.** A change to `skills/plan/references/plan-format.md` requires
   matching changes in `internal/plan` (parser, validator, mutator, archiver), its tests, and every
   skill that references the format, in the same change set.
+- **A planned task must be mechanical.** Executable by a model with no context but the block and the
+  files it names: no judgement call, no open decision. `HOW` records decisions, never code. A task
+  that cannot be made mechanical is too big or rests on an unfinished design, and goes back to
+  `/arcdlc:plan` or `/arcdlc:aic`. It is never a reason to raise the executor tier, which only hides
+  the defect. See [ADR-0021](docs/adr/0021-a-planned-task-must-be-mechanical.md).
 - **Skills must stay install-agnostic.** Every `SKILL.md` must work as a Claude Code plugin command
   (`/arcdlc:<name>`) and as a flat skill (`arcdlc-<name>` on Codex, OpenCode, Cursor, Antigravity).
   Where a skill still reaches across to a sibling, keep both paths (`../grilling/...` and
@@ -125,7 +130,8 @@ checks. Do not merge with a red pipeline.
   `/arcdlc:remove <slug>` deletes a folder after an explicit confirmation and re-syncs; `arctool` itself
   deletes nothing. See [ADR-0002](docs/adr/0002-registry-sync-via-marker-blocks.md) and
   [ADR-0003](docs/adr/0003-initiative-removal-by-skill-not-arctool.md).
-- **The executor tier is asked for, never guessed.** A tier is a model plus an effort level. Order, first
+- **The executor tier is asked for, never guessed.** A cheap tier is safe because the plan is
+  mechanical, not the other way round. A tier is a model plus an effort level. Order, first
   answer wins: the task's `HOW`, then the `Executor tier:` pin in `CONTEXT.md`, then one question to the
   engineer before the first spawn, then in-session mode. Any tier must clear the capability floor: shell,
   file edits, the project's test and lint commands, a commit. A block a weaker model cannot execute is a

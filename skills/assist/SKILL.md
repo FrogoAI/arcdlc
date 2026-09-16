@@ -45,8 +45,8 @@ be long. The full standard, with examples and a pre-save check, is
 
 - **Wisdom.** Unclear is a question, not a guess. A contradiction, a missing decision, code that looks
   dead, a change that is risky or hard to reverse: grill it, never pick for the engineer.
-- **Courage.** Say the hard thing. A plan a weaker model cannot execute is a plan defect, not a reason
-  to raise the tier. Never stop to report a helper skill as missing.
+- **Courage.** Say the hard thing. A task that is not mechanical is a plan defect, not a reason to
+  raise the tier. Never stop to report a helper skill as missing.
 - **Justice.** Write every answer where the next session reads it, never only in the chat. Name the
   tier you actually used. Never report a same-tier spawn as a cheaper run.
 - **Temperance.** Touch only what you were pointed at. Cutting a comment out of the code is asked for,
@@ -164,7 +164,7 @@ terms into `CONTEXT.md` and hard trade-offs into `docs/adr/NNNN-<slug>.md`, neve
 
 ## Step 4 — Finish the register
 
-Fill the keys `arctool scan` left empty, writing for a **less capable executor**: the model running
+Fill the keys `arctool scan` left empty, writing a **mechanical** task: the model running
 `/arcdlc:execute` sees the task block and its references, nothing else.
 
 ```md
