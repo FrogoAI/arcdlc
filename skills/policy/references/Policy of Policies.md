@@ -42,7 +42,7 @@ This framework governs the creation and management of the following types of int
 **Precedence over bundled references**
 
 A policy the organization writes and approves under this framework outranks any reference document
-shipped with a tooling bundle (for ArcDLC: the files under `skills/source-map/source/`). Bundled
+shipped with a tooling bundle (for ArcDLC: the `references/` folders inside each skill). Bundled
 references are defaults for subjects the organization has not decided yet. Where an approved internal
 policy covers the same subject, it is the normative rule for audits, reviews, and tooling, and the
 bundled reference applies only to what the internal policy leaves unspecified.

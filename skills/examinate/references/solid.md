@@ -277,7 +277,7 @@ The direction of the **source-code dependency** should be the opposite of the **
 
 - A domain package imports `database/sql`, `net/http`, `github.com/aws/...`, or any framework. The dependency points the wrong way.
 - A function takes `*sql.DB` directly when it could take a small `Querier` interface.
-- Constructors call `os.Getenv` or read config — config belongs at composition root (`main`), not in business logic. See Twelve-Factor App.md.
+- Constructors call `os.Getenv` or read config — config belongs at composition root (`main`), not in business logic.
 - A test requires spinning up Postgres because the code calls `sql.Open` deep inside a service method.
 
 ### Example

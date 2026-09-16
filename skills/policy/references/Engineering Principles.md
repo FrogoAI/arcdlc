@@ -20,7 +20,7 @@ and MR conventions) are the portable part.
 * **KISS (Keep It Simple and Smart)**: See `source/KISS.md` for the full definition and its rules.
 * **DRY (Don't Repeat Yourself)**: A principle aimed at reducing repetition of software patterns.
 * **Conventional Commits**: The commit message convention this policy mandates. See
-  `source/Conventional Commits.md` for the full specification.
+  the Conventional Commits 1.0.0 specification, which `/arcdlc:execute` applies in full.
 * **Message Broker**: Any queue, log, or pub/sub middleware carrying asynchronous messages between
   services (Kafka, NATS, RabbitMQ, SQS/SNS, Pub/Sub, Redis Streams, …).
 * **Subject**: The broker's addressable channel for a message — the term a concrete broker may call a
@@ -62,7 +62,7 @@ and MR conventions) are the portable part.
 ### Commit Message Convention
 
 * **Mandatory Convention**: Every commit message must follow **Conventional Commits 1.0.0** — the
-  specification in `source/Conventional Commits.md` is normative. Reviewers must reject an MR whose
+  Conventional Commits 1.0.0 specification is normative. Reviewers must reject an MR whose
   commits do not conform.
 * **Format**: `<type>[optional scope][!]: <description>`, followed by an optional body and optional
   footers, separated by blank lines.

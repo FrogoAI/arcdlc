@@ -49,7 +49,9 @@ onboarding matter.
 The HTML edition is Asciidoctor output. It is **already numbered** (`1.`, `1.1.`, `5.1.1.`) and
 carries a table of contents and stable anchor ids, so the work is different:
 
-1. **Copy** `arc42-template.html` to `docs/aics/<slug>/arc42.html`.
+1. **Copy** `arc42-template.html` to `docs/aics/<slug>/arc42.html` with a shell copy (`cp`). Never read
+   the template into context to reproduce it: lines 1-434 are an embedded Asciidoctor stylesheet, 46 KB
+   that carries no content. Copy the file, then edit the copy in place.
 2. **Do not renumber.** The section numbers are already correct and match the map below. HTML numbers
    one level deeper than Markdown in §5, §7.2 and §8 — black boxes are `5.1.1`, `5.1.2`, …,
    infrastructure elements `7.2.1`, …, concepts `8.1`, …. Keep what is there.
@@ -109,7 +111,7 @@ already plain. Its only `<img>` is the logo in the `<h1>`, removed by step 3.
 ## Numbering (contract)
 
 Other references in this library cite arc42 by number: "Arc42 §5 Level 1" in `C4.md`, "Arc42 Section
-6" in `UML.md` and `BPMN.md`. Never renumber or reorder. The map below is the top-level contract and
+6" in `Diagram Conventions.md`. Never renumber or reorder. The map below is the top-level contract and
 holds for both output formats; the HTML edition additionally numbers the repeat slots one level
 deeper (`5.1.1`, `7.2.1`, …), which is upstream's own numbering and is kept as-is.
 
@@ -373,7 +375,7 @@ infrastructure elements needed to show where the building blocks run.
 black box; here you zoom into it. UML deployment diagrams, nested when the infrastructure is complex,
 or any notation able to show nodes and channels.
 
-Align with `Twelve-Factor App.md`: Factor X (Dev/Prod Parity) — document all environments; Factor V
+Align with the Twelve-Factor App: Factor X (Dev/Prod Parity), document all environments; Factor V
 (Build, Release, Run) — show the pipeline; Factor VII (Port Binding) — document port assignments.
 
 ### 7.1 Infrastructure Level 1
@@ -415,7 +417,7 @@ The upstream figure here is a menu of candidates:
 | Configuration | How Twelve-Factor config is managed |
 | Build/Deploy | CI/CD pipeline description |
 
-Cross-reference `Engineering Principles.md` and `Twelve-Factor App.md` where applicable.
+Cross-reference the project's own engineering principles and the Twelve-Factor App where applicable.
 
 ## 9 Architecture Decisions
 

@@ -8,7 +8,7 @@ Architectural reference for any Go service following Modular Domain-Centric Arch
 
 MDCA organizes a service around independent bounded-context modules and keeps infrastructure out of the domain: the domain declares the ports it needs, adapters implement them, and one composition root wires them together. It optimizes for performance efficiency, reliability, and maintainability, and introduces an abstraction only once a second concrete need for it exists.
 
-The normative definition lives in **`mdca.md`** — principles `P1`–`P10` (cite clauses as `P3.2`), the layering rules and the purity test for domain imports in §7, the tactical rules in §8, and the compliance checklist in §11. This document does not restate them; it describes how a Go **server** realizes MDCA. General Go coding rules live in **`Go Best Practice.md`**.
+The normative definition lives in **`mdca.md`** — principles `P1`–`P10` (cite clauses as `P3.2`), the layering rules and the purity test for domain imports in §7, the tactical rules in §8, and the compliance checklist in §11. This document does not restate them; it describes how a Go **server** realizes MDCA. General Go coding rules are ordinary Go practice and are not bundled.
 
 ---
 
@@ -523,7 +523,7 @@ A monorepository hosts multiple independently deployable services that share inf
 
 ## Go Coding Rules
 
-General Go rules — formatting, naming, errors, control structures, `defer`, interfaces, concurrency, data structures, comments, constants, `init`, embedding, and testing — live in **`Go Best Practice.md`**; this document covers server architecture only.
+This document covers server architecture only. General Go rules (formatting, naming, errors, `defer`, interfaces, concurrency, testing) are ordinary Go practice and are not bundled.
 
 ---
 

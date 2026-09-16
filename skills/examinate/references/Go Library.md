@@ -77,7 +77,7 @@ mylib/
 
 - No `cmd/` -- this is not an application.
 - No `main.go` -- there is nothing to run.
-- No `internal/` -- a published library keeps its API surface in the root package and its sub-packages, and the consumer decides what to use. `Clean Code.md`'s Package Design rule ("use `internal/` to hide packages that external consumers should not depend on") is the rule for **applications**, and for the rare library code that must never become API -- that, and only that, belongs in `internal/`.
+- No `internal/` -- a published library keeps its API surface in the root package and its sub-packages, and the consumer decides what to use. The usual package-design rule ("use `internal/` to hide packages external consumers should not depend on") is the rule for **applications**, and for the rare library code that must never become API -- that, and only that, belongs in `internal/`.
 - No `pkg/` -- the root package IS the package.
 - No `docker-compose.yml` or deployment configs -- the consuming app owns infrastructure.
 
