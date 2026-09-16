@@ -78,7 +78,9 @@ way they were designed.
 - **An agent that asks instead of guessing** — every skill also carries `Judge by the four virtues`:
   wisdom (ask, do not guess), courage (say the hard thing), justice (write the answer down where the
   next session reads it), temperance (touch only what you were pointed at).
-- **Bring your own agent** — one install-agnostic bundle for Claude Code, Codex, OpenCode, Cursor, and Antigravity.
+- **Bring your own agent** — one install-agnostic bundle. The skills are plain Markdown with no
+  agent-specific syntax, so they install for Claude Code, Codex, OpenCode, Cursor and Antigravity.
+  See [what is actually tested](#agent-support) before you rely on one.
 
 ## Why teams adopt ArcDLC
 
@@ -177,6 +179,25 @@ policy has no code impact), the track ends with the policy document.
 Every plan task carries testable `Acceptance` criteria; `/arcdlc:execute` must demonstrate them
 before a task may be marked `DONE`. The full contract lives in
 [`skills/plan/references/plan-format.md`](skills/plan/references/plan-format.md).
+
+## Agent support
+
+The bundle is install-agnostic by construction: every `SKILL.md` is plain Markdown with no
+agent-specific syntax, and the installer flattens the same files for each target. That is what makes
+five agents possible. It is not the same as five agents being tested.
+
+| Agent | Install | Status |
+|---|---|---|
+| Claude Code | plugin (`/arcdlc:<name>`) or `~/.claude/skills/` | **Used daily.** This is where the bundle is developed and exercised. |
+| Codex, OpenCode, Cursor | flat skills, `arcdlc-<name>` | Install path covered by CI on every push. Skill behaviour not routinely exercised. |
+| Antigravity | `agy` plugin, else flat skills | Only the flat fallback is covered by CI, because CI cannot run `agy`. The plugin path has never been confirmed against a shipping build. |
+
+CI proves the files land in the right directories, the installer is idempotent, uninstall is clean,
+and a retired skill is swept. It cannot prove a skill behaves correctly on an agent, because that
+means running a real agent.
+
+So: if you use ArcDLC somewhere other than Claude Code and something misbehaves, that is worth an
+issue rather than a surprise. Nothing here is known broken; most of it is simply unverified.
 
 ## Repository Layout
 

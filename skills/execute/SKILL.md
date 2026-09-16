@@ -220,8 +220,18 @@ For each task, in order (in orchestrator mode, the spawned subagent performs the
 
 ## When a task is unclear, grill before you code (mandatory)
 
-A task the plan left ambiguous is not yours to guess. Stop coding and ask the engineer the moment you
-hit one of these:
+A task the plan left ambiguous is not yours to guess. A mechanical plan should make this rare, so
+every time it happens one of two things is true, and they are handled differently:
+
+- **The block was defective**: it was not mechanical, and the planner should have settled this. Grill
+  for the answer so the run continues, then **name it in your report as a plan defect** with the task
+  ID and the decision that was missing. That is how `/arcdlc:plan <slug>` hardens the block instead of
+  the same gap biting the next run. Do not skip the report because you got an answer.
+- **Reality contradicts the plan**: the code, a dependency, or a test says something the planner could
+  not have known. Grill for the decision the same way. This is not a plan defect, and saying so in the
+  report keeps the signal honest.
+
+Either way, stop coding and ask the engineer the moment you hit one of these:
 
 - The task contradicts itself, the code, an ADR, `CONTEXT.md`, or the architecture document.
 - `HOW` is missing a decision you would otherwise invent: a signature, a name, a data shape, a
@@ -252,6 +262,9 @@ Where the answer goes, so nobody has to answer it twice:
   status writes of a parallel run, and the plan belongs to `/arcdlc:plan`.
 - No answer, or an answer that changes the plan: `arctool block <id> -m "<one-line reason>"`, report
   what you asked, and stop. The engineer decides whether the plan changes.
+- Every grilled decision, answered or not, goes in the run report: the task ID, the question, the
+  answer, and whether it was a plan defect or something reality forced. A run that grilled three times
+  and reported none looks like a clean run, and the plan never gets fixed.
 
 ## Commit message: Conventional Commits
 
@@ -312,7 +325,9 @@ When running the full queue (no task-ID argument), finish with a whole-project c
 
 ## Report
 
-Summarize per task: what changed, validation results, and the commit. Name the executor tier the run used and where
+Summarize per task: what changed, validation results, and the commit. List every decision you grilled
+for, marked as a plan defect or as something reality forced, so the planner can harden the blocks that
+were not mechanical. Name the executor tier the run used and where
 it came from: a task's `HOW`, the `CONTEXT.md` pin, the engineer's answer this run, or in-session because there was
 no tier to choose or nobody to ask. Suggest `/arcdlc:archive <slug>` when several `DONE` blocks have accumulated in
 the plan.

@@ -51,10 +51,20 @@ Go after most published Go code was written.
   The self-sufficiency rule earns its keep. Re-open only with a section that is genuinely rare and
   carries no binding rule.
 
-## Open obligations
+## Multi-agent support is structural, not tested
 
-- **Antigravity live verification, never recorded as done.** The `antigravity-cli` initiative required
-  a manual check on a real Antigravity install: run the installer, confirm the `/arcdlc-*` commands
-  register (through `agy` when present, else from `~/.gemini/config/skills/`), and confirm uninstall
-  clears them. CI proves only the flat fallback, because it cannot run `agy`. Nothing records that
-  this was ever performed, so treat Antigravity support as unverified against a shipping build.
+Closed as an obligation on 2026-09-16 and rewritten as a documented limit. The `antigravity-cli`
+initiative asked for a manual check against a real Antigravity install, and nobody has one. Chasing
+that verification was the wrong shape of task: it singled out one agent when the same gap applies to
+four.
+
+The bundle is install-agnostic by construction, and CI proves the files land correctly, the installer
+is idempotent, uninstall is clean, and a retired skill is swept. None of that proves a skill *behaves*
+correctly on an agent, because proving that means running a real agent, which CI cannot do.
+
+`README.md` now states this plainly in its Agent support section: developed and exercised on Claude
+Code, install path covered by CI for Codex, OpenCode and Cursor, and only the flat fallback covered
+for Antigravity. The plugin manifests say the same. Nothing is known broken; most of it is simply
+unverified, and that is now written down rather than implied away.
+
+Re-open per agent, with evidence, when someone actually runs the bundle on one.
