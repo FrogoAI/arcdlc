@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-07-14
-- Initiative: [antigravity-cli](../aics/antigravity-cli/aic.md)
+- Initiative: antigravity-cli (folder retired 2026-09-16; see git history)
 
 ## Context
 

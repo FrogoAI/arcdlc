@@ -73,10 +73,14 @@ way they were designed.
 - **Audit what already exists** — `/arcdlc:examinate` measures real code against a named architecture
   or policy (MDCA, DDD, SOLID, Twelve-Factor, …) and files each gap as a tracked task.
 - **Documents that read like a person wrote them** — every skill carries the same
-  `Talk simple, write like a human` rule: plain English, no AI filler, no long dashes, concrete facts, and the
-  domain's own terms kept and defined once. The standard lives in
-  `skills/source-map/source/Writing Style.md`.
-- **Bring your own agent** — one install-agnostic bundle for Claude Code, Codex, OpenCode, Cursor, and Antigravity.
+  `Talk simple, write like a human` rule: plain English, no AI filler, no long dashes, concrete facts,
+  and the domain's own terms kept and defined once. Plain words never mean less content.
+- **An agent that asks instead of guessing** — every skill also carries `Judge by the four virtues`:
+  wisdom (ask, do not guess), courage (say the hard thing), justice (write the answer down where the
+  next session reads it), temperance (touch only what you were pointed at).
+- **Bring your own agent** — one install-agnostic bundle. The skills are plain Markdown with no
+  agent-specific syntax, so they install for Claude Code, Codex, OpenCode, Cursor and Antigravity.
+  See [what is actually tested](#agent-support) before you rely on one.
 
 ## Why teams adopt ArcDLC
 
@@ -143,28 +147,22 @@ argument (e.g. `/arcdlc:plan checkout`). Details and manual alternatives: [Insta
 | `/arcdlc:remove <slug>` | Delete a completed initiative's folder and clean the registry — always after an explicit confirmation. | removed folder, refreshed `docs/aics/` + registry |
 | `/arcdlc:archive <slug>` | Move `DONE` task blocks into `docs/aics/<slug>/plan-archive.md`, keeping the plan small. | compacted plan + archive |
 | `/arcdlc:grilling [topic]` | The interview every other command falls back to when something is unclear, contradictory, risky, or needs a human, usable on its own: relentless questions, **one at a time**, each with a recommended answer, until nothing is silently assumed. | settled decisions, `CONTEXT.md` terms, ADRs |
-| `source-map` skill | Routing table into the bundled architecture & engineering reference library (AIC, arc42, Tech Stack Canvas, TOGAF, C4, ADR, DDD, SOLID, MDCA, Go guides, Twelve-Factor, Conventional Commits, …). | reference guidance |
 
-While any of these skills is running, the agent talks in plain, short English — short sentences,
-bullets, no filler. Architecture documents are written the same way: plain English a new engineer
-reads once and gets. Plain words never mean less content — the documents, plans, and gap registers
-keep their full required detail.
+Each skill carries the templates and rule sets it needs in its own `references/` folder: the
+architecture templates with `/arcdlc:aic`, the audit standards (MDCA, DDD, SOLID, the Go guides) with
+`/arcdlc:examinate`, the policy framework with `/arcdlc:policy`.
 
 ### Initiatives live in folders
 
 Each initiative gets its own folder `docs/aics/<slug>/` (holding the architecture document, `plan.md`,
-`gap.md`, and `plan-archive.md`). Every pipeline command takes the slug as its **first argument**
+`gap.md`, `comments.md`, `plan-human.md`, and `plan-archive.md`). Every pipeline command takes the slug as its **first argument**
 (e.g. `/arcdlc:execute checkout`); a command run without a slug lists the initiatives and stops,
 instead of guessing. Task IDs need only be unique within one initiative's plan, and each
 `/arcdlc:execute` run works exactly one initiative. `arctool sync` keeps the list below in step with
 `docs/aics/`, and `/arcdlc:remove <slug>` retires a finished one.
 
 <!-- arcdlc:initiatives:begin -->
-- [Antigravity CLI](docs/aics/antigravity-cli/aic.md) — Add Google Antigravity as a fourth supported agent — a native plugin bundle with a flat-skills fallback.
-- [Cursor Support](docs/aics/cursor-support/aic.md) — Add Cursor as a supported agent via flat personal skills (~/.cursor/skills/arcdlc-<name>) — installer, CI, and docs only…
-- [Initiative Lifecycle](docs/aics/initiative-lifecycle/aic.md) — Mandatory slug-first selection, an arctool-synced initiative registry, and an always-confirmed removal flow.
-- [Task Ordering](docs/aics/ordering/aic.md) — Add an arctool command that re-orders task blocks in plan.md, because /arcdlc:execute runs them top to bottom.
-- [Source Library Cleanup](docs/aics/source-library-cleanup/aic.md) — Make the bundled reference library agent-grade: redact leaked data, delete docs that contradict the plan contract, merge…
+_none_
 <!-- arcdlc:initiatives:end -->
 
 ArcDLC is a universal delivery tool: it builds **applications** and authors **policies**, and both
@@ -182,21 +180,50 @@ Every plan task carries testable `Acceptance` criteria; `/arcdlc:execute` must d
 before a task may be marked `DONE`. The full contract lives in
 [`skills/plan/references/plan-format.md`](skills/plan/references/plan-format.md).
 
+## Agent support
+
+The bundle is install-agnostic by construction: every `SKILL.md` is plain Markdown with no
+agent-specific syntax, and the installer flattens the same files for each target. That is what makes
+five agents possible. It is not the same as five agents being tested.
+
+| Agent | Install | Status |
+|---|---|---|
+| Claude Code | plugin (`/arcdlc:<name>`) or `~/.claude/skills/` | **Used daily.** This is where the bundle is developed and exercised. |
+| Codex, OpenCode, Cursor | flat skills, `arcdlc-<name>` | Install path covered by CI on every push. Skill behaviour not routinely exercised. |
+| Antigravity | `agy` plugin, else flat skills | Only the flat fallback is covered by CI, because CI cannot run `agy`. The plugin path has never been confirmed against a shipping build. |
+
+CI proves the files land in the right directories, the installer is idempotent, uninstall is clean,
+and a retired skill is swept. It cannot prove a skill behaves correctly on an agent, because that
+means running a real agent.
+
+So: if you use ArcDLC somewhere other than Claude Code and something misbehaves, that is worth an
+issue rather than a surprise. Nothing here is known broken; most of it is simply unverified.
+
 ## Repository Layout
 
 ```
 arcdlc/
 ├── .claude-plugin/          # plugin.json + marketplace.json (Claude Code plugin metadata)
+├── .antigravity-plugin/     # the Antigravity plugin manifest
 ├── assets/                  # README banner (arcdlc_bg.svg)
-├── skills/                  # one skill per directory (SKILL.md each)
-│   ├── source-map/          # reference library (SKILL.md + source/)
+├── skills/                  # ten skills, one per directory (SKILL.md each)
 │   ├── grilling/            # the one-question-at-a-time interview every skill runs on
-│   ├── aic/  policy/  plan/  plan-human/  examinate/  assist/
-│   ├── execute/  remove/  archive/
-│   └── plan/references/plan-format.md   # the executable-plan contract
-├── cmd/arctool/               # arctool CLI entry point
+│   │   └── references/      # Writing Style.md, the shared writing standard
+│   ├── aic/references/      # AIC, arc42, TSC, TOGAF, C4, ADR templates + diagram conventions
+│   ├── examinate/references/# MDCA, DDD, SOLID, ECS, the Go guides: the audit rule sets
+│   ├── policy/references/   # the Policy of Policies framework
+│   ├── plan/references/     # plan-format.md, the executable-plan contract
+│   ├── plan-human/references/  # story-format.md, the board-story contract
+│   └── policy/  execute/  assist/  remove/  archive/
+├── docs/
+│   ├── adr/                 # architecture decision records (README.md indexes them)
+│   ├── aics/<slug>/         # one folder per initiative: arch doc, plan, gap, comments
+│   └── comment-markers.md   # every comment style the sweep reads (pinned by a test)
+├── cmd/arctool/             # arctool CLI entry point
 ├── internal/plan/           # plan parser, validator, mutator, archiver (+ tests)
+├── internal/registry/       # initiative registry sync (+ tests)
 ├── internal/scan/           # code comment sweep + comment register (+ tests)
+├── CONTEXT.md               # the project's ubiquitous language
 ├── Makefile                 # build / install / test / release
 ├── install.sh               # one-line installer (skills + arctool, all agents)
 └── .github/workflows/       # CI (lint+test+cross-compile) and tag-driven releases
@@ -375,36 +402,28 @@ sweep merges them into one block, named after the tag:
 
 ```go
 // ARCDLC:T1 move the rebuild into internal
-...
-/* ARCDLC:t1 change the return format
-to the single one
-*/
+```
+```python
+# ARCDLC:t1 change the return format to the single one
 ```
 
 Both land in `ARCDLC-CMT-T1`, with one `- Marker:` line each, both locations under `WHERE`, and their
-words seeded into `WHAT`. Tags ignore case, reach across the whole sweep, and belong to one marker
-word, so `TODO:T1` is a different group. An untagged `// ARCDLC` stays a task of its own.
+words seeded into `WHAT`. Tags ignore case and belong to one marker word, so `TODO:T1` is a different
+group. An untagged `// ARCDLC` stays a task of its own.
 
-The marker is `ARCDLC` and not `TODO` on purpose: a sweep never picks up the notes a repository already
-had. `--marker TODO` (or `/arcdlc:assist <slug> TODO`) is how a team opts those in. A marker also counts
-only inside a comment, so `// ARCDLC ...` written inside a string or a long constant is text in that
-constant and the sweep steps over it.
+Three rules are worth knowing before the first sweep:
 
-**The sweep does not touch the code.** It records, and stops. `arctool scan --strip` is what deletes the
-registered comment lines, and `/arcdlc:assist` only runs it after it has asked the engineer and been told
-yes. Answer no and the comments stay; the register already holds them, so the next sweep recognises each
-one and duplicates nothing.
+- **The marker is `ARCDLC`, not `TODO`.** A sweep never picks up notes your repository already had.
+  `--marker TODO` (or `/arcdlc:assist <slug> TODO`) opts those in.
+- **Only single-line comments carry markers.** `// ARCDLC ...` counts, `/* ARCDLC ... */` does not, in
+  every language, so a language whose only comment is a block comment carries none. A marker inside a
+  string or a constant is text, and the sweep steps over it.
+- **The sweep does not touch your code.** It records and stops. `arctool scan --strip` deletes the
+  registered comment lines, and `/arcdlc:assist` runs it only after asking and being told yes.
 
-A re-run appends what is new and leaves every existing block alone, with one exception: a marker whose
-tag is already registered is added to that block, as another `- Marker:` line plus more text on `WHAT`
-and `WHERE`. Nothing else in the block moves, so a judgement already written there stands.
-
-**Only single-line comments carry markers.** `// ARCDLC ...` counts, `/* ARCDLC ... */` does not, in
-every language. One rule instead of a family of them: a single-line comment ends where its line ends,
-so the note needs no closing token and removing it is a whole-line delete or a cut to the end of a
-line, which is safe in every language. A language whose only comment is a block comment (HTML, CSS,
-OCaml) therefore carries no markers. Every style the sweep reads is listed in
-[docs/comment-markers.md](docs/comment-markers.md).
+A re-run appends what is new and leaves existing blocks alone, except that a marker whose tag is already
+registered is added to that block. A judgement already written there stands. Every comment style the
+sweep reads is listed in [docs/comment-markers.md](docs/comment-markers.md).
 
 ### Governance flow
 

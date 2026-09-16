@@ -1,9 +1,38 @@
 # Plan Task Authoring Guide
 
+**Reviewed**: 2026-09-16
+
 This guide defines the `docs/aics/<slug>/plan.md` task format. The plan is an executable queue: `/arcdlc:execute` (or
-any compatible runner) picks tasks off it mechanically, so the format is a contract, not a style preference. It is
-written to be executed by a **less capable model than the one that planned it**: every decision that matters belongs
-in the task block, not in the executor's judgment.
+any compatible runner) picks tasks off it mechanically, so the format is a contract, not a style preference.
+
+**Every task must be mechanical.** The bar is not "a weaker model could probably manage it", which is a bet on
+pricing. The bar is: **executable by a model that has no context but this block and the files it names.** No
+judgement call, no decision left open, nothing to infer from a conversation the executor never saw.
+
+That is why the pipeline has three stages and not one. `/arcdlc:aic` is where the hard thinking happens: the
+trade-offs, the ownership boundaries, the data model. `/arcdlc:plan` turns those settled decisions into mechanical
+steps. `/arcdlc:execute` carries them out. A task that cannot be made mechanical is not a task that needs a stronger
+executor. It is a design that is not finished, or a task that is not split far enough.
+
+## Source stamp
+
+A plan records which architecture document it was decomposed from, and what that document said at the
+time, in an HTML comment in the preamble:
+
+```
+<!-- arcdlc:source docs/aics/checkout/aic.md sha256:3f78685… -->
+```
+
+It never renders and never parses as a task. `arctool stamp <path> --aic <slug>` writes it,
+`arctool stamp --aic <slug>` refreshes it, and `arctool validate` checks it: a changed document is a
+warning (so `--strict` fails), a missing one is an error. A plan with no stamp is not checked, so
+plans written before this existed keep working.
+
+The stamp exists because a design matures by re-running `/arcdlc:aic`, and a plan written from round
+two keeps executing happily after round five moved the design underneath it. Execution is mechanical
+by contract, so the executor has no context to notice: it builds the superseded design faithfully and
+reports success. Re-stamping is how an engineer says "I read the diff and these tasks still hold";
+nothing decides that for them.
 
 Keep format rules in this file. Each `plan.md` contains only the plan content and a short link back to this guide —
 no runner instructions. `gap.md` (evidence register) and `plan-archive.md` (archive) are always siblings of `plan.md`
@@ -74,6 +103,17 @@ bodies to plain/bulleted lines with inline backticks — a fenced code block end
   name the relevant section inside `HOW` (e.g. `see docs/aics/checkout/aic.md §"Data model"`) so
   the executor does not re-derive which part applies.
 - `Status` (required) — see the lifecycle below.
+
+**Custom keys are allowed.** A key-shaped line the list above does not define (`- BUDGET: …`,
+`- Rollout plan:`) is carried through untouched: it is not validated, never required, and never
+dropped. It absorbs its own indented body exactly as a defined multi-line key does, it appears in
+`arctool show` and `arctool next --json` under `extra`, in document order, and `arctool validate`
+says nothing about it. The seven keys above are the contract; anything else is part of the task, and
+the executor receives the whole task.
+
+The one thing a custom key must not do is shadow a defined one. `- Acceptence:` is a custom key, not
+a misspelled `Acceptance`, so a task that carries it has no acceptance criteria and `--strict` will
+say so.
 
 ## Status Lifecycle (In-Block)
 
@@ -146,13 +186,26 @@ Use the register as the evidence, and `plan.md` as the executable queue — both
    period (`- Status: TODO.`).
 4. Size each task so one agent session can implement, test, and commit it: one coherent slice,
    roughly ≤5–6 files in `WHERE`. If `WHERE` spans unrelated modules, split the task.
-5. Order blocks by dependency — the queue runs top-to-bottom, so a task may only depend on tasks above it.
+5. Order blocks by dependency, because the queue runs top to bottom and a task may only depend on tasks
+   above it. The order in the file *is* the run order: there is no `DEPENDS` key and nothing derives an
+   order, by decision rather than by omission. `arctool order` is the only way to change it.
 6. Make each block self-sufficient: an executor reading only the block plus its referenced sections
    must be able to implement it without asking questions. If you cannot name a file or a decision
    while authoring, resolve it now — do not defer it to the executor.
 7. `arctool validate --strict` fails a task with a missing or empty `Acceptance` section, an empty
    `References` list, or a `WHERE` with no concrete file/module.
-8. Do not place executor instructions inside `plan.md`; update this file instead.
+8. **A task that cannot be made mechanical is not ready.** `HOW` records decisions: signatures, naming, data
+   shapes, algorithm choice, edge cases, error handling. It does not record code. When you find yourself writing
+   the implementation line by line in `HOW`, stop: either the task is too big and splits into several, or a
+   decision is still open and belongs back in the architecture document. Writing the code twice, once as prose and
+   once as code, is the failure this format exists to prevent.
+9. **Every `Acceptance` criterion must name something a reader can run or observe**: a command or
+   path in backticks, a test name, an exit code, or a `GIVEN … WHEN … THEN` scenario. `--strict`
+   reports `unverifiable-acceptance` when a section has none of these, because "the feature works
+   correctly" gives the executor nothing to check. The executor is a weaker model than the planner:
+   it will not notice a criterion it cannot verify, it will decide it passed. A runnable check fails
+   loudly where a guess passes silently.
+10. Do not place executor instructions inside `plan.md`; update this file instead.
 
 ## Minimal Example
 

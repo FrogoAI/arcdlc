@@ -1,50 +1,56 @@
 ---
 name: arcdlc-assist
-description: Turn code comment markers into planned work. Sweeps the source with `arctool scan` for the ARCDLC marker (`// ARCDLC ...`, or TODO, FIXME, HACK, XXX, BUG when asked), records every marker in docs/aics/<slug>/comments.md, groups the markers that share a tag (`// ARCDLC:T1 ...`) into one record, grills the engineer about the unclear ones, then adds a TODO task to docs/aics/<slug>/plan.md for each marker that names real work. Removing the comments from the code is a separate, always-asked step. The initiative slug is the required first argument; the marker is an optional second one (e.g. /arcdlc:assist payments TODO). Use when the user runs /arcdlc:assist, invokes arcdlc-assist, or asks to turn code markers or TODOs into tasks.
+description: Turn the markers already written in the source code (ARCDLC by default, or TODO, FIXME, HACK, XXX, BUG when asked) into planned tasks. Sweeps the code, records each finding, grills the unclear ones, then plans the real work. Deleting the comments is a separate step and is always asked for. Use when someone says we have TODOs everywhere, clean up the FIXMEs, turn our code comments into work, or what is marked unfinished in the code, or runs /arcdlc:assist <slug> [marker], or invokes arcdlc-assist.
 argument-hint: "<slug> [ARCDLC|TODO|FIXME|HACK|XXX|BUG]"
 ---
 
 # ArcDLC Assist (/arcdlc:assist)
 
 Collect the markers the team left in the code, judge each one with the engineer, and feed the real
-work into the executable plan. The sweep moves each marker out of the code and into the register, so
-the comment is recorded once and the code stops carrying it.
+work into the executable plan.
 
-The marker is `ARCDLC`, the bundle's own word: `// ARCDLC move the rebuild into internal`. It is not
-`TODO` by default on purpose, so a sweep never picks up the notes a team already had. Ask for those
-explicitly when the engineer wants them.
-
-One change is often written down in several places. A marker can carry a group tag, `// ARCDLC:T1 move
-the rebuild into internal`, and every marker with that tag becomes **one** record, however many files
-it spans: one heading, one `- Marker:` line each, one task. An untagged `// ARCDLC` stays a record of
-its own.
-
-The sweep records. It does not touch the code unless the engineer says so, and asking is Step 6.
+- The default marker is `ARCDLC`, the bundle's own word: `// ARCDLC move the rebuild into internal`.
+  Never `TODO` unless the engineer asks, so a sweep never picks up notes a team already had.
+- A group tag makes one record. `// ARCDLC:T1 ...` in three files is one heading, three `- Marker:`
+  lines, one task. An untagged `// ARCDLC` is a record of its own.
+- The sweep records. It touches the code only when the engineer says so, which is Step 6.
 
 ## Talk simple, write like a human
 
-Plain English, everywhere: short sentences, common words, one idea each, active voice, a named
-actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
+Every rule here governs everything you emit, chat messages exactly as much as the files you write.
+Plain English: short sentences, common words, one idea each, active voice, a named actor.
 
-- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
-  Say what you did, what you found, what comes next.
-- **Files you write:** no AI filler ("Furthermore", "In conclusion", "It is important to note",
-  "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
-  invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
-  improves performance".
-- **Be direct, name the thing.** The fewest words that carry the fact; a word that only adds tone
-  comes out. Never a metaphor, a narrative line, or a question. Say what must happen: "The alerter
-  retries three times, then dead-letters." Every title that names work is an instruction, a verb
-  plus its object: "Implement the alerter service", never "One message out, and the three places it
-  goes".
-- **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
-  Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
+- **No AI filler, anywhere.** Not "Furthermore", "In conclusion", "It is important to note", "delve",
+  "leverage", "robust", "seamless". No warm-up opener, no praise, no restating the request back, no
+  invented summary. Concrete names, numbers, and paths, never "significantly improves performance".
+- **Be direct, name the thing.** The fewest words that carry the fact. Cut empty intensifiers:
+  `honestly`, `genuinely`, `truly`, `clearly`, `obviously`. Never a metaphor, a narrative line, or a
+  question. Every title that names work is a verb plus its object: "Implement the alerter service".
+- **No long dashes.** A full stop, a comma, a colon, or brackets instead of `—` and `–`. Hyphens,
+  flags, and slugs stay. A format contract that requires `—` wins.
 - **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
   once in plain words, then use it. Simple English is about the sentence, not the term.
+- **Shape.** In chat, bullets rather than paragraphs: what you did, what you found, what comes next.
+  In files, vary sentence length so the prose does not read as a list.
 
-Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
-decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
-pre-save check, is `source/Writing Style.md` in the bundle's `source-map` skill.
+Nothing is dropped to save space, in a reply as much as in a file. Never leave out a rule, path,
+decision, trade-off, open question, or acceptance criterion because the answer is getting long: if it
+bears on what the reader does next, it goes in. Short means no padding, never less content. Cut filler
+words, repetition, and throat-clearing; never cut a fact. When completeness makes a reply long, let it
+be long. The full standard, with examples and a pre-save check, is
+`../grilling/references/Writing Style.md` (flat installs:
+`../arcdlc-grilling/references/Writing Style.md`).
+
+## Judge by the four virtues
+
+- **Wisdom.** Unclear is a question, not a guess. A contradiction, a missing decision, code that looks
+  dead, a change that is risky or hard to reverse: grill it, never pick for the engineer.
+- **Courage.** Say the hard thing. A task that is not mechanical is a plan defect, not a reason to
+  raise the tier. Never stop to report a helper skill as missing.
+- **Justice.** Write every answer where the next session reads it, never only in the chat. Name the
+  tier you actually used. Never report a same-tier spawn as a cheaper run.
+- **Temperance.** Touch only what you were pointed at. Cutting a comment out of the code is asked for,
+  not assumed. No invented summary, no scope you were not given.
 
 ## Initiative selection
 
@@ -145,17 +151,20 @@ judgement that no longer covers all of its markers. Judge the new markers, fold 
 Do not write a task from a guess, and do not drop an unclear marker in silence. Run a grilled
 interview on the `UNCLEAR` findings only:
 
-- Prefer the bundle's `arcdlc-grilling` skill. If it cannot be invoked here, read its `SKILL.md`
-  (`../grilling/SKILL.md`, flat installs `../arcdlc-grilling/SKILL.md`) and run the same protocol
-  inline. Never stop to report a helper skill as missing.
-- **One question per turn.** Ask, wait for the answer, then ask the next. Every question carries a
-  recommended answer. Never a numbered round of questions.
+Prefer this bundle's own `arcdlc-grilling` skill (`/arcdlc:grilling`). If it cannot be invoked here,
+read `../grilling/SKILL.md` (flat installs: `../arcdlc-grilling/SKILL.md`) and run its protocol
+inline. What is mandatory is the grilled interview, never the invocation: never stop to report a
+helper skill as missing, and never look for a grilling skill outside this bundle. **One question per
+turn**: ask, wait for the answer, then ask the next, each carrying your recommended answer and one
+line of why. Never a numbered round. Facts are yours to find: if the code, config, or an existing doc
+answers it, look it up instead of asking. Write each decision down the moment it settles, glossary
+terms into `CONTEXT.md` and hard trade-offs into `docs/adr/NNNN-<slug>.md`, never only in the chat.
 - Each answer settles the finding: it becomes `ACTIONABLE` with the decision written into `HOW`, or
   `STALE` or `DEFERRED` with the reason written down.
 
 ## Step 4 — Finish the register
 
-Fill the keys `arctool scan` left empty, writing for a **less capable executor**: the model running
+Fill the keys `arctool scan` left empty, writing a **mechanical** task: the model running
 `/arcdlc:execute` sees the task block and its references, nothing else.
 
 ```md
@@ -219,9 +228,8 @@ every `ACTIONABLE` finding:
 - Order matters: the runner works top to bottom, so a task may only depend on tasks above it. When
   two markers touch the same file, put the one the other needs first (`arctool order` fixes an
   inversion later).
-- Validate before handing off. Prefer `arctool validate --strict --aic <slug>` and fix every finding;
-  exit `0` means clean. If `arctool` is unavailable, say so once and hand-check unique IDs, present
-  and uppercase `Status`, and the required keys per the format guide.
+- Validate before handing off: `arctool validate --strict --aic <slug>`, exit `0` means clean. Without
+  it, say so once and hand-check the "Authoring Rules" section of the format guide.
 
 ## Step 6 — Ask before you touch the code (mandatory)
 

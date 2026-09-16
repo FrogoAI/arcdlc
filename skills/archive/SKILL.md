@@ -1,6 +1,6 @@
 ---
 name: arcdlc-archive
-description: Archive DONE task blocks from docs/aics/<slug>/plan.md into docs/aics/<slug>/plan-archive.md and compact the plan, keeping it short for agent context while preserving history. The initiative slug is the required first argument (e.g. /arcdlc:archive payments). Use when the user runs /arcdlc:archive, invokes arcdlc-archive, or asks to archive/compact the plan.
+description: Move finished tasks out of the plan into a dated archive and compact what remains, so the plan stays small enough to stay in an agent's context without losing history. Use when someone says the plan is getting long, clean up the finished tasks, compact the plan, or archive what is done, or runs /arcdlc:archive <slug>, or invokes arcdlc-archive.
 argument-hint: "<slug>"
 ---
 
@@ -12,28 +12,40 @@ depends on (defined in `../plan/references/plan-format.md`; flat installs:
 
 ## Talk simple, write like a human
 
-Plain English, everywhere: short sentences, common words, one idea each, active voice, a named
-actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
+Every rule here governs everything you emit, chat messages exactly as much as the files you write.
+Plain English: short sentences, common words, one idea each, active voice, a named actor.
 
-- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
-  Say what you did, what you found, what comes next.
-- **Files you write:** no AI filler ("Furthermore", "In conclusion", "It is important to note",
-  "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
-  invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
-  improves performance".
-- **Be direct, name the thing.** The fewest words that carry the fact; a word that only adds tone
-  comes out. Never a metaphor, a narrative line, or a question. Say what must happen: "The alerter
-  retries three times, then dead-letters." Every title that names work is an instruction, a verb
-  plus its object: "Implement the alerter service", never "One message out, and the three places it
-  goes".
-- **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
-  Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
+- **No AI filler, anywhere.** Not "Furthermore", "In conclusion", "It is important to note", "delve",
+  "leverage", "robust", "seamless". No warm-up opener, no praise, no restating the request back, no
+  invented summary. Concrete names, numbers, and paths, never "significantly improves performance".
+- **Be direct, name the thing.** The fewest words that carry the fact. Cut empty intensifiers:
+  `honestly`, `genuinely`, `truly`, `clearly`, `obviously`. Never a metaphor, a narrative line, or a
+  question. Every title that names work is a verb plus its object: "Implement the alerter service".
+- **No long dashes.** A full stop, a comma, a colon, or brackets instead of `—` and `–`. Hyphens,
+  flags, and slugs stay. A format contract that requires `—` wins.
 - **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
   once in plain words, then use it. Simple English is about the sentence, not the term.
+- **Shape.** In chat, bullets rather than paragraphs: what you did, what you found, what comes next.
+  In files, vary sentence length so the prose does not read as a list.
 
-Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
-decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
-pre-save check, is `source/Writing Style.md` in the bundle's `source-map` skill.
+Nothing is dropped to save space, in a reply as much as in a file. Never leave out a rule, path,
+decision, trade-off, open question, or acceptance criterion because the answer is getting long: if it
+bears on what the reader does next, it goes in. Short means no padding, never less content. Cut filler
+words, repetition, and throat-clearing; never cut a fact. When completeness makes a reply long, let it
+be long. The full standard, with examples and a pre-save check, is
+`../grilling/references/Writing Style.md` (flat installs:
+`../arcdlc-grilling/references/Writing Style.md`).
+
+## Judge by the four virtues
+
+- **Wisdom.** Unclear is a question, not a guess. A contradiction, a missing decision, code that looks
+  dead, a change that is risky or hard to reverse: grill it, never pick for the engineer.
+- **Courage.** Say the hard thing. A task that is not mechanical is a plan defect, not a reason to
+  raise the tier. Never stop to report a helper skill as missing.
+- **Justice.** Write every answer where the next session reads it, never only in the chat. Name the
+  tier you actually used. Never report a same-tier spawn as a cheaper run.
+- **Temperance.** Touch only what you were pointed at. Cutting a comment out of the code is asked for,
+  not assumed. No invented summary, no scope you were not given.
 
 ## Initiative selection
 
@@ -44,36 +56,28 @@ Compact that folder's `docs/aics/<slug>/plan.md` (passing `--aic <slug>` to `arc
 
 ## Prefer `arctool`
 
-Probe once: `command -v arctool`. If present, run `arctool archive --aic <slug>` (or add `--dry-run` first to preview).
-It performs every step below deterministically — moves the `DONE` blocks into
-`docs/aics/<slug>/plan-archive.md` under a dated `## Archived <YYYY-MM-DD>` section, extends the single compact ledger,
-leaves `TODO`/`TAKEN`/`BLOCKED` blocks untouched, and self-validates (writing nothing, exit 5, if an invariant fails).
-It writes the archive before the plan so a crash never loses a `DONE` block. Report its `archived N, pending M` line.
-If `arctool` is absent, say so once and follow the manual steps below.
+Probe once: `command -v arctool`. If present, run `arctool archive --aic <slug>` (`--dry-run` previews).
+It does everything below deterministically, writes the archive before the plan so a crash never loses a
+`DONE` block, and self-validates (writing nothing, exit 5, on a failed invariant). Report its
+`archived N, pending M` line. If `arctool` is absent, say so once and do it by hand.
 
-## What to do
+## Manual fallback
 
-1. Read `docs/aics/<slug>/plan.md` (the resolved initiative's plan).
-2. Move every `###` block whose `- Status:` is `DONE` into `docs/aics/<slug>/plan-archive.md`:
-   - Create the archive file if missing, with a header linking back to the plan.
-   - Append the full, unmodified task blocks under a dated section (`## Archived <YYYY-MM-DD>`), preserving order.
-3. In `plan.md`, replace the archived blocks with a single compact ledger near the top:
+1. Move every `###` block in `docs/aics/<slug>/plan.md` whose `- Status:` is `DONE` into
+   `docs/aics/<slug>/plan-archive.md`, full and unmodified, in order, under a dated
+   `## Archived <YYYY-MM-DD>` section. Create the archive with a header linking back to the plan if it
+   does not exist.
+2. Replace them in `plan.md` with one compact ledger near the top. Plain bullets, never `###`, or the
+   runner counts ledger lines as task blocks:
 
    ```md
    Completed (archived to docs/aics/<slug>/plan-archive.md):
    - <TASK-ID>: <Short Title>
-   - <TASK-ID>: <Short Title>
    ```
 
-   Use a plain bullet list — never `###` headings — so the runner does not count ledger lines as task blocks.
-4. Never modify, reorder, or reword blocks with status `TODO`, `TAKEN`, or `BLOCKED`. A `TAKEN` block means an agent
-   is mid-task — leave it alone.
-5. If `docs/aics/<slug>/gap.md` mirrors the plan, leave it untouched; it is the evidence register, not the queue.
+3. Never modify, reorder, or reword a `TODO`, `TAKEN`, or `BLOCKED` block. `TAKEN` means an agent is
+   mid-task. Leave `gap.md` alone: it is the evidence register, not the queue.
 
-## Validate before finishing
-
-- The number of pending `TODO` blocks in `plan.md` is identical before and after compaction.
-- Every archived task ID appears exactly once in the ledger and once in the archive.
-- No `DONE` blocks remain in `plan.md`.
-
-Report to the user: how many tasks were archived, how many remain pending, and the archive path.
+Before finishing, check all three: the `TODO` count is identical before and after, every archived task
+ID appears exactly once in the ledger and once in the archive, and no `DONE` block remains in
+`plan.md`. Report how many were archived, how many remain, and the archive path.

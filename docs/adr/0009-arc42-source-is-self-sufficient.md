@@ -2,7 +2,7 @@
 
 - Status: Superseded by [ADR-0010](0010-arc42-plain-template-plus-guide.md) (2026-08-31)
 - Date: 2026-08-01
-- Initiative: [source-library-cleanup](../aics/source-library-cleanup/aic.md)
+- Initiative: source-library-cleanup (folder retired 2026-09-16; see git history)
 
 ## Context
 

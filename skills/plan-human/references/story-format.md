@@ -1,5 +1,7 @@
 # Story format: what a board ticket must hold
 
+**Reviewed**: 2026-09-16
+
 This is the contract for `docs/aics/<slug>/plan-human.md`. A story that follows it can be pasted into a tracker and worked on without asking anyone a question.
 
 ## The file
@@ -212,7 +214,7 @@ destinations, which are story 16.
 
 ## The mapping table
 
-Keep this in `docs/aics/<slug>/CONTEXT.md`, under the delivery section. It is how the next session finds which ticket holds which work.
+Keep this in the repo-root `CONTEXT.md`, under the delivery section. It is how the next session finds which ticket holds which work.
 
 ```
 | Story | Title | Plan tasks | Tracker | Phase |

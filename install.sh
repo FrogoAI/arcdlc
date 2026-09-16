@@ -22,7 +22,10 @@ set -euo pipefail
 REPO="FrogoAI/arcdlc"
 PLUGIN="arcdlc"
 TOOL="arctool"
-SUBSKILLS="aic archive assist examinate execute grilling plan plan-human policy remove source-map"
+SUBSKILLS="aic archive assist examinate execute grilling plan plan-human policy remove"
+# Sub-skills that used to ship and no longer do. Swept on install and uninstall so an
+# upgrade does not strand them in the flat-skill directories.
+LEGACY_SUBSKILLS="source-map"
 
 BINDIR="${ARCDLC_BINDIR:-$HOME/.local/bin}"
 REF="${ARCDLC_REF:-main}"
@@ -91,7 +94,7 @@ resolve_agents() {
 if [ "$UNINSTALL" = 1 ]; then
   info "removing ArcDLC skills and $TOOL"
   rm -rf "$claude_dir/skills/$PLUGIN"
-  for s in $SUBSKILLS; do
+  for s in $SUBSKILLS $LEGACY_SUBSKILLS; do
     rm -rf "$codex_dir/skills/$PLUGIN-$s" "$opencode_dir/skills/$PLUGIN-$s" "$cursor_dir/skills/$PLUGIN-$s" "$gemini_dir/config/skills/$PLUGIN-$s"
   done
   rm -rf "$gemini_dir/antigravity-cli/plugins/$PLUGIN"
@@ -157,6 +160,7 @@ if [ "$DO_SKILLS" = 1 ]; then
           cursor)   root="$cursor_dir/skills" ;;
         esac
         mkdir -p "$root"
+        for s in $LEGACY_SUBSKILLS; do rm -rf "${root:?}/$PLUGIN-$s"; done
         for s in $SUBSKILLS; do
           rm -rf "${root:?}/$PLUGIN-$s"
           cp -R "$src/skills/$s" "$root/$PLUGIN-$s"
@@ -178,6 +182,7 @@ if [ "$DO_SKILLS" = 1 ]; then
         else
           root="$gemini_dir/config/skills"
           mkdir -p "$root"
+          for s in $LEGACY_SUBSKILLS; do rm -rf "${root:?}/$PLUGIN-$s"; done
           for s in $SUBSKILLS; do
             rm -rf "${root:?}/$PLUGIN-$s"
             cp -R "$src/skills/$s" "$root/$PLUGIN-$s"

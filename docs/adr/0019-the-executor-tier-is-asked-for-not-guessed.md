@@ -3,6 +3,8 @@
 - Status: Accepted
 - Date: 2026-09-11
 - Initiative: none (bundle-wide, tightens `/arcdlc:execute`)
+- Amended by: [ADR-0021](0021-a-planned-task-must-be-mechanical.md), which replaces the
+  weaker-model premise with a mechanical-task requirement. The tier is still asked for, never guessed.
 - Relates to: `skills/plan/references/plan-format.md` (opening line) and Step 2 of
   `skills/plan/SKILL.md`, which both already write each task for a weaker executor
 

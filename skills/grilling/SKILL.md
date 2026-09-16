@@ -1,6 +1,6 @@
 ---
 name: arcdlc-grilling
-description: Relentless one-question-at-a-time interview that stress-tests an initiative, decision, or policy before anything is written, capturing glossary terms in CONTEXT.md and hard decisions as ADRs the moment they settle. Use when the user runs /arcdlc:grilling, invokes arcdlc-grilling, or when another ArcDLC skill (/arcdlc:aic, /arcdlc:policy, /arcdlc:plan) needs its mandatory grilled interview.
+description: Interview relentlessly, one question at a time, each with a recommended answer, until nothing is silently assumed. Records terms in CONTEXT.md and hard calls as ADRs the moment they settle. Use when someone says grill me, stress-test this, poke holes in this, challenge my thinking, ask me what I am missing, or help me think this through, or runs /arcdlc:grilling, or invokes arcdlc-grilling, or when another ArcDLC skill needs its mandatory interview.
 argument-hint: "<what to grill>"
 ---
 
@@ -15,28 +15,40 @@ one, and do not report one as missing.
 
 ## Talk simple, write like a human
 
-Plain English, everywhere: short sentences, common words, one idea each, active voice, a named
-actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
+Every rule here governs everything you emit, chat messages exactly as much as the files you write.
+Plain English: short sentences, common words, one idea each, active voice, a named actor.
 
-- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
-  Say what you did, what you found, what comes next.
-- **Files you write:** no AI filler ("Furthermore", "In conclusion", "It is important to note",
-  "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
-  invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
-  improves performance".
-- **Be direct, name the thing.** The fewest words that carry the fact; a word that only adds tone
-  comes out. Never a metaphor, a narrative line, or a question. Say what must happen: "The alerter
-  retries three times, then dead-letters." Every title that names work is an instruction, a verb
-  plus its object: "Implement the alerter service", never "One message out, and the three places it
-  goes".
-- **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
-  Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
+- **No AI filler, anywhere.** Not "Furthermore", "In conclusion", "It is important to note", "delve",
+  "leverage", "robust", "seamless". No warm-up opener, no praise, no restating the request back, no
+  invented summary. Concrete names, numbers, and paths, never "significantly improves performance".
+- **Be direct, name the thing.** The fewest words that carry the fact. Cut empty intensifiers:
+  `honestly`, `genuinely`, `truly`, `clearly`, `obviously`. Never a metaphor, a narrative line, or a
+  question. Every title that names work is a verb plus its object: "Implement the alerter service".
+- **No long dashes.** A full stop, a comma, a colon, or brackets instead of `—` and `–`. Hyphens,
+  flags, and slugs stay. A format contract that requires `—` wins.
 - **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
   once in plain words, then use it. Simple English is about the sentence, not the term.
+- **Shape.** In chat, bullets rather than paragraphs: what you did, what you found, what comes next.
+  In files, vary sentence length so the prose does not read as a list.
 
-Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
-decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
-pre-save check, is `source/Writing Style.md` in the bundle's `source-map` skill.
+Nothing is dropped to save space, in a reply as much as in a file. Never leave out a rule, path,
+decision, trade-off, open question, or acceptance criterion because the answer is getting long: if it
+bears on what the reader does next, it goes in. Short means no padding, never less content. Cut filler
+words, repetition, and throat-clearing; never cut a fact. When completeness makes a reply long, let it
+be long. The full standard, with examples and a pre-save check, is
+`../grilling/references/Writing Style.md` (flat installs:
+`../arcdlc-grilling/references/Writing Style.md`).
+
+## Judge by the four virtues
+
+- **Wisdom.** Unclear is a question, not a guess. A contradiction, a missing decision, code that looks
+  dead, a change that is risky or hard to reverse: grill it, never pick for the engineer.
+- **Courage.** Say the hard thing. A task that is not mechanical is a plan defect, not a reason to
+  raise the tier. Never stop to report a helper skill as missing.
+- **Justice.** Write every answer where the next session reads it, never only in the chat. Name the
+  tier you actually used. Never report a same-tier spawn as a cheaper run.
+- **Temperance.** Touch only what you were pointed at. Cutting a comment out of the code is asked for,
+  not assumed. No invented summary, no scope you were not given.
 
 ## Hard rule — one question at a time
 
@@ -115,6 +127,13 @@ Capture each outcome the moment it lands — never batch it to the end of the se
   real trade-off. If any of the three is missing, skip the ADR — the decision belongs in the
   architecture document instead.
 - **Everything else** → keep in the running answer list you hand back to the skill that called you.
+
+**When an answer reverses something already written down, move both records in the same turn.** An
+interview that revisits a settled call is normal and healthy; leaving the old record standing is not.
+A superseded ADR that still reads `Accepted` becomes a rule `/arcdlc:examinate` audits code against,
+so the reversal turns into filed gaps for work nobody wants. Write the new ADR with `- Supersedes:`,
+set the old one's `- Status:` to `Superseded by [ADR-NNNN](...)`, and redefine a changed term in
+`CONTEXT.md` in place rather than adding a second entry.
 
 When the engineer uses a term that clashes with `CONTEXT.md`, or an overloaded one ("account" — the
 Customer or the User?), say so and settle it before moving on.

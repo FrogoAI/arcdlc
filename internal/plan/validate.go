@@ -121,6 +121,10 @@ func (p *Plan) Validate(opts ValidateOpts) []Finding {
 				f = append(f, Finding{SevError, t.ID, "empty-acceptance",
 					fmt.Sprintf("task %s has an empty Acceptance section", label(t)), t.Line})
 			}
+			if t.HasAcceptance && strings.TrimSpace(t.Acceptance) != "" && !looksDemonstrable(t.Acceptance) {
+				f = append(f, Finding{SevWarning, t.ID, "unverifiable-acceptance",
+					fmt.Sprintf("task %s has Acceptance an executor cannot check: name a command, a file path, a test, an exit code, or write GIVEN/WHEN/THEN", label(t)), t.Line})
+			}
 		}
 	}
 
