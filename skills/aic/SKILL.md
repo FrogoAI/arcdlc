@@ -20,13 +20,12 @@ end-to-end, route them through this pipeline instead of improvising.
 
 ## Talk simple, write like a human
 
-Plain English everywhere: short sentences, common words, one idea each, active voice, a named actor.
+Every rule here governs everything you emit, chat messages exactly as much as the files you write.
+Plain English: short sentences, common words, one idea each, active voice, a named actor.
 
-- **Replies to the user.** Bullets, not paragraphs. Say what you did, what you found, what comes next.
-  No filler, no praise, no restating the request.
-- **Files you write.** No AI filler ("Furthermore", "In conclusion", "It is important to note",
-  "delve", "leverage", "robust", "seamless"), no warm-up opener, no invented summary. Vary sentence
-  length. Concrete names, numbers, and paths, never "significantly improves performance".
+- **No AI filler, anywhere.** Not "Furthermore", "In conclusion", "It is important to note", "delve",
+  "leverage", "robust", "seamless". No warm-up opener, no praise, no restating the request back, no
+  invented summary. Concrete names, numbers, and paths, never "significantly improves performance".
 - **Be direct, name the thing.** The fewest words that carry the fact. Cut empty intensifiers:
   `honestly`, `genuinely`, `truly`, `clearly`, `obviously`. Never a metaphor, a narrative line, or a
   question. Every title that names work is a verb plus its object: "Implement the alerter service".
@@ -34,10 +33,13 @@ Plain English everywhere: short sentences, common words, one idea each, active v
   flags, and slugs stay. A format contract that requires `—` wins.
 - **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
   once in plain words, then use it. Simple English is about the sentence, not the term.
+- **Shape.** In chat, bullets rather than paragraphs: what you did, what you found, what comes next.
+  In files, vary sentence length so the prose does not read as a list.
 
-Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
-decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
-pre-save check, is `references/Writing Style.md` in the bundle's `grilling` skill.
+Only the length differs. A reply is short; a file is complete. Never drop a rule, path, decision,
+trade-off, or acceptance criterion from a file to save space, and never pad a reply to fill one. The
+full standard, with examples and a pre-save check, is `references/Writing Style.md` in the bundle's
+`grilling` skill.
 
 ## Judge by the four virtues
 

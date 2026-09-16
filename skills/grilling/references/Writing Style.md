@@ -13,6 +13,10 @@ It applies to everything the ArcDLC skills produce: architecture documents (AIC,
 Canvas, TOGAF, C4), ADRs, `CONTEXT.md`, policies under `docs/policies/`, plan tasks, gap findings,
 commit messages, and the HTML variants of all of them.
 
+It also applies to what the agent says in chat, not only to what it saves. A reply is prose a person
+reads once, so the same rules hold: plain English, no filler, no long dashes, no praise, concrete
+names. Only the length differs. A reply is short and a file is complete, and neither is padded.
+
 Three rules stand above the rest:
 
 1. Write plain English. Short sentences, common words, a named actor.
