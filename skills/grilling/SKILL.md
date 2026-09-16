@@ -128,6 +128,13 @@ Capture each outcome the moment it lands — never batch it to the end of the se
   architecture document instead.
 - **Everything else** → keep in the running answer list you hand back to the skill that called you.
 
+**When an answer reverses something already written down, move both records in the same turn.** An
+interview that revisits a settled call is normal and healthy; leaving the old record standing is not.
+A superseded ADR that still reads `Accepted` becomes a rule `/arcdlc:examinate` audits code against,
+so the reversal turns into filed gaps for work nobody wants. Write the new ADR with `- Supersedes:`,
+set the old one's `- Status:` to `Superseded by [ADR-NNNN](...)`, and redefine a changed term in
+`CONTEXT.md` in place rather than adding a second entry.
+
 When the engineer uses a term that clashes with `CONTEXT.md`, or an overloaded one ("account" — the
 Customer or the User?), say so and settle it before moving on.
 

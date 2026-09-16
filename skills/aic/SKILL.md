@@ -162,6 +162,27 @@ The interview ends only when the user confirms shared understanding or explicitl
 
 ## Step 3 — Write the document
 
+**If the document already exists, amend it. Never regenerate it.** Re-running `/arcdlc:aic <slug>` is
+the normal way a design matures: each round adds detail, tests an idea, or reverses a call. So:
+
+- Keep every section this interview did not touch, word for word. A detail added three rounds ago and
+  not discussed today is still the decision. Rewriting the file from the template silently drops it,
+  which is the one failure that makes iterating unsafe.
+- Change only what the interview changed, and say which sections changed in your closing report.
+- **A reversed decision is superseded, never deleted.** When this round rejects something an earlier
+  round settled, both records have to move or the project now holds two answers:
+  - Recorded as an ADR: write the new ADR, set `- Supersedes:` on it, and set the old one's
+    `- Status:` to `Superseded by [ADR-NNNN](...)`. Never leave two ADRs that disagree:
+    `/arcdlc:examinate` audits against `docs/adr/` and will file gaps for the decision you reversed.
+  - Recorded only in the document body: replace the text, and note the reversal and its reason in the
+    document, so the next reader does not re-litigate it.
+  - Recorded in `CONTEXT.md`: a term whose meaning changed is redefined in place, not duplicated.
+- **If a plan already exists** at `docs/aics/<slug>/plan.md`, this round may have invalidated tasks
+  derived from what you changed. Say so in the report, name the affected sections, and tell the
+  engineer to re-run `/arcdlc:plan <slug>`. Never edit `plan.md` yourself: `/arcdlc:plan` owns it.
+
+For a new document:
+
 - Fill the template section by section at the output path from the table, once per requested format.
 - The document must open with a level-1 heading (`# <Title>`) and a one-line summary blockquote
   (`> …`) directly under it. This title and summary are a contract: `arctool sync` parses them into

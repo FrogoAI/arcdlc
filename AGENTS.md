@@ -56,6 +56,17 @@ checks. Do not merge with a red pipeline.
   that cannot be made mechanical is too big or rests on an unfinished design, and goes back to
   `/arcdlc:plan` or `/arcdlc:aic`. It is never a reason to raise the executor tier, which only hides
   the defect. See [ADR-0021](docs/adr/0021-a-planned-task-must-be-mechanical.md).
+- **A thin design surfaces at plan time, and is reported as a design gap.** `/arcdlc:plan` Step 2.4
+  names each blocker as a missing decision rather than a hard task, groups blockers by the decision
+  they need (five tasks stuck on one question are one gap, not five), answers what the engineer can
+  settle in an interview, and hands anything that would move several sections back to `/arcdlc:aic`.
+  It never lowers the bar to get past the gate.
+- **An architecture document is amended, never regenerated.** Re-running `/arcdlc:aic <slug>` is how a
+  design matures: each round adds detail, tests an idea, or reverses a call. Sections the interview did
+  not touch survive word for word. A reversed decision is superseded in the same run, in both places it
+  lives: the new ADR carries `- Supersedes:` and the old one's `- Status:` becomes
+  `Superseded by ...`. Two ADRs that disagree become gaps `/arcdlc:examinate` files against code
+  nobody wants changed.
 - **Skills must stay install-agnostic.** Every `SKILL.md` must work as a Claude Code plugin command
   (`/arcdlc:<name>`) and as a flat skill (`arcdlc-<name>` on Codex, OpenCode, Cursor, Antigravity).
   Where a skill still reaches across to a sibling, keep both paths (`../grilling/...` and

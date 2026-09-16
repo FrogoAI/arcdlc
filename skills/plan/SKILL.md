@@ -112,6 +112,34 @@ mechanical is telling you one of two things, and neither is "use a stronger mode
 - If `docs/aics/<slug>/gap.md` or `docs/aics/<slug>/comments.md` exists, keep it in sync per the Register Sync
   rules in the format guide.
 
+## Step 2.4 — Design readiness gate (mandatory)
+
+A task that refuses to become mechanical is nearly always a design problem wearing a planning
+problem's clothes. Decomposition is where a thin architecture document first becomes visible, and the
+wrong move is to write a soft task and let the executor discover it.
+
+Before the risk gate, count what you could not settle:
+
+1. **Name each blocker as a missing decision, not as a difficult task.** Not "AIC-4 is hard to
+   specify" but "the document does not say whether the retry budget is per request or per batch".
+2. **Group blockers by the decision they need.** Five tasks stuck on one unanswered question are
+   **one** design gap, not five planning gaps. Report the count so the size of the hole is visible.
+3. **Then choose by where the answer lives:**
+   - **A decision the engineer can give you now** (a preference, a constraint, a name): grill for it,
+     one question at a time, record the answer in the architecture document, and carry on. This is the
+     common case and it does not need a new `/arcdlc:aic` run.
+   - **A decision that changes the design** (an ownership boundary, the data model, a communication
+     pattern, anything that would move several sections): stop. Do not write the plan around it. Report
+     which sections of the document are thin, say plainly that this is a design gap rather than a
+     planning one, and hand back to `/arcdlc:aic <slug>`. Say what you would have asked, so the next
+     interview starts there instead of from scratch.
+4. **Never lower the bar to get past this.** Not a vaguer `HOW`, not an `Acceptance` criterion the
+   executor cannot check, and never a note telling the executor to decide. Raising the executor tier
+   is not an option either: a task that is not mechanical stays a defect at any tier.
+
+A plan handed off with this gate skipped costs more than one that was never written, because the
+defect surfaces mid-execution, after commits exist.
+
 ## Step 2.5 — Risk coverage gate (mandatory)
 
 Risks named in the architecture document must not evaporate during decomposition. After decomposing,
@@ -157,5 +185,5 @@ no-op — note that and continue.
   guessing a design decision, or hunting for an unnamed file, fix the block now — put the decision in
   `HOW`, the file in `WHERE` — do not defer it to the executor.
 - Report the task count and order to the user, and confirm the decomposition before handing off. Do not hand off until
-  the Step 2.5 risk-coverage gate has passed (every risk covered by a task or explicitly accepted).
+  the Step 2.4 design-readiness gate and the Step 2.5 risk-coverage gate have both passed.
 - Next step: `/arcdlc:execute <slug>` to implement the queue.
