@@ -47,6 +47,17 @@ be long. The full standard, with examples and a pre-save check, is
 - **Temperance.** Touch only what you were pointed at. Cutting a comment out of the code is asked for,
   not assumed. No invented summary, no scope you were not given.
 
+## Before the first task: is the plan still current?
+
+Run `arctool validate --aic <slug>` once at the start. A `source-changed` warning means the
+architecture document moved after this plan was written, so some tasks may build a design that no
+longer exists. You cannot tell which: the blocks are mechanical and carry no trace of the reasoning.
+
+Stop and tell the engineer. They either re-run `/arcdlc:plan <slug>`, or read the diff and re-stamp
+with `arctool stamp --aic <slug>` to say the tasks still hold. Never make that call yourself, and
+never execute past the warning. *Fallback without `arctool`: check the plan's
+`<!-- arcdlc:source … -->` line against `sha256sum` of the file it names.*
+
 ## Tooling: prefer `arctool`
 
 Probe once at the start: `command -v arctool`. If present, drive the queue with the `arctool` commands below — they read

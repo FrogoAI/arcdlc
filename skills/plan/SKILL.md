@@ -165,6 +165,11 @@ no-op — note that and continue.
 
 - Write `docs/aics/<slug>/plan.md`, starting with a one-line link back to the format guide, then the `## Risk Coverage`
   mapping from Step 2.5, then the task blocks. No runner instructions inside the plan.
+- **Stamp the source.** Record which architecture document you decomposed, so a later `/arcdlc:aic`
+  round cannot move the design underneath this plan unnoticed: `arctool stamp docs/aics/<slug>/<doc>
+  --aic <slug>`, once per document you used. *Fallback without `arctool`: add
+  `<!-- arcdlc:source <path> sha256:<hash> -->` under the plan's H1, with the hash from
+  `sha256sum <path>`.* `arctool validate` then warns when that document changes.
 - Validate against the runner's parsing rules before finishing. Prefer the `arctool` CLI, which enforces the format
   contract mechanically (source at the arcdlc repo root; flat installs may ship it on `PATH`):
   - Probe once with `command -v arctool` (or install it from the arcdlc repo root: `make install`). If found, run `arctool validate --strict --aic <slug>` (or `--plan <path>`) and fix

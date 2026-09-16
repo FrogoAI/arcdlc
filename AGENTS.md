@@ -56,6 +56,12 @@ checks. Do not merge with a red pipeline.
   that cannot be made mechanical is too big or rests on an unfinished design, and goes back to
   `/arcdlc:plan` or `/arcdlc:aic`. It is never a reason to raise the executor tier, which only hides
   the defect. See [ADR-0021](docs/adr/0021-a-planned-task-must-be-mechanical.md).
+- **A plan records the design it came from.** `/arcdlc:plan` stamps the architecture document's
+  sha256 into `plan.md` as `<!-- arcdlc:source <path> sha256:… -->`; `arctool validate` warns when
+  that document has changed and errors when it is gone; `/arcdlc:execute` stops on the warning rather
+  than building a superseded design. `arctool stamp` refreshes it, which is how an engineer says they
+  read the diff and the tasks still hold. An unstamped plan is not checked, so older plans keep
+  working.
 - **A thin design surfaces at plan time, and is reported as a design gap.** `/arcdlc:plan` Step 2.4
   names each blocker as a missing decision rather than a hard task, groups blockers by the decision
   they need (five tasks stuck on one question are one gap, not five), answers what the engineer can

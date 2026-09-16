@@ -14,6 +14,26 @@ trade-offs, the ownership boundaries, the data model. `/arcdlc:plan` turns those
 steps. `/arcdlc:execute` carries them out. A task that cannot be made mechanical is not a task that needs a stronger
 executor. It is a design that is not finished, or a task that is not split far enough.
 
+## Source stamp
+
+A plan records which architecture document it was decomposed from, and what that document said at the
+time, in an HTML comment in the preamble:
+
+```
+<!-- arcdlc:source docs/aics/checkout/aic.md sha256:3f78685… -->
+```
+
+It never renders and never parses as a task. `arctool stamp <path> --aic <slug>` writes it,
+`arctool stamp --aic <slug>` refreshes it, and `arctool validate` checks it: a changed document is a
+warning (so `--strict` fails), a missing one is an error. A plan with no stamp is not checked, so
+plans written before this existed keep working.
+
+The stamp exists because a design matures by re-running `/arcdlc:aic`, and a plan written from round
+two keeps executing happily after round five moved the design underneath it. Execution is mechanical
+by contract, so the executor has no context to notice: it builds the superseded design faithfully and
+reports success. Re-stamping is how an engineer says "I read the diff and these tasks still hold";
+nothing decides that for them.
+
 Keep format rules in this file. Each `plan.md` contains only the plan content and a short link back to this guide —
 no runner instructions. `gap.md` (evidence register) and `plan-archive.md` (archive) are always siblings of `plan.md`
 in the same `docs/aics/<slug>/` folder. Initiative selection, folder layout, and the initiative registry are defined

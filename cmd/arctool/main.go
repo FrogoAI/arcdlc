@@ -25,7 +25,7 @@ import (
 	"github.com/FrogoAI/arcdlc/internal/scan"
 )
 
-const version = "0.16.0"
+const version = "0.17.0"
 
 // aicsDir is the root directory under which each initiative gets its own folder
 // (docs/aics/<slug>/, holding plan.md, gap.md, comments.md, plan-archive.md).
@@ -46,6 +46,12 @@ usage:
                  T1 T2 T3 + "order T3 T1 T2" -> T3 T1 T2; a task you do not name never moves
   arctool validate [--strict] [--json] [--warn-as-error] [--require-acceptance] [--aic SLUG | --plan PATH]
                  (--strict implies --require-acceptance: every task needs an Acceptance section)
+                 also checks every source stamp: warns when the architecture document the
+                 plan was decomposed from has changed since (see stamp below)
+  arctool stamp  [<source-path>] [--dry-run] [--aic SLUG | --plan PATH]
+                 record which architecture document this plan came from, and its hash.
+                 With a path, add a stamp; with none, refresh the stamps already there
+                 after reading the diff and deciding the tasks still hold
   arctool scan   [--marker LIST] [--path DIR] [--exclude LIST] [--comments PATH]
                  [--strip] [--json] [--dry-run] [--aic SLUG | --plan PATH]
                  sweep source comments for markers (default ARCDLC) into comments.md
@@ -92,6 +98,8 @@ func main() {
 		os.Exit(cmdOrder(os.Args[2:]))
 	case "validate":
 		os.Exit(cmdValidate(os.Args[2:]))
+	case "stamp":
+		os.Exit(cmdStamp(os.Args[2:]))
 	case "scan":
 		os.Exit(cmdScan(os.Args[2:]))
 	case "archive":
@@ -730,6 +738,10 @@ func cmdValidate(args []string) int {
 	// plan is only mature when every task has testable success criteria. The
 	// core Validate keeps the two opts orthogonal (so existing tests hold).
 	findings := p.Validate(plan.ValidateOpts{Strict: *strict, RequireAcceptance: *reqAcc || *strict})
+	// The source stamps are checked here rather than inside Validate because
+	// they need the filesystem, and Validate stays a pure function of the plan
+	// text. A plan with no stamp is simply not checked.
+	findings = append(findings, plan.CheckSources(p, ".")...)
 	errs, warns := plan.Counts(findings)
 	fail := errs > 0 || ((*strict || *warnAsError) && warns > 0)
 
@@ -1109,4 +1121,93 @@ func buildArchive(path string, section []byte) ([]byte, int) {
 		fmt.Fprintf(os.Stderr, "arctool: read %s: %v\n", path, err)
 		return nil, 4
 	}
+}
+
+// cmdStamp records, or refreshes, which architecture document a plan was
+// decomposed from and what that document said at the time.
+//
+// With a path it adds a stamp; with none it refreshes every stamp already
+// there. Refreshing is how an engineer says "the document moved, but not in a
+// way that changes these tasks" after reading the diff. Nothing here decides
+// that for them.
+func cmdStamp(args []string) int {
+	flags, pos := splitArgs(args, map[string]bool{"plan": true, "aic": true})
+	fs := flag.NewFlagSet("stamp", flag.ContinueOnError)
+	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic)")
+	aicFlag := fs.String("aic", "", "initiative slug under docs/aics/")
+	dryRun := fs.Bool("dry-run", false, "report what would change without writing")
+	if err := fs.Parse(flags); err != nil {
+		return 2
+	}
+	if len(pos) > 1 {
+		fmt.Fprintln(os.Stderr, "usage: arctool stamp [<source-path>] [--dry-run] [--aic SLUG | --plan PATH]")
+		return 2
+	}
+
+	planPath, code := resolvePlan(aicsDir, *planFlag, *aicFlag)
+	if code != 0 {
+		return code
+	}
+	p, code := loadPlan(planPath)
+	if code != 0 {
+		return code
+	}
+
+	if len(pos) == 1 {
+		out, added, err := plan.AddSource(p, ".", pos[0])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "arctool: %v\n", err)
+			return 3
+		}
+		if !added {
+			fmt.Printf("already stamped: %s\n", pos[0])
+			return 0
+		}
+		if *dryRun {
+			fmt.Printf("would stamp %s in %s\n", pos[0], planPath)
+			return 0
+		}
+		if len(plan.Parse(out).Tasks) != len(p.Tasks) {
+			fmt.Fprintln(os.Stderr, "arctool: stamping changed the task count; nothing written")
+			return 5
+		}
+		if err := atomicWrite(planPath, out); err != nil {
+			fmt.Fprintf(os.Stderr, "arctool: write %s: %v\n", planPath, err)
+			return 4
+		}
+		fmt.Printf("stamped %s in %s\n", pos[0], planPath)
+		return 0
+	}
+
+	if len(p.Sources()) == 0 {
+		fmt.Fprintf(os.Stderr, "arctool: %s carries no source stamp; add one with `arctool stamp <source-path>`\n", planPath)
+		return 3
+	}
+	out, refreshed, err := plan.Stamp(p, ".")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "arctool: %v\n", err)
+		return 3
+	}
+	if len(refreshed) == 0 {
+		fmt.Println("every source stamp is current")
+		return 0
+	}
+	if *dryRun {
+		for _, r := range refreshed {
+			fmt.Printf("would re-stamp %s\n", r)
+		}
+		return 0
+	}
+	if len(plan.Parse(out).Tasks) != len(p.Tasks) {
+		fmt.Fprintln(os.Stderr, "arctool: stamping changed the task count; nothing written")
+		return 5
+	}
+	if err := atomicWrite(planPath, out); err != nil {
+		fmt.Fprintf(os.Stderr, "arctool: write %s: %v\n", planPath, err)
+		return 4
+	}
+	for _, r := range refreshed {
+		fmt.Printf("re-stamped %s\n", r)
+	}
+	return 0
 }
