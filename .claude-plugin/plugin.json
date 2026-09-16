@@ -1,7 +1,7 @@
 {
   "name": "arcdlc",
   "description": "ArcDLC — Architecture Development Life Cycle: a universal delivery workflow for applications and policies. A bundled one-question-at-a-time grilling interview, grilled AIC and architecture documents (arc42, TSC, TOGAF, C4, ADR), grilled policy authoring, an executable acceptance-enforced plan, board-ready engineer stories, code comment markers turned into planned tasks, compliance examination, per-task execution, initiative removal, and plan archiving. Installs for Claude Code, Codex, OpenCode, Cursor and Antigravity; developed and exercised on Claude Code.",
-  "version": "0.23.0",
+  "version": "0.24.0",
   "author": {
     "name": "FrogoAI"
   },

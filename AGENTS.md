@@ -89,6 +89,13 @@ checks. Do not merge with a red pipeline.
   asks the next, each carrying a recommended answer. Never a numbered round. Six skills restate this in
   one shared paragraph for their inline fallback (`aic`, `policy`, `examinate`, `assist`, `plan-human`,
   `execute`); change it in all seven together.
+- **A spawned subagent has nobody to ask, and must never guess in place of asking.** It blocks the task
+  with the question as the reason and returns it unanswered; that is a correct outcome, not a failure.
+  The dispatcher, which is the session the engineer started, grills for the answer and either re-spawns
+  with it or hands back to `/arcdlc:plan`. The dispatcher also verifies every finished task itself, by
+  running its `Acceptance` criteria rather than trusting the subagent's self-certification: a cheaper
+  executor certifies optimistically, and a mechanical block carries no reasoning for it to notice it
+  contradicted.
 - **Unclear is a question, not a guess.** A skill that hits a contradiction, a missing decision, code
   that looks dead, or a risky change escalates to the grilled interview instead of choosing for the
   engineer. `aic`, `policy` and `plan` grill up front; `examinate` (Step 2.5), `assist` (Step 3),

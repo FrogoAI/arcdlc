@@ -148,15 +148,54 @@ instead. Name the tier the run used, and where it came from, in the report.
    initiative slug, the task ID, the per-task contract to follow (point it at this skill file and
    `../plan/references/plan-format.md`; flat installs: `../arcdlc-plan/references/plan-format.md`), and the
    accumulated notes from earlier task reports.
-3. The subagent executes the full per-task contract below (take → implement → verify acceptance → done → commit) and
-   reports back: files changed, test results, commit subject, final status — plus at most one line of notes useful to
-   later tasks (e.g. a project convention it discovered).
-4. Verify the outcome yourself before looping: the task's status is `DONE` (`arctool show <id>`) and the commit exists
-   (`git log -1`). A subagent that reports success without both counts as failed — reset per step 7 of the contract.
-5. On `BLOCKED` or failure, stop the whole run and report — same rule as step 7.
+3. **Tell the subagent it has nobody to ask.** Its prompt must say so plainly: there is no engineer in its
+   session, it must never grill, and it must never guess in place of grilling. Its task is mechanical; if
+   it turns out not to be, that is not its problem to solve. On any ambiguity, contradiction, or missing
+   decision it runs `arctool block <id> -m "<the question>"` and returns the question to you, unanswered
+   and unguessed. Returning a question is a successful outcome for a subagent, not a failure.
 
-Keep your own context small: in orchestrator mode never read source files or diffs — only plan state, subagent
-reports, and commit subjects. That is what lets a long queue finish in a single `/arcdlc:execute <slug>` invocation.
+   It then executes the per-task contract below (take → implement → verify acceptance → done → commit) and
+   reports back: files changed, test results, commit subject, final status, the question if it had one, and
+   at most one line of notes useful to later tasks.
+4. **Verify it yourself. Do not take the report's word.** The executor verified its own work in step 5 of
+   the per-task contract, and a cheaper model self-certifies optimistically: it will meet a contradiction,
+   implement something plausible, decide it passed, and commit. That failure is silent by construction,
+   because a mechanical block carries no reasoning for it to notice it contradicted. You are the only
+   independent check in the loop, and you are the more capable model. Use it.
+
+   Four checks, cheapest first, before you spawn anything else:
+
+   a. Status is `DONE` (`arctool show <id>`) and a commit exists (`git log -1`). Necessary, nowhere near
+      sufficient: a wrong implementation passes both.
+   b. **Run the task's `Acceptance` criteria yourself.** Every criterion names a command, a path, a test,
+      or an exit code, because `arctool validate --strict` refuses a plan where one does not. So run them.
+      This is the whole reason the criteria must be runnable, and it costs you a command's output, not a
+      diff.
+   c. `git show --stat HEAD`. The files touched should be the ones in `WHERE`. Files changed outside it,
+      or a `WHERE` file left untouched, means the executor solved a different problem than the one it was
+      given.
+   d. The report should name every decision it grilled for. A task that had an ambiguity and a report
+      that mentions none is the signature of a model that guessed. Re-read the block against what
+      actually landed.
+
+   Any check fails: `arctool todo <id>` to release it (or `arctool block <id> -m "<reason>"` when the
+   task itself is at fault), and stop the run. Never re-spawn the same task at a higher tier to get past
+   this: that is the tier-as-quality-dial mistake, and it hides a defect the plan should carry.
+5. **A returned question is yours to answer, because you are the one with an engineer.** The subagent had
+   nobody; you do. Grill for it, per "When a task is unclear" below, one question per turn. Then:
+   - **The answer settles it without changing the task**: record it where the next session reads it, re-spawn
+     the same task with the answer in the prompt, and note in the report that the block was not mechanical.
+   - **The answer changes the plan**: leave the task `BLOCKED`, stop the run, and hand back to
+     `/arcdlc:plan <slug>`. You never edit `plan.md`.
+   - **Nobody to ask** (a non-interactive run): leave it `BLOCKED`, stop, and report the question verbatim so
+     it is the first thing the engineer sees. Never answer it yourself to keep the queue moving.
+
+   On a failed verification or a subagent failure, stop the whole run and report — same rule as step 7.
+
+Keep your own context small, but not blind. Read plan state, subagent reports, commit subjects, `--stat`
+output and the output of the acceptance commands you run. Read a diff or a source file only when a check
+in step 4 fails and you need to name why. That boundary is what lets a long queue finish in a single
+`/arcdlc:execute <slug>` invocation while still catching an executor that certified its own guess.
 
 **In-session mode (no subagents, no tier to choose, or nobody to ask: flat installs and other harnesses).**
 Execute tasks yourself, one at a time, with a hard boundary discipline. You cannot measure your own context size,
@@ -205,8 +244,9 @@ For each task, in order (in orchestrator mode, the spawned subagent performs the
    evidenced, not asserted. *Fallback: edit the status line to `- Status: DONE.`*
 6. Commit ONLY this task's changes plus the plan status update. Do not include unrelated pre-existing worktree
    changes. Write the message exactly as specified in "Commit message: Conventional Commits" below. Do not push.
-7. If the task cannot be completed — including any acceptance criterion you cannot satisfy: grill the engineer
-   first when the blocker is a question rather than a defect (see below), then `arctool block <id> -m
+7. If the task cannot be completed — including any acceptance criterion you cannot satisfy: when the blocker is
+   a question rather than a defect, grill the engineer if you are the session they started, and if you are a
+   spawned subagent put the question in the block reason and return it unanswered (see below). Then `arctool block <id> -m
    "<one-line reason>"` naming the failing criterion (or `arctool todo <id>` to release it back to the queue), report
    why, and stop — do not continue to the next task on failure. Never `arctool done` a task whose acceptance criteria
    are unmet. The same rule covers an order inversion: while implementing, you find the task needs something a task
@@ -218,7 +258,20 @@ For each task, in order (in orchestrator mode, the spawned subagent performs the
 8. Repeat from step 1. When running the whole queue, stop when `arctool next` exits non-zero (code `3` = no `TODO`
    left). *Fallback: stop when no `TODO` block remains.*
 
-## When a task is unclear, grill before you code (mandatory)
+## When a task is unclear, never guess (mandatory)
+
+**Who answers depends on who is in the room, and a spawned subagent is alone in it.**
+
+- **You are a spawned subagent** (orchestrator mode): there is no engineer in your session. Do not grill,
+  do not wait, and above all do not guess in its place. Run `arctool block <id> -m "<the question>"`, state
+  the question in your report, and stop. Returning an unanswered question is a correct outcome for you.
+  Someone with an engineer will answer it.
+- **You are the session the engineer started** (in-session mode, or the dispatcher handling a subagent's
+  returned question): you have someone to ask, so ask. Grill, one question per turn, and record the answer
+  where the next session reads it.
+
+Getting this backwards is how a queue goes quietly wrong: a subagent that guesses produces a task that
+looks `DONE`, and a dispatcher that does not ask leaves the same gap for the next run.
 
 A task the plan left ambiguous is not yours to guess. A mechanical plan should make this rare, so
 every time it happens one of two things is true, and they are handled differently:
