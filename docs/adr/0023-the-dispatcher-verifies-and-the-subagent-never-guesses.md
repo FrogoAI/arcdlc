@@ -1,4 +1,4 @@
-# ADR-0023 — The dispatcher verifies, and a spawned subagent never guesses
+# ADR-0023 — A task verifies itself, the queue is verified once, and a subagent never guesses
 
 - Status: Accepted
 - Date: 2026-09-16
@@ -38,19 +38,28 @@ task with the answer or, when the answer changes the plan, leaves the task block
 `/arcdlc:plan`. In a non-interactive run it reports the question verbatim rather than answering it
 itself to keep the queue moving.
 
-**The dispatcher verifies every finished task independently**, in four checks, cheapest first:
+**A task verifies itself, and the dispatcher does not re-check it.** The subagent reaches `DONE` only
+when every `Acceptance` criterion demonstrably holds, so `DONE` is its assertion and its spawn prompt
+says nobody downstream will re-check it. The dispatcher re-running those same criteria would catch only
+a subagent that lied about running them, and would pay that output on every task in the queue. It is not
+the per-task check.
 
-1. Status `DONE` and a commit exists. Necessary, nowhere near sufficient.
-2. **Run the task's `Acceptance` criteria.** Every criterion names a command, a path, a test, or an exit
-   code, because `arctool validate --strict` refuses a plan where one does not. That requirement was
-   added for the executor's benefit; it turns out to be what makes independent verification cheap.
-3. `git show --stat HEAD` against `WHERE`. Files touched outside it, or a `WHERE` file left untouched,
-   means a different problem was solved.
-4. A report naming no grilled decisions on a task that had an ambiguity is the signature of a guess.
+**`BLOCKED` is the only thing the dispatcher engages with**, because a block is the one outcome that
+needs what only the dispatcher has: an engineer to ask.
 
-The context rule is relaxed from "never read source files or diffs" to: read plan state, reports, commit
-subjects, `--stat`, and the output of the acceptance commands. Read a diff or a source file only when a
-check fails and you need to name why.
+**The queue is verified once, at the end, and that is the real gate.** A task can only verify itself
+against the block it was given. Nothing in a per-task check, by the executor or the dispatcher, can ask
+whether two tasks agree. Two can each be correct and still contradict, and that hides precisely where
+tasks never touch. So the Verification phase has three parts: the queue really is finished (no leftover
+`TAKEN` from a crashed session, a commit per `DONE` task, `validate --strict` clean including the source
+stamp); the project is whole (repository-level build, test and lint, delegated to one subagent because it
+is mechanical); and the tasks agree (overlapping `WHERE`, opposing decisions in commit bodies, seams
+between independently planned producers and consumers). The third part stays with the dispatcher because
+it is judgement, and a green test suite is exactly what two contradicting tasks look like when neither
+has a test for the other's assumption.
+
+A contradiction found there is a plan defect. It goes back to `/arcdlc:plan`, never into a fix-up commit,
+because the plan produced two tasks that disagree and will do so again.
 
 ## Consequences
 
@@ -64,11 +73,14 @@ check fails and you need to name why.
 - In-session mode is unchanged. There the executor *is* the session the engineer started, so it grills
   directly, and there is no second party to verify it. That asymmetry is real and worth knowing: a
   whole-queue run with subagents is checked twice, an in-session run once.
-- Verification costs the dispatcher context, so it now drops each task's detail once the four checks pass
-  and stops at a task boundary when it fills up, the same discipline in-session mode already had. On a
-  long queue that matters more than the verification itself: a compacted dispatcher stops verifying
-  properly long before it stops running, and a dispatcher that cannot verify is worse than none, because
-  the subagent still self-certifies and nobody checks it.
+- The dispatcher stays thin by construction rather than by discipline: in the loop it reads plan state,
+  one line of notes per task, and a block reason. On a 150-task queue that is the difference between a
+  dispatcher that finishes and one that compacts halfway. It still stops at a task boundary and hands back
+  if it fills up, because nothing makes a session immortal.
+- Detection of a cross-task contradiction is deferred to the end of the queue. That is the cost of this
+  shape, and it is accepted: per-task checking cannot find these at all, so the choice is late detection
+  or none. Dependency ordering limits the blast radius, because a task that broke something downstream
+  usually fails the next task that touches it.
 
 ## Alternatives considered
 
@@ -77,7 +89,11 @@ check fails and you need to name why.
 - **Let the subagent grill through the dispatcher as a relay.** Rejected as complexity for no gain. The
   block-and-return path already carries the question, and it leaves the task in a state the next run can
   resume from.
-- **Have the dispatcher re-read the diff for every task.** Rejected: that is the context cost the
-  original rule was protecting against, and the acceptance criteria answer the same question for less.
-- **Trust the subagent and verify once at the end.** Rejected: the verification phase already runs at
-  the end, and by then several commits rest on the bad one.
+- **Have the dispatcher re-run every task's acceptance criteria.** Considered and rejected after being
+  written: it re-runs exactly what the executor just ran, so it catches only a subagent that lied about
+  running them, and it pays that output on every task. The check that sounded strongest added the least.
+- **Spawn a separate verifier subagent per task.** Rejected: it keeps the dispatcher thin, which is real,
+  but doubles the spawn count to check something the executor already checked. The same reasoning that
+  rejects dispatcher re-verification rejects this.
+- **Have the dispatcher read the diff for every task.** Rejected: that is the context cost the original
+  rule was protecting against, and it invites rejecting work on taste rather than on the contract.

@@ -158,72 +158,52 @@ instead. Name the tier the run used, and where it came from, in the report.
    initiative slug, the task ID, the per-task contract to follow (point it at this skill file and
    `../plan/references/plan-format.md`; flat installs: `../arcdlc-plan/references/plan-format.md`), and the
    accumulated notes from earlier task reports.
-3. **Tell the subagent it has nobody to ask.** Its prompt must say so plainly: there is no engineer in its
-   session, it must never grill, and it must never guess in place of grilling. Its task is mechanical; if
-   it turns out not to be, that is not its problem to solve. On any ambiguity, contradiction, or missing
-   decision it runs `arctool block <id> -m "<the question>"` and returns the question to you, unanswered
-   and unguessed. Returning a question is a successful outcome for a subagent, not a failure.
+3. **Tell the subagent it owns its own verification, and has nobody to ask.** Its prompt must say both
+   plainly:
+   - It verifies its own work. It reaches `DONE` only when every `Acceptance` criterion demonstrably
+     holds and tests and lint are green (step 5 of the contract). Nobody downstream re-checks a `DONE`
+     task, so `DONE` is its assertion and it must mean it.
+   - There is no engineer in its session. It must never grill and never guess in place of grilling. Its
+     task is mechanical; if it turns out not to be, that is not its problem to solve. On any ambiguity,
+     contradiction, missing decision, or criterion it cannot satisfy, it runs
+     `arctool block <id> -m "<the question or the defect>"` and returns it to you, unanswered and
+     unguessed. **Returning a blocked task is a successful outcome for a subagent, not a failure**, and
+     saying so in the prompt is what stops a cheaper model guessing to look helpful.
 
    It then executes the per-task contract below (take → implement → verify acceptance → done → commit) and
-   reports back: files changed, test results, commit subject, final status, the question if it had one, and
-   at most one line of notes useful to later tasks.
-4. **Verify it yourself. Do not take the report's word.** The executor verified its own work in step 5 of
-   the per-task contract, and a cheaper model self-certifies optimistically: it will meet a contradiction,
-   implement something plausible, decide it passed, and commit. That failure is silent by construction,
-   because a mechanical block carries no reasoning for it to notice it contradicted. You are the only
-   independent check in the loop, and you are the more capable model. Use it.
-
-   Four checks, cheapest first, before you spawn anything else:
-
-   a. Status is `DONE` (`arctool show <id>`) and a commit exists (`git log -1`). Necessary, nowhere near
-      sufficient: a wrong implementation passes both.
-   b. **Run the task's `Acceptance` criteria yourself.** Every criterion names a command, a path, a test,
-      or an exit code, because `arctool validate --strict` refuses a plan where one does not. So run them.
-      This is the whole reason the criteria must be runnable, and it costs you a command's output, not a
-      diff.
-   c. `git show --stat HEAD`. The files touched should be the ones in `WHERE`. Files changed outside it,
-      or a `WHERE` file left untouched, means the executor solved a different problem than the one it was
-      given.
-   d. The report should name every decision it grilled for. A task that had an ambiguity and a report
-      that mentions none is the signature of a model that guessed. Re-read the block against what
-      actually landed.
-
-   Any check fails: `arctool todo <id>` to release it (or `arctool block <id> -m "<reason>"` when the
-   task itself is at fault), and stop the run. Never re-spawn the same task at a higher tier to get past
-   this: that is the tier-as-quality-dial mistake, and it hides a defect the plan should carry.
-5. **A returned question is yours to answer, because you are the one with an engineer.** The subagent had
-   nobody; you do. Grill for it, per "When a task is unclear" below, one question per turn. Then:
-   - **The answer settles it without changing the task**: record it where the next session reads it, re-spawn
-     the same task with the answer in the prompt, and note in the report that the block was not mechanical.
-   - **The answer changes the plan**: leave the task `BLOCKED`, stop the run, and hand back to
-     `/arcdlc:plan <slug>`. You never edit `plan.md`.
+   reports back its final status, the question or defect if it blocked, and at most one line of notes
+   useful to later tasks. Not the diff, not the test output: you do not need them.
+4. **A `DONE` task is done. Move on.** The subagent verified its own acceptance criteria in step 5 of the
+   per-task contract and could not reach `DONE` without them holding. Re-running the same criteria here
+   would catch only a subagent that lied about running them, and would cost you that output on every task
+   in the queue. You are not the per-task check. Take the one line of notes it returned and spawn the next.
+5. **A `BLOCKED` task is the only thing that needs you, and it needs the thing only you have.** The subagent
+   had no engineer in its session; you do. Read the block reason, then:
+   - **It returned a question**: grill for it, per "When a task is unclear" below, one question per turn.
+     Then re-spawn the same task with the answer in the prompt, and note in the report that the block was
+     not mechanical, so `/arcdlc:plan` can harden it.
+   - **The answer changes the plan**: leave it `BLOCKED`, stop the run, hand back to `/arcdlc:plan <slug>`.
+     You never edit `plan.md`.
+   - **It hit a defect rather than a question** (a criterion that cannot be satisfied, a contradiction in the
+     code): stop the run and report. Never re-spawn at a higher tier to get past it: that is the
+     tier-as-quality-dial mistake, and it buries a defect the plan should carry.
    - **Nobody to ask** (a non-interactive run): leave it `BLOCKED`, stop, and report the question verbatim so
      it is the first thing the engineer sees. Never answer it yourself to keep the queue moving.
 
-   On a failed verification or a subagent failure, stop the whole run and report — same rule as step 7.
+   Contradictions between tasks are not visible here and you should not go looking: a task that is fine on
+   its own can still conflict with one from forty tasks ago. That is a whole-queue property, and the
+   Verification phase is where it is checked.
 
-Keep your own context small, but not blind. Read plan state, subagent reports, commit subjects, `--stat`
-output and the output of the acceptance commands you run. Read a diff or a source file only when a check
-in step 4 fails and you need to name why.
+Keep your own context small. In this loop you read plan state, the one line of notes each subagent
+returns, and the block reason when one comes back `BLOCKED`. Nothing else: not reports of successful
+work, not diffs, not test output. A dispatcher that stays this thin can drive a long queue in one
+invocation, which is the point of the mode.
 
-**Drop each task's detail once you have verified it.** The report, the `--stat`, the acceptance output:
-all of it has done its job the moment the four checks pass. Carry forward only the task ID, its status,
-and the one line of notes worth giving later tasks. That is the difference between a dispatcher growing
-by a few hundred bytes per task and one growing by a few thousand.
-
-**You fill up too, and the same boundary discipline applies to you.** A long queue is what this mode is
-for, but nothing makes a dispatcher immortal: a hundred verified tasks is a hundred reports, and a
-compacted dispatcher stops verifying properly long before it stops running.
-
-- A task boundary, after step 4 passes, is the only legitimate place to stop.
-- When the harness signals compaction or low context, or when the notes you carry no longer fit in a
-  short paragraph, finish the current task, then stop and tell the engineer: clear the session and re-run
-  `/arcdlc:execute <slug>`. Say how many tasks are done and how many remain.
-- Nothing is lost by stopping. The plan carries every status and the commits carry every change, so the
-  next invocation resumes at `arctool next` exactly where this one ended. That is what makes a 150-task
-  queue practical: not one heroic session, but any number of sessions over an unchanged plan.
-- Never start a new spawn in a nearly-exhausted context. A dispatcher that cannot verify is worse than
-  none, because the subagent still self-certifies and now nobody checks it.
+If it does fill up anyway, on a very long queue or after several blocked tasks pulled you into detail,
+stop at a task boundary and tell the engineer to clear the session and re-run `/arcdlc:execute <slug>`,
+saying how many tasks are done and how many remain. Nothing is lost: the plan carries every status and
+the commits carry every change, so the next invocation resumes at `arctool next` exactly where this one
+ended. A 150-task queue is any number of sessions over an unchanged plan, not one heroic run.
 
 **In-session mode (no subagents, no tier to choose, or nobody to ask: flat installs and other harnesses).**
 Execute tasks yourself, one at a time, with a hard boundary discipline. You cannot measure your own context size,
@@ -395,14 +375,44 @@ Refs: AIC-1
 
 ## Verification phase (after the queue is empty)
 
-When running the full queue (no task-ID argument), finish with a whole-project check:
+**This is the real gate, and it is yours.** Each task verified itself in isolation, which is the only
+thing a task can verify: its own criteria, against the block it was given. Nothing so far has asked
+whether the tasks agree with each other. Two of them can each be correct and still contradict, and the
+queue is exactly where that hides, because tasks that never touch are never compared.
 
-- Run `make test` and `make lint` in the subproject (skip targets that don't exist).
-- Fix any failures, commit fixes separately (Conventional Commits, as above), and re-run until clean or the same failure repeats
-  without progress — then stop and report.
-- In orchestrator mode, delegate this phase to one final subagent, at the tier resolved for the task subagents
-  (running tests and fixing failures is implementation work, and its output does not belong in the dispatcher's
-  context).
+Run it whenever the whole queue was worked (no task-ID argument), in three parts.
+
+**1. The queue really is finished.** Cheap, and it catches a crashed session that a passing test suite
+never would:
+
+- `arctool list --status TAKEN` and `--status BLOCKED` are both empty. A leftover `TAKEN` is a subagent
+  that died mid-task; its work is half-applied and no commit exists. Reset it with `arctool todo <id>` and
+  report, do not quietly finish it yourself.
+- Every `DONE` task has a commit. `git log --oneline` should show one per task, and the count should match.
+- `arctool validate --strict --aic <slug>` exits 0. This also re-checks the source stamp, so a design that
+  moved during a long run surfaces here rather than never.
+
+**2. The project is whole.** Mechanical, so delegate it to one final subagent at the task tier, and take
+back only the verdict:
+
+- Build, test and lint at the repository level, not only the subproject the tasks touched:
+  the project's documented commands, or `make test` and `make lint`, skipping targets that do not exist.
+- Fix failures, commit each separately per the Conventional Commits rules above, and re-run until clean, or
+  until the same failure repeats without progress, then stop and report.
+
+**3. The tasks agree with each other.** Judgement, so this part stays with you. Do not delegate it, and do
+not skip it because part 2 was green: a passing test suite is exactly what a pair of contradicting tasks
+looks like when neither has a test for the other's assumption.
+
+- List the tasks whose `WHERE` overlapped. Those are where one task can have undone or redefined another's
+  work. Read the final state of the shared files, not each commit.
+- Check the decisions. Two tasks that each recorded a decision in a commit body, about the same interface,
+  the same name, the same data shape, may have recorded opposite ones.
+- Check the seams between independent tasks: a producer and a consumer planned separately, a writer and a
+  reader of the same file or table, two tasks that each added a case to the same switch.
+- A contradiction found here is a plan defect, not an execution one. Report it with both task IDs and hand
+  back to `/arcdlc:plan <slug>`. Do not paper over it with a fix-up commit: the plan produced two tasks
+  that disagree, and the next run of it will do so again.
 
 ## Report
 

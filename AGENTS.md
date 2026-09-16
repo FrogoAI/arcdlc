@@ -89,19 +89,22 @@ checks. Do not merge with a red pipeline.
   asks the next, each carrying a recommended answer. Never a numbered round. Six skills restate this in
   one shared paragraph for their inline fallback (`aic`, `policy`, `examinate`, `assist`, `plan-human`,
   `execute`); change it in all seven together.
-- **The dispatcher is resumable, not immortal.** A long queue is the point of orchestrator mode, but a
-  hundred verified tasks is a hundred reports, and a compacted dispatcher stops verifying properly long
-  before it stops running. It drops each task's detail once the four checks pass, and stops at a task
-  boundary when its own context tightens, telling the engineer to clear the session and re-run. Nothing
-  is lost: the plan carries every status and the commits carry every change, so a 150-task queue is any
-  number of sessions over an unchanged plan rather than one heroic run.
+- **A task verifies itself; the queue is verified once, at the end.** A subagent reaches `DONE` only when
+  every `Acceptance` criterion holds, and nothing re-checks a `DONE` task, so `DONE` is its assertion. The
+  dispatcher does not inspect finished work: re-running the same criteria catches only a subagent that
+  lied, and costs that output on every task. What no task can check is whether the tasks agree with each
+  other, so the Verification phase does that, and it is the real gate. A contradiction found there is a
+  plan defect that goes back to `/arcdlc:plan`, never a fix-up commit.
 - **A spawned subagent has nobody to ask, and must never guess in place of asking.** It blocks the task
-  with the question as the reason and returns it unanswered; that is a correct outcome, not a failure.
-  The dispatcher, which is the session the engineer started, grills for the answer and either re-spawns
-  with it or hands back to `/arcdlc:plan`. The dispatcher also verifies every finished task itself, by
-  running its `Acceptance` criteria rather than trusting the subagent's self-certification: a cheaper
-  executor certifies optimistically, and a mechanical block carries no reasoning for it to notice it
-  contradicted.
+  with the question or the defect as the reason and returns it unanswered. **A blocked task is a correct
+  outcome for a subagent, not a failure**, and its spawn prompt says so, because a cheaper model will
+  otherwise guess to look helpful. `BLOCKED` is the only thing the dispatcher engages with: it holds the
+  engineer, so it grills, then re-spawns with the answer or hands back to `/arcdlc:plan`.
+- **The dispatcher stays thin, and is resumable.** In the loop it reads plan state, one line of notes per
+  task, and a block reason. Not reports of successful work, not diffs, not test output. If it fills up
+  anyway it stops at a task boundary and the engineer re-runs: the plan carries every status and the
+  commits carry every change, so a 150-task queue is any number of sessions over an unchanged plan rather
+  than one heroic run.
 - **Unclear is a question, not a guess.** A skill that hits a contradiction, a missing decision, code
   that looks dead, or a risky change escalates to the grilled interview instead of choosing for the
   engineer. `aic`, `policy` and `plan` grill up front; `examinate` (Step 2.5), `assist` (Step 3),
