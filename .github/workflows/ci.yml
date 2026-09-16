@@ -43,13 +43,15 @@ jobs:
 
       - name: Check skill layout
         run: |
-          for skill in aic archive assist examinate execute grilling plan plan-human policy remove source-map; do
+          for skill in aic archive assist examinate execute grilling plan plan-human policy remove; do
             test -f "skills/$skill/SKILL.md" || { echo "missing skills/$skill/SKILL.md" >&2; exit 1; }
             grep -q '^## Talk simple, write like a human$' "skills/$skill/SKILL.md" \
               || { echo "skills/$skill/SKILL.md is missing the 'Talk simple, write like a human' block" >&2; exit 1; }
+            grep -q '^## Judge by the four virtues$' "skills/$skill/SKILL.md" \
+              || { echo "skills/$skill/SKILL.md is missing the 'Judge by the four virtues' block" >&2; exit 1; }
           done
-          test -f 'skills/source-map/source/Writing Style.md' \
-            || { echo "missing skills/source-map/source/Writing Style.md" >&2; exit 1; }
+          test -f 'skills/grilling/references/Writing Style.md' \
+            || { echo "missing skills/grilling/references/Writing Style.md" >&2; exit 1; }
 
       - name: Check the writing-style block is the same in every skill
         run: |
@@ -58,10 +60,23 @@ jobs:
           }
           extract skills/aic/SKILL.md > /tmp/style-block.txt
           test -s /tmp/style-block.txt || { echo "cannot read the reference style block" >&2; exit 1; }
-          for skill in aic archive assist examinate execute grilling plan plan-human policy remove source-map; do
+          for skill in aic archive assist examinate execute grilling plan plan-human policy remove; do
             extract "skills/$skill/SKILL.md" > /tmp/block-$skill.txt
             diff -u /tmp/style-block.txt "/tmp/block-$skill.txt" \
               || { echo "skills/$skill/SKILL.md has a different 'Talk simple' block; all eleven must match" >&2; exit 1; }
+          done
+
+      - name: Check the virtues block is the same in every skill
+        run: |
+          extract() {
+            awk '/^## Judge by the four virtues$/{f=1;print;next} f&&/^## /{exit} f{print}' "$1"
+          }
+          extract skills/aic/SKILL.md > /tmp/virtues-block.txt
+          test -s /tmp/virtues-block.txt || { echo "cannot read the reference virtues block" >&2; exit 1; }
+          for skill in aic archive assist examinate execute grilling plan plan-human policy remove; do
+            extract "skills/$skill/SKILL.md" > /tmp/vblock-$skill.txt
+            diff -u /tmp/virtues-block.txt "/tmp/vblock-$skill.txt" \
+              || { echo "skills/$skill/SKILL.md has a different 'Judge by the four virtues' block; all must match" >&2; exit 1; }
           done
 
       - name: shellcheck installer
@@ -75,15 +90,20 @@ jobs:
           # which otherwise steers install away from $FAKE/.config.
           export XDG_CONFIG_HOME="$FAKE/.config"
           mkdir -p "$FAKE/.claude" "$FAKE/.codex" "$FAKE/.config/opencode" "$FAKE/.cursor" "$FAKE/.gemini"
+          # Simulate an older install that still carries a retired sub-skill, so the
+          # LEGACY_SUBSKILLS sweep in install.sh is exercised rather than assumed.
+          mkdir -p "$FAKE/.codex/skills/arcdlc-source-map" "$FAKE/.cursor/skills/arcdlc-source-map"
           HOME="$FAKE" ARCDLC_NO_PLUGIN_CLI=1 ./install.sh --bindir "$FAKE/bin"
           test -f "$FAKE/.claude/skills/arcdlc/.claude-plugin/plugin.json"
           test -f "$FAKE/.claude/skills/arcdlc/skills/plan/SKILL.md"
-          for s in aic archive assist examinate execute grilling plan plan-human policy remove source-map; do
+          for s in aic archive assist examinate execute grilling plan plan-human policy remove; do
             test -f "$FAKE/.codex/skills/arcdlc-$s/SKILL.md"
             test -f "$FAKE/.config/opencode/skills/arcdlc-$s/SKILL.md"
             test -f "$FAKE/.cursor/skills/arcdlc-$s/SKILL.md"
             test -f "$FAKE/.gemini/config/skills/arcdlc-$s/SKILL.md"
           done
+          test ! -e "$FAKE/.codex/skills/arcdlc-source-map"
+          test ! -e "$FAKE/.cursor/skills/arcdlc-source-map"
           "$FAKE/bin/arctool" version
           HOME="$FAKE" ./install.sh --uninstall --bindir "$FAKE/bin"
           test ! -e "$FAKE/.claude/skills/arcdlc"

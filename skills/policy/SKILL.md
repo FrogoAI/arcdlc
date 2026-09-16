@@ -6,46 +6,51 @@ argument-hint: "<name> [POL-GOV|POL-HR|POL-TECH|POL-ENG|POL-SEC|POL-DOC]"
 
 # ArcDLC Policy (/arcdlc:policy)
 
-Author a governance policy the same way ArcDLC builds software: a controlled process, not a
-straight generation. This is the governance track of the delivery pipeline — it produces a policy
-document that `/arcdlc:examinate` can then audit code or process against:
+Author a governance policy. This is the entry point of the governance track, and it produces a
+document `/arcdlc:examinate` can audit code or process against:
 
 `/arcdlc:policy <name>` → `/arcdlc:examinate <slug> docs/policies/<name>.md` → `/arcdlc:execute <slug>`
 
-The audit and execution steps run against an initiative folder, so they take an initiative slug as
-their first argument — the policy path is the **second** argument of `/arcdlc:examinate`, never the first.
+The audit and execution steps run against an initiative folder, so the slug is their first argument
+and the policy path is the **second** argument of `/arcdlc:examinate`, never the first.
 
-There is no plan step here: the policy is the rules, and `/arcdlc:examinate` already files each
-violation as a `TODO` task in `docs/aics/<slug>/plan.md` for `/arcdlc:execute` to close. A policy with no
-code impact (or a clean audit) ends the track at the document.
+There is no plan step: the policy is the rules, and `/arcdlc:examinate` files each violation straight
+into `docs/aics/<slug>/plan.md`. A clean audit, or a policy with no code impact, ends at the document.
 
-The governing framework is `source/Policy of Policies.md` in the sibling `source-map` skill. It is
-the contract for how every policy must be created, structured, and managed — read it before writing.
+Read `references/Policy of Policies.md` next to this file before writing. It is the contract for how
+every policy is created, structured, and managed.
 
 ## Talk simple, write like a human
 
-Plain English, everywhere: short sentences, common words, one idea each, active voice, a named
-actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
+Plain English everywhere: short sentences, common words, one idea each, active voice, a named actor.
 
-- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
-  Say what you did, what you found, what comes next.
-- **Files you write:** no AI filler ("Furthermore", "In conclusion", "It is important to note",
-  "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
-  invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
-  improves performance".
-- **Be direct, name the thing.** The fewest words that carry the fact; a word that only adds tone
-  comes out. Never a metaphor, a narrative line, or a question. Say what must happen: "The alerter
-  retries three times, then dead-letters." Every title that names work is an instruction, a verb
-  plus its object: "Implement the alerter service", never "One message out, and the three places it
-  goes".
-- **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
-  Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
+- **Replies to the user.** Bullets, not paragraphs. Say what you did, what you found, what comes next.
+  No filler, no praise, no restating the request.
+- **Files you write.** No AI filler ("Furthermore", "In conclusion", "It is important to note",
+  "delve", "leverage", "robust", "seamless"), no warm-up opener, no invented summary. Vary sentence
+  length. Concrete names, numbers, and paths, never "significantly improves performance".
+- **Be direct, name the thing.** The fewest words that carry the fact. Cut empty intensifiers:
+  `honestly`, `genuinely`, `truly`, `clearly`, `obviously`. Never a metaphor, a narrative line, or a
+  question. Every title that names work is a verb plus its object: "Implement the alerter service".
+- **No long dashes.** A full stop, a comma, a colon, or brackets instead of `—` and `–`. Hyphens,
+  flags, and slugs stay. A format contract that requires `—` wins.
 - **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
   once in plain words, then use it. Simple English is about the sentence, not the term.
 
 Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
 decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
-pre-save check, is `source/Writing Style.md` in the bundle's `source-map` skill.
+pre-save check, is `references/Writing Style.md` in the bundle's `grilling` skill.
+
+## Judge by the four virtues
+
+- **Wisdom.** Unclear is a question, not a guess. A contradiction, a missing decision, code that looks
+  dead, a change that is risky or hard to reverse: grill it, never pick for the engineer.
+- **Courage.** Say the hard thing. A plan a weaker model cannot execute is a plan defect, not a reason
+  to raise the tier. Never stop to report a helper skill as missing.
+- **Justice.** Write every answer where the next session reads it, never only in the chat. Name the
+  tier you actually used. Never report a same-tier spawn as a cheaper run.
+- **Temperance.** Touch only what you were pointed at. Cutting a comment out of the code is asked for,
+  not assumed. No invented summary, no scope you were not given.
 
 ## Argument
 
@@ -64,10 +69,8 @@ file structure and the central index.
 
 Read what already exists so the interview builds on it instead of repeating it:
 
-- `source/Policy of Policies.md` via the sibling `source-map` skill (from this file:
-  `../source-map/source/Policy of Policies.md` in the plugin layout;
-  `../arcdlc-source-map/source/Policy of Policies.md` in flat installs). Also read
-  `source/Policy of Initiatives.md` and `source/Engineering Principles.md` when relevant.
+- `references/Policy of Policies.md` next to this file. Also read `references/Policy of Initiatives.md`
+  and `references/Engineering Principles.md` when relevant.
 - The target project's `README.md` and `AGENTS.md` (you will register the policy in both).
 - Existing `docs/policies/` — its index and the highest Unique ID number in each class, so the new
   policy continues the sequence instead of colliding.
@@ -77,22 +80,14 @@ Read what already exists so the interview builds on it instead of repeating it:
 Never write the policy straight from the request. A policy encodes real decisions (scope, owner,
 approver, the actual rules), so interview first — this mirrors `/arcdlc:aic`.
 
-The interview runs on this bundle's own grilling skill, `arcdlc-grilling` (`/arcdlc:grilling`), a
-sibling of this one. ArcDLC depends on no external grilling skill: do not look for one, and never
-stop to report a skill as missing.
-
-1. **Invoke `arcdlc-grilling`** — the normal path. It ships in every ArcDLC install and is
-   model-invocable.
-2. **Inline**, only if that skill is not invocable here: run the same protocol yourself,
-   reading it from `../grilling/SKILL.md` (plugin layout) or `../arcdlc-grilling/SKILL.md` (flat
-   installs). What is mandatory is the grilled interview, not the invocation.
-
-Whichever path runs, all of this holds:
-
-- **One question at a time.** Ask one question, wait for the answer, then ask the next. Never a
-  numbered round, never "two quick ones".
-- Every question carries your recommended answer and one line of why.
-- Facts are yours to find: if the codebase or an existing policy answers it, look it up, do not ask.
+Prefer this bundle's own `arcdlc-grilling` skill (`/arcdlc:grilling`). If it cannot be invoked here,
+read `../grilling/SKILL.md` (flat installs: `../arcdlc-grilling/SKILL.md`) and run its protocol
+inline. What is mandatory is the grilled interview, never the invocation: never stop to report a
+helper skill as missing, and never look for a grilling skill outside this bundle. **One question per
+turn**: ask, wait for the answer, then ask the next, each carrying your recommended answer and one
+line of why. Never a numbered round. Facts are yours to find: if the code, config, or an existing doc
+answers it, look it up instead of asking. Write each decision down the moment it settles, glossary
+terms into `CONTEXT.md` and hard trade-offs into `docs/adr/NNNN-<slug>.md`, never only in the chat.
 
 Cover at minimum, mapping each answer to a template section:
 
@@ -126,7 +121,7 @@ Pick the class from the classification table, then the next sequential number by
 Use the mandatory structure from `Policy of Policies.md`. The `## Talk simple, write like a human` rules above
 cover every line of the policy: plain English, active voice, no filler, no long dashes, and domain
 terms kept and defined once. Full rules and the pre-save check live in
-`../source-map/source/Writing Style.md` (flat installs: `../arcdlc-source-map/source/Writing Style.md`).
+`../grilling/references/Writing Style.md` (flat installs: `../arcdlc-grilling/references/Writing Style.md`).
 Include every section:
 
 - **Header block**: Policy Name, Unique ID, Author, Creation Date, `Status: Draft`, Effective Date,
@@ -144,7 +139,7 @@ Include every section:
 
 Every rule must trace to an interview answer or an existing source; do not invent scope, owners, or
 consequences — if something is undecided, ask, or record it in an explicit "Open questions" note
-rather than stating it as settled (the `source-map` rule).
+rather than stating it as settled.
 
 ## Step 4 — Register the policy (required)
 

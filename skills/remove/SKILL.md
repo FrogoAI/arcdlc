@@ -15,35 +15,42 @@ delete command (it stays non-destructive); this skill does the deletion.
 
 ## Talk simple, write like a human
 
-Plain English, everywhere: short sentences, common words, one idea each, active voice, a named
-actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
+Plain English everywhere: short sentences, common words, one idea each, active voice, a named actor.
 
-- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
-  Say what you did, what you found, what comes next.
-- **Files you write:** no AI filler ("Furthermore", "In conclusion", "It is important to note",
-  "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
-  invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
-  improves performance".
-- **Be direct, name the thing.** The fewest words that carry the fact; a word that only adds tone
-  comes out. Never a metaphor, a narrative line, or a question. Say what must happen: "The alerter
-  retries three times, then dead-letters." Every title that names work is an instruction, a verb
-  plus its object: "Implement the alerter service", never "One message out, and the three places it
-  goes".
-- **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
-  Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
+- **Replies to the user.** Bullets, not paragraphs. Say what you did, what you found, what comes next.
+  No filler, no praise, no restating the request.
+- **Files you write.** No AI filler ("Furthermore", "In conclusion", "It is important to note",
+  "delve", "leverage", "robust", "seamless"), no warm-up opener, no invented summary. Vary sentence
+  length. Concrete names, numbers, and paths, never "significantly improves performance".
+- **Be direct, name the thing.** The fewest words that carry the fact. Cut empty intensifiers:
+  `honestly`, `genuinely`, `truly`, `clearly`, `obviously`. Never a metaphor, a narrative line, or a
+  question. Every title that names work is a verb plus its object: "Implement the alerter service".
+- **No long dashes.** A full stop, a comma, a colon, or brackets instead of `—` and `–`. Hyphens,
+  flags, and slugs stay. A format contract that requires `—` wins.
 - **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
   once in plain words, then use it. Simple English is about the sentence, not the term.
 
 Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
 decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
-pre-save check, is `source/Writing Style.md` in the bundle's `source-map` skill.
+pre-save check, is `references/Writing Style.md` in the bundle's `grilling` skill.
+
+## Judge by the four virtues
+
+- **Wisdom.** Unclear is a question, not a guess. A contradiction, a missing decision, code that looks
+  dead, a change that is risky or hard to reverse: grill it, never pick for the engineer.
+- **Courage.** Say the hard thing. A plan a weaker model cannot execute is a plan defect, not a reason
+  to raise the tier. Never stop to report a helper skill as missing.
+- **Justice.** Write every answer where the next session reads it, never only in the chat. Name the
+  tier you actually used. Never report a same-tier spawn as a cheaper run.
+- **Temperance.** Touch only what you were pointed at. Cutting a comment out of the code is asked for,
+  not assumed. No invented summary, no scope you were not given.
 
 ## Argument: initiative slug (required, first positional)
 
 The initiative slug is the **first positional argument** and is **required**: `/arcdlc:remove <slug>`.
 
-- If no slug is given, **stop and report the error** — highlight that the slug is missing and list the
-  existing initiatives under `docs/aics/` so the user can pick one. Do not guess.
+- If no slug is given, stop and report the error, listing the existing initiatives under `docs/aics/`
+  so the user can pick one. Never guess.
 - Resolve the folder `docs/aics/<slug>/`. If it does not exist, stop and say so, listing what does.
 
 ## Step 1 — Show what will be removed
