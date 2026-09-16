@@ -1,5 +1,7 @@
 # Writing Style: documents a person wants to read
 
+**Reviewed**: 2026-09-16
+
 ## What this is
 
 Every file ArcDLC writes is read by a human. A new engineer opens it on their second day and

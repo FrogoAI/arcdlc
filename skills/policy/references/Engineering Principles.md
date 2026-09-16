@@ -1,5 +1,7 @@
 # Engineering Principles (POL-ENG-001)
 
+**Reviewed**: 2026-09-16
+
 This document records one organization's engineering practice, kept as a worked example of a
 delivery standard. It is not a universal mandate: where a rule names a specific stack — event-driven
 internal communication, Swagger, Kubernetes — it applies **only** to projects built on that stack. On

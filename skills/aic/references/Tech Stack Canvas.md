@@ -1,5 +1,7 @@
 # TSC Template
 
+**Reviewed**: 2026-09-16
+
 Reference: [The Tech Stack Canvas](https://techstackcanvas.io/)
 
 **Purpose**: the technology picture of an initiative — services, stack, integrations, infrastructure.

@@ -1,5 +1,7 @@
 # Diagram Conventions
 
+**Reviewed**: 2026-09-16
+
 **Purpose**: The single home for how initiative diagrams are produced, named, and colored. Applies to every notation in this library: C4, UML, BPMN, flowcharts, and the diagrams embedded in an arc42 document.
 
 This file holds the shared rules plus the DOT templates for UML, BPMN, and flowcharts. C4 keeps its own templates in `C4.md` and ArchiMate keeps its own in `TOGAF.md`, because both are also `/arcdlc:aic` output formats.

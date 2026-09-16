@@ -1,5 +1,7 @@
 # TOGAF ADM & ArchiMate Instruction
 
+**Reviewed**: 2026-09-16
+
 **Source**: TOGAF Standard (The Open Group), ArchiMate 3.2 Specification
 **Purpose**: Offline instruction for generating TOGAF Architecture Development Method documentation with ArchiMate diagrams. No internet connection required.
 **Consumed by**: `/arcdlc:aic <slug> togaf`, which generates `docs/aics/<slug>/togaf.md` from this template. TOGAF is **not** one of the standards `/arcdlc:examinate` audits code against — this is a generator template, not an audit target.

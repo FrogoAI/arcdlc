@@ -1,5 +1,7 @@
 # Entity-Component-System (ECS) — Definition & Usage Guide
 
+**Reviewed**: 2026-09-16
+
 **Source**: Scott Bilas, "A Data-Driven Game Object System" (GDC 2002); Adam Martin, "Entity Systems are the Future of MMOG Development" (2007), which named the pattern and split systems out of components; Mick West, "Evolve Your Hierarchy" (Game Developer, 2007), on composition over inheritance for game objects.
 **Adaptation**: Go-idiomatic — plain-struct components, an indexed registry for entities, stateless systems. Aligned with MDCA (`mdca.md`, Appendix B, which names the ECS-shaped `internal/<subsystem>/` package as the Go **client**'s domain-module unit), `Go Client.md`, `ddd.md`, and `solid.md`.
 

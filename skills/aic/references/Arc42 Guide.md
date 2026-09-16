@@ -1,5 +1,7 @@
 # arc42 — How to Build the Document
 
+**Reviewed**: 2026-09-16
+
 **What this is**: the complete instruction for turning an upstream arc42 template (this directory)
 into a finished arc42 document. The template is the **skeleton you copy**, this guide is **everything
 you need to fill it**. No third source is required.

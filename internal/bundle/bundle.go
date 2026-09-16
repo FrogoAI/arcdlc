@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 )
 
 // Skills is the bundle's sub-skill list. It must match SUBSKILLS in install.sh
@@ -256,4 +257,63 @@ func contains(xs []string, x string) bool {
 		}
 	}
 	return false
+}
+
+// reReviewed matches the freshness marker every reference document carries, in
+// either the bold or the metadata-list style the documents already use.
+var reReviewed = regexp.MustCompile(`(?m)^(?:\*\*Reviewed\*\*:|- Reviewed:)\s*(\d{4})-(\d{2})-(\d{2})\s*$`)
+
+// Reference is one bundled reference document and the date it was last read
+// end to end.
+type Reference struct {
+	Path     string
+	Reviewed time.Time
+}
+
+// References walks every skill's references/ directory and returns each
+// document with its review date.
+//
+// The marker exists because a reference rots silently. Go Best Practice.md sat
+// in this bundle describing pre-1.18 Go, with nothing on its face to say so,
+// until someone read all 428 lines to find out. A date turns that from
+// archaeology into a glance.
+func References(root string) ([]Reference, []Problem, error) {
+	var refs []Reference
+	var probs []Problem
+
+	for _, skill := range Skills {
+		dir := filepath.Join(root, "skills", skill, "references")
+		entries, err := os.ReadDir(dir)
+		if os.IsNotExist(err) {
+			continue
+		}
+		if err != nil {
+			return nil, nil, fmt.Errorf("read %s: %w", dir, err)
+		}
+		for _, e := range entries {
+			if e.IsDir() || !strings.HasSuffix(e.Name(), ".md") {
+				continue
+			}
+			rel := filepath.Join("skills", skill, "references", e.Name())
+			raw, err := os.ReadFile(filepath.Join(root, rel))
+			if err != nil {
+				probs = append(probs, Problem{File: rel, Msg: "cannot read: " + err.Error()})
+				continue
+			}
+			m := reReviewed.FindSubmatch(raw)
+			if m == nil {
+				probs = append(probs, Problem{File: rel,
+					Msg: "no `**Reviewed**: YYYY-MM-DD` marker; a reference with no date rots unnoticed"})
+				continue
+			}
+			t, err := time.Parse("2006-01-02", string(m[1])+"-"+string(m[2])+"-"+string(m[3]))
+			if err != nil {
+				probs = append(probs, Problem{File: rel, Msg: "unparseable Reviewed date: " + err.Error()})
+				continue
+			}
+			refs = append(refs, Reference{Path: rel, Reviewed: t})
+		}
+	}
+	sort.Slice(refs, func(i, j int) bool { return refs[i].Reviewed.Before(refs[j].Reviewed) })
+	return refs, probs, nil
 }

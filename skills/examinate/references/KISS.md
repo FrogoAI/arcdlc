@@ -1,5 +1,7 @@
 # KISS Principle
 
+**Reviewed**: 2026-09-16
+
 ## Meaning
 
 In ArcDLC guidance, **KISS** means **Keep It Simple and Smart**.

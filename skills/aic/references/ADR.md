@@ -1,5 +1,7 @@
 # ADR — Architecture Decision Record
 
+**Reviewed**: 2026-09-16
+
 **Source**: Michael Nygard, ["Documenting Architecture Decisions"](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions) (2011) — the Context / Decision / Consequences structure and the sequential-numbering rule are his; the metadata block, status vocabulary, and naming rules below are this bundle's.
 **Purpose**: Offline instruction for writing one architecture decision record. The template block is the whole file to be written; everything outside it is guidance, not content to copy.
 **Consumed by**: `/arcdlc:aic <slug> adr`, and by any skill that records a decision reached during an interview. ADRs are **global** — they live in `docs/adr/`, never inside an initiative folder.

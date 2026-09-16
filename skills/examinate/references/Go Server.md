@@ -1,5 +1,7 @@
 # Go Application Architecture Instruction
 
+**Reviewed**: 2026-09-16
+
 Architectural reference for any Go service following Modular Domain-Centric Architecture (MDCA) with Domain-Driven Design, Event-Driven Design, and microservices inside a monorepository.
 
 ---

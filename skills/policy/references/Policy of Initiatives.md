@@ -1,5 +1,7 @@
 # Policy of Initiatives (POL-TECH-001)
 
+**Reviewed**: 2026-09-16
+
 ## Purpose
 
 The purpose of this policy is to establish a standardized, transparent, and efficient framework for proposing, defining, architecting, and managing all new business and technical initiatives. By mandating the use of the Architecture Inception Canvas (AIC) template, this policy ensures that every initiative is consistently documented, architecturally sound, and aligned with strategic goals before development work begins. This process is designed to foster collaboration, mitigate risk, and ensure clarity and accountability throughout the initiative lifecycle.

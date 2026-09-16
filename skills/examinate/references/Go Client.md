@@ -1,5 +1,7 @@
 # Go Client Application Architecture
 
+**Reviewed**: 2026-09-16
+
 This document covers architecture, patterns, and conventions specific to
 **UI client applications** built in Go. This is NOT a server, NOT an HTTP API,
 NOT a microservice mesh. This is a desktop/mobile application with a game loop,

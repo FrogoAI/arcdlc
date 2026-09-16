@@ -1,5 +1,7 @@
 # Policy of Policies (POL-GOV-001)
 
+**Reviewed**: 2026-09-16
+
 ## Purpose
 
 This "Policy of Policies" serves as the single governing document for our entire policy ecosystem. Its purpose is to establish a unified and consistent framework for the creation, review, approval, and management of all organizational policies.

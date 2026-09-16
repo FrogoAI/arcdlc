@@ -1,5 +1,7 @@
 # Plan Task Authoring Guide
 
+**Reviewed**: 2026-09-16
+
 This guide defines the `docs/aics/<slug>/plan.md` task format. The plan is an executable queue: `/arcdlc:execute` (or
 any compatible runner) picks tasks off it mechanically, so the format is a contract, not a style preference. It is
 written to be executed by a **less capable model than the one that planned it**: every decision that matters belongs

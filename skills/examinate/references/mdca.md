@@ -1,5 +1,6 @@
 # Modular Domain-Centric Architecture (MDCA) — Standard
 
+- Reviewed: 2026-09-16
 - Version: 1.0
 - Status: Active
 

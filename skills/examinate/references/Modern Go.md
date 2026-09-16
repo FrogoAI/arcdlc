@@ -1,5 +1,7 @@
 # Modern Go
 
+**Reviewed**: 2026-09-16
+
 **Purpose**: the Go rules a current model applies inconsistently, because the language changed after
 most of the Go code it learned from was written. This is an audit target: every rule has an
 identifier a gap block can cite, like `GO-7`.

@@ -1,7 +1,9 @@
 # Domain-Driven Design in Go
 
+**Reviewed**: 2026-09-16
+
 **Source**: Eric Evans, *Domain-Driven Design: Tackling Complexity in the Heart of Software* (2003); refined by Vaughn Vernon, *Implementing Domain-Driven Design* (2013) and *Domain-Driven Design Distilled* (2016).
-**Adaptation**: Go-idiomatic — plain structs, structural interfaces, package-as-bounded-context, no class hierarchies. This is the **canonical DDD reference** for the workspace; per-target specifics live in **Go Server.md**, **Go Client.md**, and **Go Library.md**. Aligned with MDCA (`mdca.md`), SOLID (`solid.md`), Clean Code, Engineering Principles (POL-ENG-001), and Twelve-Factor App.
+**Adaptation**: Go-idiomatic — plain structs, structural interfaces, package-as-bounded-context, no class hierarchies. This is the **canonical DDD reference** for the workspace; per-target specifics live in **Go Server.md**, **Go Client.md**, and **Go Library.md**. Aligned with the bundled MDCA (`mdca.md`) and SOLID (`solid.md`) rule sets, and consistent with Clean Code and the Twelve-Factor App, which are not bundled.
 
 ---
 

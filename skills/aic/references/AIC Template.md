@@ -1,5 +1,7 @@
 # AIC Template
 
+**Reviewed**: 2026-09-16
+
 ## [Goals](https://canvas.arc42.org/architecture-inception-canvas)
 
 ### 🟢 Business Case

@@ -1,10 +1,12 @@
 package bundle
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 // repoRoot walks up from the test's working directory to the module root.
@@ -88,4 +90,37 @@ func TestRetiredSkillsAreSwept(t *testing.T) {
 	if strings.Count(body, "for s in $LEGACY_SUBSKILLS") < 2 {
 		t.Error("the flat install paths do not both sweep LEGACY_SUBSKILLS")
 	}
+}
+
+// TestReferencesCarryAReviewDate requires every bundled reference to say when
+// it was last read end to end. The test never fails on age: a build that breaks
+// because a date passed is a build that breaks on a day nobody changed
+// anything. It fails only on a missing or unparseable marker, and reports the
+// ages so a stale document is visible in the log.
+func TestReferencesCarryAReviewDate(t *testing.T) {
+	root := repoRoot(t)
+	refs, probs, err := References(root)
+	if err != nil {
+		t.Fatalf("references: %v", err)
+	}
+	for _, p := range probs {
+		t.Errorf("%s", p)
+	}
+	if len(refs) == 0 {
+		t.Fatal("no reference documents found; the walk is looking in the wrong place")
+	}
+
+	const stale = 365 * 24 * time.Hour
+	var old []string
+	for _, r := range refs {
+		age := time.Since(r.Reviewed)
+		if age > stale {
+			old = append(old, fmt.Sprintf("%s (%d days)", r.Path, int(age.Hours()/24)))
+		}
+	}
+	if len(old) > 0 {
+		t.Logf("%d reference(s) not reviewed in over a year, read and re-date them:\n  %s",
+			len(old), strings.Join(old, "\n  "))
+	}
+	t.Logf("%d references, oldest %s (%s)", len(refs), refs[0].Path, refs[0].Reviewed.Format("2006-01-02"))
 }

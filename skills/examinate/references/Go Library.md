@@ -1,5 +1,7 @@
 # Instruction: How to Build a Go Vendor Library
 
+**Reviewed**: 2026-09-16
+
 Blueprint for reusable Go modules (`go get`-able packages) imported by other projects. This is **not** an application -- there is no `main()`, no `cmd/`, no HTTP server, no CLI, no deployment. The consumer application owns all of that.
 
 ---

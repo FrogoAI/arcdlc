@@ -1,5 +1,7 @@
 # SOLID Principles in Go
 
+**Reviewed**: 2026-09-16
+
 **Source**: Robert C. Martin, "Agile Software Development: Principles, Patterns, and Practices" (2002); refined in "Clean Architecture" (2017).
 **Adaptation**: Go-specific application — interfaces are structural, packages replace classes as the primary unit of cohesion. Aligned with Engineering Principles (POL-ENG-001), Clean Code (Go), Go Server / Go Library / Go Client architecture instructions, and MDCA / DDD.
 

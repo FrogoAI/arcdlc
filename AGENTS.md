@@ -161,6 +161,11 @@ checks. Do not merge with a red pipeline.
   earns its place by changing what an agent produces: a template a skill copies, or a rule set whose
   identifiers a gap block cites. Public knowledge the model already has does not belong here.
   See [ADR-0020](docs/adr/0020-reference-library-dissolved-into-the-skills.md).
+- **Every reference carries `**Reviewed**: YYYY-MM-DD`**, the date someone last read it end to end.
+  Re-date it when you read it, not when you touch it. `internal/bundle` fails on a missing or
+  unparseable marker and logs anything older than a year. The marker exists because a reference rots
+  in silence: `Go Best Practice.md` described pre-1.18 Go with nothing on its face to say so, and it
+  took reading all 428 lines to find out.
 - Adding or renaming a sub-skill requires updating `SUBSKILLS` in `install.sh` and the skill-layout,
   style-block, virtues-block and installer-smoke checks in `.github/workflows/ci.yml`, in the same
   change set. Retiring one means adding its name to `LEGACY_SUBSKILLS` so an upgrade sweeps it.
