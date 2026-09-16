@@ -89,6 +89,12 @@ checks. Do not merge with a red pipeline.
   asks the next, each carrying a recommended answer. Never a numbered round. Six skills restate this in
   one shared paragraph for their inline fallback (`aic`, `policy`, `examinate`, `assist`, `plan-human`,
   `execute`); change it in all seven together.
+- **The dispatcher is resumable, not immortal.** A long queue is the point of orchestrator mode, but a
+  hundred verified tasks is a hundred reports, and a compacted dispatcher stops verifying properly long
+  before it stops running. It drops each task's detail once the four checks pass, and stops at a task
+  boundary when its own context tightens, telling the engineer to clear the session and re-run. Nothing
+  is lost: the plan carries every status and the commits carry every change, so a 150-task queue is any
+  number of sessions over an unchanged plan rather than one heroic run.
 - **A spawned subagent has nobody to ask, and must never guess in place of asking.** It blocks the task
   with the question as the reason and returns it unanswered; that is a correct outcome, not a failure.
   The dispatcher, which is the session the engineer started, grills for the answer and either re-spawns

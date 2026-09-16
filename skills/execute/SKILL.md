@@ -93,6 +93,16 @@ slug.
 Give every task a fresh context. The plan carries all the state: statuses in `plan.md`, work in per-task
 commits, so nothing needs to survive in conversation between tasks.
 
+This is the point of the whole shape, and it matters more the longer the queue. One agent working 150
+tasks in one session accumulates every file it read and every diff it produced, compacts somewhere in
+the middle, and a squeezed executor drops acceptance criteria first. So quality falls exactly where the
+risk is highest: late in the queue, where the most work already rests on what came before. One hundred
+and fifty fresh subagents do not degrade. Task 150 is executed as well as task 1, which is a property no
+choice of model can buy you.
+
+The commits are the same bargain. One hundred and fifty small commits are reviewable, revertable and
+bisectable, and each is a resume point. One session producing one enormous commit is none of those.
+
 Probe once: can this harness spawn subagents with their own clean context (e.g. the Agent/Task tool in Claude Code)?
 
 ### Executor tier: ask, never assume
@@ -194,8 +204,26 @@ instead. Name the tier the run used, and where it came from, in the report.
 
 Keep your own context small, but not blind. Read plan state, subagent reports, commit subjects, `--stat`
 output and the output of the acceptance commands you run. Read a diff or a source file only when a check
-in step 4 fails and you need to name why. That boundary is what lets a long queue finish in a single
-`/arcdlc:execute <slug>` invocation while still catching an executor that certified its own guess.
+in step 4 fails and you need to name why.
+
+**Drop each task's detail once you have verified it.** The report, the `--stat`, the acceptance output:
+all of it has done its job the moment the four checks pass. Carry forward only the task ID, its status,
+and the one line of notes worth giving later tasks. That is the difference between a dispatcher growing
+by a few hundred bytes per task and one growing by a few thousand.
+
+**You fill up too, and the same boundary discipline applies to you.** A long queue is what this mode is
+for, but nothing makes a dispatcher immortal: a hundred verified tasks is a hundred reports, and a
+compacted dispatcher stops verifying properly long before it stops running.
+
+- A task boundary, after step 4 passes, is the only legitimate place to stop.
+- When the harness signals compaction or low context, or when the notes you carry no longer fit in a
+  short paragraph, finish the current task, then stop and tell the engineer: clear the session and re-run
+  `/arcdlc:execute <slug>`. Say how many tasks are done and how many remain.
+- Nothing is lost by stopping. The plan carries every status and the commits carry every change, so the
+  next invocation resumes at `arctool next` exactly where this one ended. That is what makes a 150-task
+  queue practical: not one heroic session, but any number of sessions over an unchanged plan.
+- Never start a new spawn in a nearly-exhausted context. A dispatcher that cannot verify is worse than
+  none, because the subagent still self-certifies and now nobody checks it.
 
 **In-session mode (no subagents, no tier to choose, or nobody to ask: flat installs and other harnesses).**
 Execute tasks yourself, one at a time, with a hard boundary discipline. You cannot measure your own context size,

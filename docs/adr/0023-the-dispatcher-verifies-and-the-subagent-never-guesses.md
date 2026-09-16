@@ -64,6 +64,11 @@ check fails and you need to name why.
 - In-session mode is unchanged. There the executor *is* the session the engineer started, so it grills
   directly, and there is no second party to verify it. That asymmetry is real and worth knowing: a
   whole-queue run with subagents is checked twice, an in-session run once.
+- Verification costs the dispatcher context, so it now drops each task's detail once the four checks pass
+  and stops at a task boundary when it fills up, the same discipline in-session mode already had. On a
+  long queue that matters more than the verification itself: a compacted dispatcher stops verifying
+  properly long before it stops running, and a dispatcher that cannot verify is worse than none, because
+  the subagent still self-certifies and nobody checks it.
 
 ## Alternatives considered
 
