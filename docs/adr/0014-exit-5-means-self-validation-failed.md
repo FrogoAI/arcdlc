@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-09-04
-- Initiative: [ordering](../aics/ordering/aic.md)
+- Initiative: ordering (folder retired 2026-09-16; see git history)
 
 ## Context
 

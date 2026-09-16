@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-07-14
-- Initiative: [cursor-support](../aics/cursor-support/aic.md)
+- Initiative: cursor-support (folder retired 2026-09-16; see git history)
 
 ## Context
 
