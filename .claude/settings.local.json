@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(command -v arctool)",
+      "Read(//home/gollariel/.claude/plugins/**)",
+      "Read(//home/gollariel/.claude/**)"
+    ]
+  }
+}

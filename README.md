@@ -260,6 +260,10 @@ Options go after `bash -s --` (or as flags to a local `./install.sh`):
 Piping scripts to bash requires trust — the script is short, dependency-free (`curl` + `tar`),
 and worth the read: [`install.sh`](install.sh).
 
+**Pinning a version.** `--ref vX.Y.Z` installs the skills *and* `arctool` from that release, so the two
+stay on the same plan-format contract. Without it you get the latest skills from `main` and the latest
+released `arctool`, and the installer warns if those two disagree. Pin when a team shares one `plan.md`.
+
 ### Claude Code (manual)
 
 Via the plugin marketplace — non-interactive from the shell (Claude Code ≥ 2.1.157), or with the

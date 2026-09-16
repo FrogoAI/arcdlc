@@ -202,7 +202,15 @@ if [ "$DO_TOOL" = 1 ]; then
 
   # Prefer a released static binary (checksum-verified); fall back to building from source.
   if [ -z "$tmpdir" ]; then tmpdir="$(mktemp -d)"; fi
-  base="https://github.com/$REPO/releases/latest/download"
+  # A pinned ref must pin the tool too. The skills and arctool share the plan
+  # format as a contract, so installing v0.28.0 skills beside whatever release
+  # happens to be latest is the version skew the pin exists to prevent. When the
+  # ref names a release, take the tool from that release; if it has no binary,
+  # the build-from-source fallback below builds it from the same pinned tree.
+  case "$REF" in
+    v*) base="https://github.com/$REPO/releases/download/$REF" ;;
+    *)  base="https://github.com/$REPO/releases/latest/download" ;;
+  esac
   if command -v curl >/dev/null \
      && curl -fsSL "$base/$TOOL-$platform" -o "$tmpdir/$TOOL" 2>/dev/null \
      && curl -fsSL "$base/SHA256SUMS" -o "$tmpdir/SHA256SUMS" 2>/dev/null; then
@@ -224,6 +232,19 @@ if [ "$DO_TOOL" = 1 ]; then
 
   info "$TOOL → $BINDIR/$TOOL ($installed)"
   "$BINDIR/$TOOL" version >/dev/null || die "$BINDIR/$TOOL does not run on this system"
+
+  # The skills and the tool share the plan format. If the tree we just installed
+  # skills from expects a different arctool than the one now on disk, say so:
+  # silent skew here shows up later as a plan key the tool does not know.
+  if [ -f "$src/cmd/$TOOL/main.go" ]; then
+    want_ver="$(sed -n 's/^const version = "\(.*\)"$/\1/p' "$src/cmd/$TOOL/main.go" | head -1)"
+    got_ver="$("$BINDIR/$TOOL" version 2>/dev/null | awk '{print $2}')"
+    if [ -n "$want_ver" ] && [ -n "$got_ver" ] && [ "$want_ver" != "$got_ver" ]; then
+      warn "skills expect $TOOL $want_ver but $BINDIR/$TOOL is $got_ver."
+      warn "no release carries $want_ver yet; re-run after the next release, or build from source:"
+      warn "  (cd <checkout> && make install)"
+    fi
+  fi
   case ":$PATH:" in
     *":$BINDIR:"*) ;;
     *) warn "$BINDIR is not on PATH — add:  export PATH=\"$BINDIR:\$PATH\"" ;;

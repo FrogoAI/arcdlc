@@ -68,10 +68,13 @@ published Go code was written.
   One real problem sits underneath this and is **not** solved by closing it: a team on different agents
   can be on different bundle versions while sharing one `plan.md`, and the plan format is a contract.
   [ADR-0022](adr/0022-a-plan-records-the-design-it-came-from.md)'s source stamp catches a drifting
-  design, nothing catches a drifting bundle, and an engineer on an older `arctool` can parse a plan
-  written by a newer one and silently miss a key. The cheap fix is pinning, which the installer already
-  supports (`./install.sh --ref v0.27.0`) plus recording the expected version in the consuming project.
-  Filed below as its own question rather than left implied.
+  design, nothing catches a drifting bundle. The fix is pinning with `./install.sh --ref vX.Y.Z` plus
+  recording the expected version in the consuming project.
+
+  **Corrected 2026-09-16:** when that advice was given, `--ref` pinned only the skills. `arctool` was
+  always taken from `releases/latest`, so a pinned install produced exactly the skew the pin was meant
+  to prevent. Fixed in the same session: a ref beginning with `v` now takes the tool from that release,
+  and the installer warns when the skills tree expects a different `arctool` than the one on disk.
 
 - **Should Cursor skills set `disable-model-invocation`?** **Decided 2026-09-16: no, leave it unset.**
   [ADR-0006](adr/0006-cursor-support-via-flat-personal-skills.md) already judged auto-invocation
