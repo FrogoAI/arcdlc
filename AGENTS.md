@@ -89,6 +89,11 @@ checks. Do not merge with a red pipeline.
   asks the next, each carrying a recommended answer. Never a numbered round. Six skills restate this in
   one shared paragraph for their inline fallback (`aic`, `policy`, `examinate`, `assist`, `plan-human`,
   `execute`); change it in all seven together.
+- **The seven task keys are the contract; a custom key is carried, not judged.** A key-shaped line the
+  format does not define is preserved with its indented body, surfaced under `extra` in `arctool`'s
+  JSON, and ignored by `validate`. Absorption of a multi-line key stops at *any* key, defined or not:
+  before that, an unknown key was swallowed into the section above it, corrupting that section as well
+  as losing itself. A task reaches the executor whole.
 - **The plan is a queue, not a graph.** An ordered list, run top to bottom, one task at a time. No
   `DEPENDS` key, no derived ordering, no parallel execution: a queue resumes from one pointer, a person
   reads the order instead of computing it, commits stay linear, and a concurrency failure cannot be

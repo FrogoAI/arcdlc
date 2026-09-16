@@ -104,6 +104,17 @@ bodies to plain/bulleted lines with inline backticks — a fenced code block end
   the executor does not re-derive which part applies.
 - `Status` (required) — see the lifecycle below.
 
+**Custom keys are allowed.** A key-shaped line the list above does not define (`- BUDGET: …`,
+`- Rollout plan:`) is carried through untouched: it is not validated, never required, and never
+dropped. It absorbs its own indented body exactly as a defined multi-line key does, it appears in
+`arctool show` and `arctool next --json` under `extra`, in document order, and `arctool validate`
+says nothing about it. The seven keys above are the contract; anything else is part of the task, and
+the executor receives the whole task.
+
+The one thing a custom key must not do is shadow a defined one. `- Acceptence:` is a custom key, not
+a misspelled `Acceptance`, so a task that carries it has no acceptance criteria and `--strict` will
+say so.
+
 ## Status Lifecycle (In-Block)
 
 Status is tracked by the `- Status:` line inside each task block (not in heading text).

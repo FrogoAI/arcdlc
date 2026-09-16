@@ -25,7 +25,7 @@ import (
 	"github.com/FrogoAI/arcdlc/internal/scan"
 )
 
-const version = "0.17.0"
+const version = "0.18.0"
 
 // aicsDir is the root directory under which each initiative gets its own folder
 // (docs/aics/<slug>/, holding plan.md, gap.md, comments.md, plan-archive.md).
@@ -233,8 +233,16 @@ type taskJSON struct {
 	Acceptance   string       `json:"acceptance"`
 	References   []string     `json:"references"`
 	Status       string       `json:"status"`
-	LineStart    int          `json:"lineStart"`
-	LineEnd      int          `json:"lineEnd"`
+	// Custom keys the plan format does not define, in document order. They are
+	// part of the task and the executor must read them.
+	Extra     []extraJSON `json:"extra"`
+	LineStart int         `json:"lineStart"`
+	LineEnd   int         `json:"lineEnd"`
+}
+
+type extraJSON struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 func toTaskJSON(t *plan.Task) taskJSON {
@@ -242,7 +250,12 @@ func toTaskJSON(t *plan.Task) taskJSON {
 	if refs == nil {
 		refs = []string{}
 	}
+	extra := []extraJSON{}
+	for _, e := range t.Extra {
+		extra = append(extra, extraJSON{Key: e.Key, Value: e.Value})
+	}
 	return taskJSON{
+		Extra:        extra,
 		ID:           t.ID,
 		SourceStatus: string(t.SourceStatus),
 		Title:        t.Title,

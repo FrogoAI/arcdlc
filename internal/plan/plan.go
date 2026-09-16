@@ -70,6 +70,12 @@ type Task struct {
 	// HasHow is informational only: HOW is never required.
 	HasWhat, HasHow, HasWhere, HasWhy, HasRefs, HasStatus, HasAcceptance bool
 
+	// Extra holds key-shaped lines the contract does not define, in document
+	// order. They are carried through untouched: not validated, not required,
+	// never dropped. A plan may say something this tool does not know about,
+	// and the executor still needs to read it.
+	Extra []ExtraKey
+
 	HeadingOK bool // heading matched the expected "### <ID>...: <Title>" shape
 	Line      int  // 1-based line of the heading (block start), for messages
 	LineEnd   int  // 1-based line of the block's last line
@@ -99,6 +105,12 @@ type Plan struct {
 var (
 	reHeading = regexp.MustCompile(`^###\s+(\S+?)\s*(?:\(([^)]*)\))?\s*:\s*(.*?)\s*$`)
 	reKey     = regexp.MustCompile(`^-\s+(WHAT|HOW|WHERE|WHY|References|Acceptance|Status):\s?(.*)$`)
+	// Any key-shaped line, including one the contract does not define. A plan may
+	// carry custom keys: they are not the contract, but they are part of the task
+	// and the executor must receive them. Absorption stops at any key, or an
+	// unknown one would be swallowed into the multi-line section above it and
+	// corrupt that section's value as well as losing its own.
+	reAnyKey  = regexp.MustCompile(`^-\s+([A-Za-z][A-Za-z0-9 _-]*):\s?(.*)$`)
 	reFence   = regexp.MustCompile("^(```|~~~)")
 	rePathExt = regexp.MustCompile(`\.\w{1,6}(\s|$|,|` + "`" + `)`)
 )
@@ -210,6 +222,29 @@ func parseBlock(lines []srcLine, start, end int) Task {
 		}
 		m := reKey.FindStringSubmatch(ln.text)
 		if m == nil {
+			// A key-shaped line the contract does not define is a custom key.
+			// Keep it, in document order, with any indented body under it, so
+			// the whole task reaches the executor.
+			if x := reAnyKey.FindStringSubmatch(ln.text); x != nil {
+				body := []string{x[2]}
+				j := i + 1
+				for j < end {
+					nx := lines[j].text
+					if reFence.MatchString(strings.TrimSpace(nx)) ||
+						reAnyKey.MatchString(nx) || strings.HasPrefix(nx, "### ") {
+						break
+					}
+					body = append(body, nx)
+					j++
+				}
+				t.Extra = append(t.Extra, ExtraKey{
+					Key:   strings.TrimSpace(x[1]),
+					Value: strings.TrimSpace(strings.Join(body, "\n")),
+					Line:  i + 1,
+				})
+				i = j
+				continue
+			}
 			i++
 			continue
 		}
@@ -237,7 +272,7 @@ func parseBlock(lines []srcLine, start, end int) Task {
 			for j < end {
 				nx := lines[j].text
 				if reFence.MatchString(strings.TrimSpace(nx)) ||
-					reKey.MatchString(nx) || strings.HasPrefix(nx, "### ") {
+					reAnyKey.MatchString(nx) || strings.HasPrefix(nx, "### ") {
 					break
 				}
 				body = append(body, nx)
@@ -256,6 +291,14 @@ func parseBlock(lines []srcLine, start, end int) Task {
 		}
 	}
 	return t
+}
+
+// ExtraKey is one custom key on a task: a key-shaped line the plan format does
+// not define. It is preserved verbatim and passed to the executor.
+type ExtraKey struct {
+	Key   string
+	Value string
+	Line  int
 }
 
 // parseRefs splits a References value into clean paths: comma-separated, with
