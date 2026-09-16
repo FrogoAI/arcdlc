@@ -1,21 +1,33 @@
 # Backlog
 
-Questions that were raised, deliberately deferred, and are still open. Each was accepted as
-out of scope by the initiative that found it, and each needs its own interview before it becomes work.
+Questions that were raised, deliberately deferred, and then decided. Each was accepted as out of
+scope by the initiative that found it, and each was settled in a `/arcdlc:grilling` interview on
+2026-09-16.
 
-Harvested on 2026-09-16 from the five initiatives retired that day. Git history holds the full
-initiative folders; the ADR named beside an entry holds the reasoning.
+**Nothing here is open.** New questions go under a `## Open` heading above this line; everything below
+is the record of what was decided and why, kept so a closed question is not re-opened on reasoning
+that was already weighed. Git history holds the five retired initiative folders that raised most of
+these; the ADR named beside an entry holds the fuller reasoning.
 
-One entry has already been closed: the deferred "add modern Go coverage" question was answered on
-2026-09-16 by `skills/examinate/references/Modern Go.md`, 28 citable rules covering what changed in
-Go after most published Go code was written.
-
-## Plan and ordering
-
-- **Should `arctool validate` warn on irregular block spacing?** Both `order` and `archive` normalise
-  spacing silently today, which is consistent, so nothing is broken while this stays open.
+The first to close was the deferred "add modern Go coverage" question, answered by
+`skills/examinate/references/Modern Go.md`: 28 citable rules covering what changed in Go after most
+published Go code was written.
 
 ## Closed, with the reasoning kept
+
+- **Should `arctool validate` warn on irregular block spacing?** **Decided 2026-09-16: no.** Spacing
+  changes nothing the runner does: a plan with zero blank lines in one gap and three in another parses
+  identically, and all tasks come back correctly. A warning would report something that is not a defect,
+  and every warning that is not a defect trains people to skip warnings, including the two that matter,
+  `source-changed` and `unverifiable-acceptance`.
+
+  `order` and `archive` already normalise to one blank line whenever they rewrite, so a plan converges on
+  tidy spacing by being worked rather than by being nagged.
+
+  Residual, accepted: a hand-edited plan that is never reordered or archived keeps whatever spacing it was
+  given, so a later `arctool` rewrite shows spacing churn mixed with the real change in review. If that
+  becomes annoying, `arctool fmt` is the honest fix, because it gives you something to run rather than a
+  message to ignore.
 
 - **What happens to a key the plan format does not define?** **Decided 2026-09-16: custom keys are
   allowed, preserved, and passed to the executor.** The seven defined keys are the contract; anything
@@ -33,7 +45,6 @@ Go after most published Go code was written.
   now carries it to the executor rather than eating it. What remains unhandled is a *changed* meaning
   for an existing key, which no marker would catch either.
 
-
 - **Should `/arcdlc:examinate` place gap tasks by dependency order instead of appending them?**
   **Decided 2026-09-16: no, keep appending.** Appending is the only placement that is always safe. A
   gap task inserted mid-plan changes the run order of tasks already reasoned about, and `examinate`
@@ -46,7 +57,6 @@ Go after most published Go code was written.
 
   Residual, accepted: appended gap tasks run last, so a violation blocking work that a later task needs
   is found late. The engineer reorders with `arctool order` when that happens.
-
 
 - **Project-scope skills, and distribution through Cursor rules or a project `AGENTS.md`.**
   **Decided 2026-09-16: no to both. Global install is the intended model.** `install.sh` writes only
@@ -62,7 +72,6 @@ Go after most published Go code was written.
   written by a newer one and silently miss a key. The cheap fix is pinning, which the installer already
   supports (`./install.sh --ref v0.27.0`) plus recording the expected version in the consuming project.
   Filed below as its own question rather than left implied.
-
 
 - **Should Cursor skills set `disable-model-invocation`?** **Decided 2026-09-16: no, leave it unset.**
   [ADR-0006](adr/0006-cursor-support-via-flat-personal-skills.md) already judged auto-invocation
@@ -80,7 +89,6 @@ Go after most published Go code was written.
   supported agent nobody here uses, and the `agy` install path has never been confirmed against a
   shipping build. Writing migration instructions for a path we cannot test would be inventing
   confidence. The limit is documented in `README.md` under Agent support.
-
 
 - **Should a task block gain a `- DEPENDS:` key, and should independent tasks run in parallel?**
   **Decided 2026-09-16: no, to both.** A plan is an ordered list that runs top to bottom, one task at a

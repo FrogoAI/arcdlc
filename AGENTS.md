@@ -24,7 +24,8 @@ before changing a rule that links to one.
 ## Initiatives
 
 Active initiatives in this repo (kept in sync by `arctool sync`; do not edit inside the markers).
-Deferred questions from retired initiatives live in [docs/backlog.md](docs/backlog.md):
+Decided questions and the reasoning behind them live in [docs/backlog.md](docs/backlog.md); read it
+before re-opening one:
 
 <!-- arcdlc:initiatives:begin -->
 _none_
