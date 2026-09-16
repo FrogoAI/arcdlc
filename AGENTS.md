@@ -75,9 +75,9 @@ checks. Do not merge with a red pipeline.
   that changes the plan stops the run: `/arcdlc:plan` owns the plan text.
 - **Everything the skills write or say is written for humans.** Plain English, no AI filler, no long
   dashes in prose, acronyms expanded, domain terms kept and defined once. The rules cover chat replies
-  as much as saved files; only the length differs, a reply being short and a file complete. Plain
-  words never mean less content: every decision, constraint, trade-off and open question the template
-  asks for still has to be there.
+  as much as saved files. Plain words never mean less content, and neither does a short reply: every
+  decision, constraint, trade-off and open question still has to be there, in chat as much as in a
+  file. Brevity cuts filler, never facts.
   The `— ` separator in generated initiative-registry lines is exempt; that is `internal/registry`
   output, not prose. See the Conventions section below for where the rules live.
 - **Judgement follows the four virtues.** Wisdom (ask, do not guess), courage (say the hard thing),

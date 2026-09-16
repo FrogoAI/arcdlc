@@ -32,10 +32,12 @@ Plain English: short sentences, common words, one idea each, active voice, a nam
 - **Shape.** In chat, bullets rather than paragraphs: what you did, what you found, what comes next.
   In files, vary sentence length so the prose does not read as a list.
 
-Only the length differs. A reply is short; a file is complete. Never drop a rule, path, decision,
-trade-off, or acceptance criterion from a file to save space, and never pad a reply to fill one. The
-full standard, with examples and a pre-save check, is `references/Writing Style.md` in the bundle's
-`grilling` skill.
+Nothing is dropped to save space, in a reply as much as in a file. Never leave out a rule, path,
+decision, trade-off, open question, or acceptance criterion because the answer is getting long: if it
+bears on what the reader does next, it goes in. Short means no padding, never less content. Cut filler
+words, repetition, and throat-clearing; never cut a fact. When completeness makes a reply long, let it
+be long. The full standard, with examples and a pre-save check, is `references/Writing Style.md` in
+the bundle's `grilling` skill.
 
 ## Judge by the four virtues
 
