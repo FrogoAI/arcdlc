@@ -152,7 +152,13 @@ Use the register as the evidence, and `plan.md` as the executable queue — both
    while authoring, resolve it now — do not defer it to the executor.
 7. `arctool validate --strict` fails a task with a missing or empty `Acceptance` section, an empty
    `References` list, or a `WHERE` with no concrete file/module.
-8. Do not place executor instructions inside `plan.md`; update this file instead.
+8. **Every `Acceptance` criterion must name something a reader can run or observe**: a command or
+   path in backticks, a test name, an exit code, or a `GIVEN … WHEN … THEN` scenario. `--strict`
+   reports `unverifiable-acceptance` when a section has none of these, because "the feature works
+   correctly" gives the executor nothing to check. The executor is a weaker model than the planner:
+   it will not notice a criterion it cannot verify, it will decide it passed. A runnable check fails
+   loudly where a guess passes silently.
+9. Do not place executor instructions inside `plan.md`; update this file instead.
 
 ## Minimal Example
 

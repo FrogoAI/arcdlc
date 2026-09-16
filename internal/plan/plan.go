@@ -306,3 +306,38 @@ func looksLikePath(s string) bool {
 	}
 	return rePathExt.MatchString(s)
 }
+
+// reScenario matches a GIVEN/WHEN/THEN criterion, the shape plan-format.md
+// prefers. reTestName matches a Go test function named directly.
+var (
+	reScenario = regexp.MustCompile(`(?i)\bgiven\b.*\bwhen\b.*\bthen\b`)
+	reTestName = regexp.MustCompile(`\bTest[A-Z][A-Za-z0-9_]*\b`)
+	reExitCode = regexp.MustCompile(`(?i)\bexits?\s+(?:with\s+)?(?:code\s+)?[0-9]`)
+)
+
+// looksDemonstrable reports whether an Acceptance section names something a
+// reader could actually run or observe, rather than asserting success in prose.
+//
+// It exists because a task block is executed by a weaker model than the one
+// that planned it. Such a model will not notice that "the feature works
+// correctly" gives it nothing to check; it will implement something, decide it
+// passed, and mark the task DONE. A runnable check fails loudly where a guess
+// passes silently, so the criterion is the real safety gate and the only one
+// that can be enforced mechanically.
+func looksDemonstrable(s string) bool {
+	switch {
+	case strings.Contains(s, "`"): // a command, path, symbol, or flag
+		return true
+	case strings.Contains(s, "/"): // a bare file or package path
+		return true
+	case reScenario.MatchString(s):
+		return true
+	case reTestName.MatchString(s):
+		return true
+	case reExitCode.MatchString(s):
+		return true
+	case rePathExt.MatchString(s):
+		return true
+	}
+	return false
+}

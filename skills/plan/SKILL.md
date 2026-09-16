@@ -91,7 +91,10 @@ matters goes into the block.
   re-derive it here. Two judgements are yours, not the contract's: `HOW` must resolve every decision
   the architecture document settles, so the executor never re-derives one, and `References` must name
   the architecture document plus every ADR the task relies on.
-- A task with no `Acceptance` criteria is not plannable. This is the contract's teeth.
+- A task with no `Acceptance` criteria is not plannable, and a criterion the executor cannot check is
+  no better. Name a command, a path, a test, an exit code, or write `GIVEN … WHEN … THEN`. "Works
+  correctly" is not a criterion: the executor is a weaker model and will decide it passed.
+  `arctool validate --strict` reports this as `unverifiable-acceptance`.
 - Word every field the way `## Talk simple, write like a human` says. Vague text costs the executor a
   guess.
 - Every block ends with `- Status: TODO.`
