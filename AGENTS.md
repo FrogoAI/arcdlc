@@ -8,8 +8,9 @@ Guidance for AI coding agents working **on this repository**. (If you are lookin
 ArcDLC is two deliverables in one repo, and they share a contract:
 
 1. **A skill bundle** (`skills/`, packaged by `.claude-plugin/`) — the `/arcdlc:*` delivery
-   workflow (aic, policy, plan, plan-human, examinate, assist, execute, remove, archive), the
-   `grilling` interview skill they all run on, plus the `source-map` reference library.
+   workflow (aic, policy, plan, plan-human, examinate, assist, execute, remove, archive) plus the
+   `grilling` interview skill they all run on. Ten skills. Each owns the reference documents it
+   consumes, in its own `references/` folder.
 2. **The `arctool` CLI** (`cmd/arctool`, `internal/plan`, `internal/registry`, `internal/scan`) — a
    deterministic runner for the plan format those skills produce and consume, the initiative registry
    sync, and the code comment sweep (`arctool scan`) that writes the comment register.
@@ -17,16 +18,16 @@ ArcDLC is two deliverables in one repo, and they share a contract:
 The shared contract is `skills/plan/references/plan-format.md`. It is parsed mechanically by
 `internal/plan`; treat it as an API, not prose.
 
+Every decision that shaped either deliverable is in [docs/adr/](docs/adr/README.md). Read the ADR
+before changing a rule that links to one.
+
 ## Initiatives
 
-Active initiatives in this repo (kept in sync by `arctool sync`; do not edit inside the markers):
+Active initiatives in this repo (kept in sync by `arctool sync`; do not edit inside the markers).
+Deferred questions from retired initiatives live in [docs/backlog.md](docs/backlog.md):
 
 <!-- arcdlc:initiatives:begin -->
-- [Antigravity CLI](docs/aics/antigravity-cli/aic.md) — Add Google Antigravity as a fourth supported agent — a native plugin bundle with a flat-skills fallback.
-- [Cursor Support](docs/aics/cursor-support/aic.md) — Add Cursor as a supported agent via flat personal skills (~/.cursor/skills/arcdlc-<name>) — installer, CI, and docs only…
-- [Initiative Lifecycle](docs/aics/initiative-lifecycle/aic.md) — Mandatory slug-first selection, an arctool-synced initiative registry, and an always-confirmed removal flow.
-- [Task Ordering](docs/aics/ordering/aic.md) — Add an arctool command that re-orders task blocks in plan.md, because /arcdlc:execute runs them top to bottom.
-- [Source Library Cleanup](docs/aics/source-library-cleanup/aic.md) — Make the bundled reference library agent-grade: redact leaked data, delete docs that contradict the plan contract, merge…
+_none_
 <!-- arcdlc:initiatives:end -->
 
 ## Build, test, verify
@@ -45,143 +46,117 @@ checks. Do not merge with a red pipeline.
 
 ## Hard rules
 
-- **`arctool` stays pure standard library.** Do not add module dependencies; release binaries must
-  remain static (`CGO_ENABLED=0`).
-- **The plan format is a contract.** Any change to `plan-format.md` requires matching changes in
-  `internal/plan` (parser/validator/mutator/archiver), its tests, and the skills that reference
-  the format — in the same change set.
-- **Skills must stay install-agnostic.** Every SKILL.md must work both as a Claude Code plugin
- command (`/arcdlc:<name>`) and as a flat skill (`arcdlc-<name>` on Codex/OpenCode/Cursor/Antigravity). Keep the
- dual path references (`../plan/...` and `../arcdlc-plan/...`) intact when editing.
-- **`arctool` is always optional in skills.** Every skill that uses it must probe
-  `command -v arctool` and describe the manual fallback. Never make a skill hard-depend on the CLI.
-- **The bundle depends on nothing outside itself.** A skill that delegates delegates to a *sibling
-  skill in this bundle*, never to an external one. The interview is `skills/grilling` (`arcdlc-grilling`);
-  `/arcdlc:aic`, `/arcdlc:policy`, and `/arcdlc:plan` name it and no other. Do not reintroduce
-  references to third-party skills (`grilling`, `grill-with-docs`, `domain-modeling` on the user's
-  machine) — that dependency is what `skills/grilling` exists to remove.
-- **No skill hard-depends on another skill.** Even for a sibling, a delegating skill states a
-  preference ladder that leads with the model-invocable skill and ends in an inline fallback (read
-  the sibling's `SKILL.md` and run its protocol yourself), and never stops to report a helper skill
-  as missing. What is mandatory is the behaviour (the grilled interview), never the invocation.
-- **The interview is one question at a time.** `skills/grilling` asks exactly one question per turn,
-  waits for the answer, then asks the next — never a numbered round. Every question carries a
-  recommended answer. Seven skills restate this rule for their inline fallback (`aic`, `policy`,
-  `plan`, `plan-human`, `examinate`, `assist`, `execute`); change it in all eight together.
-- **Unclear is a question, not a guess.** A skill that hits a contradiction, a missing decision,
-  code that looks dead, or a change that is risky or hard to reverse escalates to the grilled
-  interview instead of picking for the engineer. `aic`, `policy` and `plan` grill up front; `examinate`
-  (Step 2.5), `assist` (Step 3), `plan-human` and `execute` grill mid-flight. Every answer is recorded
-  where the next session reads it (an ADR, `CONTEXT.md`, the gap's `HOW`, the story, the commit body),
-  never only in the chat. An answer that changes the plan stops the run: `/arcdlc:plan` owns the plan
-  text.
-- **Everything the skills write is written for humans.** Every file every skill produces — the
-  architecture documents of `/arcdlc:aic` in any format, Markdown or HTML, plus policies, ADRs,
-  `CONTEXT.md`, plan tasks, gap blocks, and commit messages — is plain English: short active
-  sentences, common words, expanded acronyms, no stacked noun phrases, no AI filler, no empty intensifiers
-  (`honestly`, `genuinely`, `truly`, `clearly`, `obviously`), and no long dashes (`—`, `–`) in prose. Domain terms survive: a word like *provenance* is defined once in plain words, never
-  swapped for a vaguer one. Plain words never mean less content: every decision, constraint,
-  trade-off, and open question the template asks for still has to be there. The full standard is
-  `skills/source-map/source/Writing Style.md`; the `## Talk simple, write like a human` block in every
-  `SKILL.md` is its short form and must stay self-sufficient, because a skill is loaded but a
-  reference is only read if the agent opens it. A long dash a format contract owns (the `— ` separator
-  in generated initiative-registry lines) is exempt; that is `internal/registry`'s output, not prose.
-- **Status mutations stay byte-preserving and atomic.** `take`/`done`/`block`/`todo` rewrite only
-  the one `- Status:` line via temp-file + rename; `archive` writes the archive before compacting
-  the plan; `order` permutes whole blocks, re-parses its own output before writing, and writes
-  nothing on a failed check. `scan` appends to `comments.md` and may grow one block, never more: a
-  marker whose group tag is already registered adds a `- Marker:` line, more text on `WHAT` and more
-  lines on `WHERE`, and a block is never removed, renumbered, or rewritten anywhere else. `scan` is
-  also the one command that can edit source files, and only when asked: `--strip` deletes the marker
-  comment lines it just registered, nothing else, never `plan.md`. Without that flag the code is left
-  exactly as it was. It re-parses the register and re-checks every source edit before writing, and
-  writes nothing on a failed check. Preserve these invariants.
-- **The comment register has two owners.** `arctool scan` owns each block's task ID, its `- Marker:`
-  lines (the finding's identity: file plus marker text), the `- WHERE:` list, and a first draft of
-  `- WHAT:`; `/arcdlc:assist` owns the title and every judgement key (`WHAT` as rewritten, `HOW`,
-  `WHY`, `Acceptance`, the verdict). Neither side writes the other's lines, and the sweep writes no
-  verdict at all: an empty `- Verdict:` means the block is unjudged. The register is the only copy of a
-  marker's text once the sweep has removed the comment, so a block is never deleted. See
-  [ADR-0015](docs/adr/0015-comment-register-is-scanned-by-arctool-and-judged-by-the-skill.md) and
+- **`arctool` stays pure standard library.** No module dependencies; release binaries stay static
+  (`CGO_ENABLED=0`).
+- **The plan format is a contract.** A change to `skills/plan/references/plan-format.md` requires
+  matching changes in `internal/plan` (parser, validator, mutator, archiver), its tests, and every
+  skill that references the format, in the same change set.
+- **Skills must stay install-agnostic.** Every `SKILL.md` must work as a Claude Code plugin command
+  (`/arcdlc:<name>`) and as a flat skill (`arcdlc-<name>` on Codex, OpenCode, Cursor, Antigravity).
+  Where a skill still reaches across to a sibling, keep both paths (`../grilling/...` and
+  `../arcdlc-grilling/...`). Files a skill owns live in its own `references/`, which needs no dual path.
+- **`arctool` is always optional in skills.** Every skill that uses it probes `command -v arctool` and
+  describes the manual fallback. Never make a skill hard-depend on the CLI.
+- **The bundle depends on nothing outside itself.** A skill delegates only to a sibling in this bundle.
+  The interview is `skills/grilling` (`arcdlc-grilling`) and no other. Never reintroduce references to
+  third-party skills on the user's machine; removing that dependency is why `skills/grilling` exists.
+- **No skill hard-depends on another skill.** A delegating skill leads with the model-invocable sibling
+  and ends in an inline fallback (read the sibling's `SKILL.md`, run its protocol yourself). It never
+  stops to report a helper skill as missing. The behaviour is mandatory, the invocation is not.
+- **The interview is one question at a time.** `skills/grilling` asks one question per turn, waits, then
+  asks the next, each carrying a recommended answer. Never a numbered round. Six skills restate this in
+  one shared paragraph for their inline fallback (`aic`, `policy`, `examinate`, `assist`, `plan-human`,
+  `execute`); change it in all seven together.
+- **Unclear is a question, not a guess.** A skill that hits a contradiction, a missing decision, code
+  that looks dead, or a risky change escalates to the grilled interview instead of choosing for the
+  engineer. `aic`, `policy` and `plan` grill up front; `examinate` (Step 2.5), `assist` (Step 3),
+  `plan-human` and `execute` grill mid-flight. Every answer is written where the next session reads it
+  (an ADR, `CONTEXT.md`, the gap's `HOW`, the story, the commit body), never only in the chat. An answer
+  that changes the plan stops the run: `/arcdlc:plan` owns the plan text.
+- **Everything the skills write is written for humans.** Plain English, no AI filler, no long dashes in
+  prose, acronyms expanded, domain terms kept and defined once. Plain words never mean less content:
+  every decision, constraint, trade-off and open question the template asks for still has to be there.
+  The `— ` separator in generated initiative-registry lines is exempt; that is `internal/registry`
+  output, not prose. See the Conventions section below for where the rules live.
+- **Judgement follows the four virtues.** Wisdom (ask, do not guess), courage (say the hard thing),
+  justice (write the answer down, name the tier you used), temperance (touch only what you were pointed
+  at). `## Judge by the four virtues` is verbatim in all ten `SKILL.md` files and CI pins it byte
+  identical, exactly like the writing-style block.
+- **Every write is atomic and byte-preserving outside its own region.** `take`/`done`/`block`/`todo`
+  rewrite only the one `- Status:` line via temp-file plus rename. `archive` writes the archive before
+  compacting the plan. `order` re-parses its own output and writes nothing on a failed check. `scan`
+  appends to `comments.md` and may grow one block, never more, and never removes or renumbers one.
+  `scan` is also the only command that edits source files, and only with `--strip`, which deletes just
+  the marker comment lines it registered. See [ADR-0013](docs/adr/0013-order-is-a-slot-permutation.md)
+  and [ADR-0014](docs/adr/0014-exit-5-means-self-validation-failed.md).
+- **The comment register has two owners.** `arctool scan` owns the task ID, the `- Marker:` lines, the
+  `- WHERE:` list and a first draft of `- WHAT:`; `/arcdlc:assist` owns the title and every judgement
+  key. Neither writes the other's lines, the sweep writes no verdict, and a block is never deleted: it
+  is the only copy of a marker's text once the comment is stripped. See
+  [ADR-0015](docs/adr/0015-comment-register-is-scanned-by-arctool-and-judged-by-the-skill.md).
+- **A group tag makes one block.** `// ARCDLC:T1` in three files is one record and one task
+  (`ARCDLC-CMT-T1`). Tags fold to upper case and must contain a letter. See
   [ADR-0016](docs/adr/0016-comment-markers-group-by-tag.md).
-- **A group tag makes one block.** `// ARCDLC:T1 ...` in three files is one record and one task, named
-  after the tag (`ARCDLC-CMT-T1`), because it is one change written down three times. Tags are folded to
-  upper case, reach across the whole sweep, and belong to one marker word (`TODO:T1` is another
-  group). A tag with no letter in it is not a tag: `// ARCDLC:01` would claim an auto-numbered ID, so it
-  reads as a plain marker and the run says so.
-- **Only a single-line comment carries a marker.** `// ARCDLC ...` counts; `/* ARCDLC ... */` and every
-  other block comment is prose to the sweep, in every language. A single-line comment ends where its
-  line ends, so the note's extent needs no per-language closing token, and removing one is a whole-line
-  delete or a cut to the end of a line: safe everywhere, with no shape to refuse. A language whose only
-  comment is a block comment carries no markers, and `openersByExt` says so with an empty entry.
-- **The default marker is `ARCDLC`, and removing a comment is asked for.** `scan.DefaultMarkers` is the
-  bundle's own word, so a sweep never touches the TODO and FIXME notes a repository already had;
-  `--marker TODO` is how a team opts in. Cutting a comment out of the code needs `--strip`, and
-  `/arcdlc:assist` only passes it after the engineer answers yes (Step 6 of that skill). A marker also
-  counts only inside a comment: `internal/scan`'s line scanner follows string literals and block
-  comments across lines, and reports no comment when it cannot tell. A file that ends inside a literal
-  proves the scanner misread one, so it re-reads that file line by line rather than losing everything
-  below. Both rules exist so a sweep cannot rewrite code nobody pointed it at. See
+- **Only a single-line comment carries a marker.** `// ARCDLC ...` counts, `/* ARCDLC ... */` does not,
+  in every language. A language whose only comment is a block comment carries no markers, and
+  `openersByExt` says so with an empty entry. See
+  [ADR-0018](docs/adr/0018-only-single-line-comments-carry-markers.md).
+- **The default marker is `ARCDLC`, and removing a comment is asked for.** A sweep never touches the
+  TODO and FIXME notes a repository already had; `--marker TODO` is how a team opts in. Cutting a
+  comment needs `--strip`, which `/arcdlc:assist` passes only after the engineer answers yes (its
+  Step 6). A marker counts only inside a comment, and the scanner re-reads a file line by line rather
+  than losing everything below when it cannot tell. See
   [ADR-0017](docs/adr/0017-a-marker-is-arcdlc-in-a-comment-and-cutting-it-is-asked-for.md).
 - **The comment styles the sweep reads are documented, and the document is checked.**
-  [docs/comment-markers.md](docs/comment-markers.md) is the contract: the marker, the tag, every shape a
-  marker may sit in, and the single-line comment style of every file type in `openersByExt` and
-  `openersByName`. Adding a language means two edits in one change set: the table in
-  `internal/scan/scan.go` and the table on that page. `TestDocumentedCommentStylesMatchTheTable` fails
-  when they disagree, in either direction.
-- **Initiatives are folders; selection is mandatory and explicit.** Each initiative lives in
-  `docs/aics/<slug>/` (holding the architecture doc, `plan.md`, `gap.md`, `comments.md`,
-  `plan-archive.md` — the last three are always siblings of `plan.md`). Selection is always named, never inferred:
-  skills take the slug as their first positional argument (missing → error listing initiatives), and
-  `arctool` requires `--aic <slug>` or `--plan PATH` (neither → lists initiatives, exit 2). The
-  resolver lives in `cmd/arctool` (`resolvePlan`); keep the skills' manual fallback describing the
-  same rule. A folder is created lazily: `atomicWrite` makes the parent directory, so a write into a
-  slug that has no folder yet (`arctool scan --aic <new-slug>`) lands and reports the folder it
-  created. Creation is cheap and visible; deletion stays with `/arcdlc:remove`. The legacy flat
-  `docs/aics/plan.md` is reachable only via `--plan`. Task IDs are unique per plan, not globally. ADRs (`docs/adr/`) and `CONTEXT.md` stay global, not per-initiative.
-- **The initiative registry is generated.** `arctool sync` keeps the initiative list (title +
-  summary, parsed from each arch doc's `# ` H1 and the `> ` blockquote under it, per `internal/registry`)
-  inside the `<!-- arcdlc:initiatives -->` marker blocks in `AGENTS.md` and `README.md`, rewriting
-  only that region (byte-preserving elsewhere, atomic). `sync --check` fails on drift for CI. Never
-  hand-edit inside the markers. `/arcdlc:remove <slug>` deletes an initiative folder (always after an
-  explicit confirmation) and re-syncs; `arctool` itself performs no deletion.
-- **The executor tier is asked for, never guessed.** A tier is a model plus an effort level, and
-  `/arcdlc:execute` picks neither by itself. The order is fixed, first answer wins: a task's `HOW`,
-  then the `Executor tier: <name>` pin in `CONTEXT.md` (used exactly as written), then one question to
-  the engineer before the first spawn (recommended answer, options this harness has, offered as a new
-  pin), then in-session mode when there is nobody to ask or nothing to choose. Any tier must clear the
-  capability floor: shell commands, file edits, the project's test and lint commands, a commit. Never
-  spawn at the dispatcher's own tier and report it as a cheaper run. The run names the tier it used and
-  where the choice came from. A block a weaker model cannot execute is a plan defect that
-  `/arcdlc:plan` sharpens, never a reason to raise the tier. The rule pays off the promise
-  `skills/plan/references/plan-format.md` and Step 2 of `/arcdlc:plan` both already make. See
+  [docs/comment-markers.md](docs/comment-markers.md) is the contract. Adding a language means two edits
+  in one change set: the table in `internal/scan/scan.go` and the table on that page.
+  `TestDocumentedCommentStylesMatchTheTable` fails when they disagree, in either direction.
+- **Initiatives are folders; selection is mandatory and explicit.** Each lives in `docs/aics/<slug>/`
+  (the architecture doc plus `plan.md`, `gap.md`, `comments.md`, `plan-archive.md`, `plan-human.md`).
+  Skills take the slug as their first positional argument and `arctool` requires `--aic <slug>` or
+  `--plan PATH`; missing means an error listing the initiatives, never a guess. The resolver is
+  `resolvePlan` in `cmd/arctool`. A folder is created lazily by `atomicWrite`. Task IDs are unique per
+  plan, not globally. ADRs and `CONTEXT.md` stay global. See
+  [ADR-0001](docs/adr/0001-initiative-selection-is-always-explicit.md).
+- **The initiative registry is generated.** `arctool sync` owns the `<!-- arcdlc:initiatives -->` blocks
+  in `AGENTS.md` and `README.md`; `sync --check` fails on drift. Never hand-edit inside the markers.
+  `/arcdlc:remove <slug>` deletes a folder after an explicit confirmation and re-syncs; `arctool` itself
+  deletes nothing. See [ADR-0002](docs/adr/0002-registry-sync-via-marker-blocks.md) and
+  [ADR-0003](docs/adr/0003-initiative-removal-by-skill-not-arctool.md).
+- **The executor tier is asked for, never guessed.** A tier is a model plus an effort level. Order, first
+  answer wins: the task's `HOW`, then the `Executor tier:` pin in `CONTEXT.md`, then one question to the
+  engineer before the first spawn, then in-session mode. Any tier must clear the capability floor: shell,
+  file edits, the project's test and lint commands, a commit. A block a weaker model cannot execute is a
+  plan defect, never a reason to raise the tier. See
   [ADR-0019](docs/adr/0019-the-executor-tier-is-asked-for-not-guessed.md).
-- **Version bumps:** the CLI version lives in `cmd/arctool/main.go` (`const version`); the plugin
-  version lives in `.claude-plugin/plugin.json`, with `.antigravity-plugin/plugin.json` as a second
-  plugin manifest kept in lockstep with it. Bump whichever component you changed (both plugin
-  manifests together). Releases are cut by pushing a `v*` tag.
+- **The reference library is dissolved.** Bundled documents live in the `references/` folder of the skill
+  that consumes them, and a document earns its place only by changing what an agent produces. There is no
+  `source-map` skill and no routing table. See
+  [ADR-0020](docs/adr/0020-reference-library-dissolved-into-the-skills.md).
+- **Version bumps:** the CLI version is `const version` in `cmd/arctool/main.go`; the bundle version lives
+  in `.claude-plugin/plugin.json` and `.antigravity-plugin/plugin.json`, which move together. Bump
+  whichever component you changed. Releases are cut by pushing a `v*` tag.
 
 ## Conventions
 
 - One skill per directory under `skills/`, entry file always `SKILL.md`, YAML frontmatter with a
-  `description` that names its triggers (the `/arcdlc:<name>` command and the `arcdlc-<name>`
-  flat form).
-- **Every `SKILL.md` carries the same `## Talk simple, write like a human` block**, verbatim, placed
-  after the intro and before the first step. It covers both audiences in one place: how the agent
-  talks to the user while the skill runs (plain English, bullets, no filler) and how it writes the
-  files the skill produces (no AI filler, no long dashes, varied rhythm, concrete facts, domain terms
-  kept and defined once). Brevity applies to replies, never to files: the block never lets a rule,
-  path, decision, or acceptance criterion be dropped. Keep it short but self-sufficient — every rule
-  an agent must follow stays inline, and only the tables, examples, and the pre-save grep live in the
-  long form, `skills/source-map/source/Writing Style.md`. CI checks that all eleven blocks are byte
-  identical, so copy the block when adding a skill, and change all eleven plus the long form
-  together.
-- Reference documents belong in `skills/source-map/source/` and are routed via the table in
-  `skills/source-map/SKILL.md` — add a row when adding a document.
-- Adding or renaming a sub-skill requires updating the `SUBSKILLS` list in `install.sh` and the
-  skill-layout / installer-smoke checks in `.github/workflows/ci.yml` in the same change set.
+  `description` naming its triggers (the `/arcdlc:<name>` command and the `arcdlc-<name>` flat form).
+- **Two blocks are verbatim in all ten `SKILL.md` files**, after the intro and before the first step:
+  `## Talk simple, write like a human` (how the agent talks and how it writes the files it produces)
+  and `## Judge by the four virtues` (how it decides). Brevity applies to replies, never to files:
+  neither block ever lets a rule, path, decision, or acceptance criterion be dropped. Keep both short
+  but self-sufficient, because a skill is loaded while a reference is only read if the agent opens it.
+  Only tables, examples, and the pre-save grep live in the long form,
+  `skills/grilling/references/Writing Style.md`. CI checks both blocks byte identical across all ten,
+  so copy them when adding a skill and change all ten plus the long form together.
+- Reference documents live in the `references/` folder of the skill that consumes them. A document
+  earns its place by changing what an agent produces: a template a skill copies, or a rule set whose
+  identifiers a gap block cites. Public knowledge the model already has does not belong here.
+  See [ADR-0020](docs/adr/0020-reference-library-dissolved-into-the-skills.md).
+- Adding or renaming a sub-skill requires updating `SUBSKILLS` in `install.sh` and the skill-layout,
+  style-block, virtues-block and installer-smoke checks in `.github/workflows/ci.yml`, in the same
+  change set. Retiring one means adding its name to `LEGACY_SUBSKILLS` so an upgrade sweeps it.
 - Exit codes of `arctool` are part of its interface (0 ok, 1 contract failure, 2 usage, 3 not
-  found/empty, 4 I/O, 5 self-validation) — skills key off them; do not renumber.
-- The Antigravity plugin manifest lives in `.antigravity-plugin/` (alongside the Claude Code manifest
-  in `.claude-plugin/`).
+  found/empty, 4 I/O, 5 self-validation). Skills key off them; do not renumber.
+- The Antigravity plugin manifest lives in `.antigravity-plugin/`, beside `.claude-plugin/`.
 - `CLAUDE.md` is a symlink to this file; edit `AGENTS.md` only.
