@@ -31,8 +31,9 @@ Nothing is dropped to save space, in a reply as much as in a file. Never leave o
 decision, trade-off, open question, or acceptance criterion because the answer is getting long: if it
 bears on what the reader does next, it goes in. Short means no padding, never less content. Cut filler
 words, repetition, and throat-clearing; never cut a fact. When completeness makes a reply long, let it
-be long. The full standard, with examples and a pre-save check, is `references/Writing Style.md` in
-the bundle's `grilling` skill.
+be long. The full standard, with examples and a pre-save check, is
+`../grilling/references/Writing Style.md` (flat installs:
+`../arcdlc-grilling/references/Writing Style.md`).
 
 ## Judge by the four virtues
 
