@@ -143,6 +143,12 @@ checks. Do not merge with a red pipeline.
 
 - One skill per directory under `skills/`, entry file always `SKILL.md`, YAML frontmatter with a
   `description` naming its triggers (the `/arcdlc:<name>` command and the `arcdlc-<name>` flat form).
+- **The description is the routing contract, and it is the only always-on cost.** All ten sit in
+  context every session and nothing else decides whether a skill fires. Write the phrasings a person
+  actually types, not a summary of what the skill does, and keep mechanics (arguments, output paths,
+  format lists) in the body, which is read only after the skill fires. After changing one, re-run
+  [docs/routing-checks.md](docs/routing-checks.md) by hand: no CI can test routing, because testing
+  it means running a real agent.
 - **Two blocks are verbatim in all ten `SKILL.md` files**, after the intro and before the first step:
   `## Talk simple, write like a human` (how the agent talks and how it writes the files it produces)
   and `## Judge by the four virtues` (how it decides). Brevity applies to replies, never to files:

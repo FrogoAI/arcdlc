@@ -1,6 +1,6 @@
 ---
 name: arcdlc-aic
-description: Build or update an initiative's architecture document under docs/aics/<slug>/. The initiative slug is the required first argument (e.g. /arcdlc:aic payments); an optional second argument picks the format (AIC by default, or arc42, tsc, TOGAF, C4, ADR), accepts a comma-separated list to produce several from one interview (e.g. /arcdlc:aic payments arc42,tsc), and takes a :html suffix to emit HTML instead of Markdown (e.g. /arcdlc:aic payments arc42:html). Always starts with a mandatory grilled interview before any document is written. Use when the user runs /arcdlc:aic, invokes arcdlc-aic, or asks to create an architecture document for an initiative.
+description: Design an initiative's architecture and write it down. Produces an AIC by default, or arc42, Tech Stack Canvas, TOGAF, C4 or ADR, in Markdown or HTML, and always grills the design one question at a time before writing anything. Use when someone says design the architecture, write an architecture doc, spec out the system, draw up the design, or do a technical design for X, or runs /arcdlc:aic <slug> [format], or invokes arcdlc-aic.
 argument-hint: "<slug> [aic|arc42|tsc|togaf|c4|adr, comma-separated, :html for HTML]"
 ---
 

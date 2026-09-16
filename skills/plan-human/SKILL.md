@@ -1,6 +1,6 @@
 ---
 name: arcdlc-plan-human
-description: Turn the executable docs/aics/<slug>/plan.md task queue into docs/aics/<slug>/plan-human.md, the engineer stories that go on a board, one story per service, each with numbered instructions and technical acceptance criteria, and each self-contained so a ticket needs no file from the repository. The initiative slug is the required first argument (e.g. /arcdlc:plan-human payments). Use when the user runs /arcdlc:plan-human, invokes arcdlc-plan-human, or asks for engineer stories, board tickets, or a human-readable plan.
+description: Rewrite the task queue as engineer stories for a board or tracker: one story per service, numbered instructions, technical acceptance criteria, each self-contained so a ticket needs no file from the repository. Use when someone says make Jira tickets from the plan, put this work on the board, write the user stories, I need something to hand a developer, or a human-readable plan, or runs /arcdlc:plan-human <slug>, or invokes arcdlc-plan-human.
 argument-hint: "<slug>"
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: arcdlc-assist
-description: Turn code comment markers into planned work. Sweeps the source with `arctool scan` for the ARCDLC marker (`// ARCDLC ...`, or TODO, FIXME, HACK, XXX, BUG when asked), records every marker in docs/aics/<slug>/comments.md, groups the markers that share a tag (`// ARCDLC:T1 ...`) into one record, grills the engineer about the unclear ones, then adds a TODO task to docs/aics/<slug>/plan.md for each marker that names real work. Removing the comments from the code is a separate, always-asked step. The initiative slug is the required first argument; the marker is an optional second one (e.g. /arcdlc:assist payments TODO). Use when the user runs /arcdlc:assist, invokes arcdlc-assist, or asks to turn code markers or TODOs into tasks.
+description: Turn the markers already written in the source code (ARCDLC by default, or TODO, FIXME, HACK, XXX, BUG when asked) into planned tasks. Sweeps the code, records each finding, grills the unclear ones, then plans the real work. Deleting the comments is a separate step and is always asked for. Use when someone says we have TODOs everywhere, clean up the FIXMEs, turn our code comments into work, or what is marked unfinished in the code, or runs /arcdlc:assist <slug> [marker], or invokes arcdlc-assist.
 argument-hint: "<slug> [ARCDLC|TODO|FIXME|HACK|XXX|BUG]"
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: arcdlc-grilling
-description: Relentless one-question-at-a-time interview that stress-tests an initiative, decision, or policy before anything is written, capturing glossary terms in CONTEXT.md and hard decisions as ADRs the moment they settle. Use when the user runs /arcdlc:grilling, invokes arcdlc-grilling, or when another ArcDLC skill (/arcdlc:aic, /arcdlc:policy, /arcdlc:plan) needs its mandatory grilled interview.
+description: Interview relentlessly, one question at a time, each with a recommended answer, until nothing is silently assumed. Records terms in CONTEXT.md and hard calls as ADRs the moment they settle. Use when someone says grill me, stress-test this, poke holes in this, challenge my thinking, ask me what I am missing, or help me think this through, or runs /arcdlc:grilling, or invokes arcdlc-grilling, or when another ArcDLC skill needs its mandatory interview.
 argument-hint: "<what to grill>"
 ---
 

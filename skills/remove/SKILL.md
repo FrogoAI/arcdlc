@@ -1,6 +1,6 @@
 ---
 name: arcdlc-remove
-description: Remove a completed initiative — delete its docs/aics/<slug>/ folder and clean the initiative registry in AGENTS.md and README.md — after an explicit engineer confirmation. The initiative slug is the required first argument (e.g. /arcdlc:remove payments). Use when the user runs /arcdlc:remove, invokes arcdlc-remove, or asks to delete/retire an initiative and drop it from the registry.
+description: Retire a finished initiative: delete its folder and clean it out of the initiative registry, always after an explicit confirmation. Use when someone says we are done with X, retire that initiative, delete the old plan, or clean up finished initiatives, or runs /arcdlc:remove <slug>, or invokes arcdlc-remove.
 argument-hint: "<slug>"
 ---
 
