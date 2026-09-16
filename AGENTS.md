@@ -89,6 +89,11 @@ checks. Do not merge with a red pipeline.
   asks the next, each carrying a recommended answer. Never a numbered round. Six skills restate this in
   one shared paragraph for their inline fallback (`aic`, `policy`, `examinate`, `assist`, `plan-human`,
   `execute`); change it in all seven together.
+- **The plan is a queue, not a graph.** An ordered list, run top to bottom, one task at a time. No
+  `DEPENDS` key, no derived ordering, no parallel execution: a queue resumes from one pointer, a person
+  reads the order instead of computing it, commits stay linear, and a concurrency failure cannot be
+  expressed in a mechanical block. The cost is wall-clock time, and it is accepted. See
+  [ADR-0024](docs/adr/0024-the-plan-is-a-queue-not-a-graph.md).
 - **A task verifies itself; the queue is verified once, at the end.** A subagent reaches `DONE` only when
   every `Acceptance` criterion holds, and nothing re-checks a `DONE` task, so `DONE` is its assertion. The
   dispatcher does not inspect finished work: re-running the same criteria catches only a subagent that

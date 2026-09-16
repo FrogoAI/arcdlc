@@ -27,6 +27,7 @@ Every decision that was hard, surprising, or expensive to reverse. Newest last.
 | 0021 | [A planned task must be mechanical, not merely cheap to run](0021-a-planned-task-must-be-mechanical.md) | Accepted |
 | 0022 | [A plan records the design it came from](0022-a-plan-records-the-design-it-came-from.md) | Accepted |
 | 0023 | [A task verifies itself, the queue is verified once, and a subagent never guesses](0023-the-dispatcher-verifies-and-the-subagent-never-guesses.md) | Accepted |
+| 0024 | [The plan is a queue, not a graph, and it runs in order](0024-the-plan-is-a-queue-not-a-graph.md) | Accepted |
 
 A decision that changes an earlier one carries `Amends` or `Supersedes` in its header, and the
 earlier record points forward. Nothing here is deleted: a superseded ADR is how you find out why the

@@ -175,7 +175,9 @@ Use the register as the evidence, and `plan.md` as the executable queue — both
    period (`- Status: TODO.`).
 4. Size each task so one agent session can implement, test, and commit it: one coherent slice,
    roughly ≤5–6 files in `WHERE`. If `WHERE` spans unrelated modules, split the task.
-5. Order blocks by dependency — the queue runs top-to-bottom, so a task may only depend on tasks above it.
+5. Order blocks by dependency, because the queue runs top to bottom and a task may only depend on tasks
+   above it. The order in the file *is* the run order: there is no `DEPENDS` key and nothing derives an
+   order, by decision rather than by omission. `arctool order` is the only way to change it.
 6. Make each block self-sufficient: an executor reading only the block plus its referenced sections
    must be able to implement it without asking questions. If you cannot name a file or a decision
    while authoring, resolve it now — do not defer it to the executor.

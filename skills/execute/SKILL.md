@@ -153,8 +153,10 @@ instead. Name the tier the run used, and where it came from, in the report.
 
 1. Get the next task ID: `arctool next --json` (fallback: the first `TODO` block in `plan.md`). None left → go to the
    Verification phase.
-2. Spawn ONE fresh subagent, never several in parallel: the queue is dependency-ordered and commits must not
-   interleave. Spawn it at the tier resolved above, never at one you picked yourself. Its prompt must name the
+2. Spawn ONE fresh subagent, never several in parallel. This is a decision, not a limitation: the plan is
+   an ordered list, not a dependency graph, so it runs top to bottom one task at a time. That keeps the
+   history linear and the run resumable from a single pointer, and it is why no task declares what it
+   depends on. Where throughput matters, run separate initiatives, which are independent by construction. Spawn it at the tier resolved above, never at one you picked yourself. Its prompt must name the
    initiative slug, the task ID, the per-task contract to follow (point it at this skill file and
    `../plan/references/plan-format.md`; flat installs: `../arcdlc-plan/references/plan-format.md`), and the
    accumulated notes from earlier task reports.
