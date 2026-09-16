@@ -212,7 +212,7 @@ destinations, which are story 16.
 
 ## The mapping table
 
-Keep this in `docs/aics/<slug>/CONTEXT.md`, under the delivery section. It is how the next session finds which ticket holds which work.
+Keep this in the repo-root `CONTEXT.md`, under the delivery section. It is how the next session finds which ticket holds which work.
 
 ```
 | Story | Title | Plan tasks | Tracker | Phase |

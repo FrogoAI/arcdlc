@@ -12,28 +12,35 @@ enforce — read that file before starting.
 
 ## Talk simple, write like a human
 
-Plain English, everywhere: short sentences, common words, one idea each, active voice, a named
-actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
+Plain English everywhere: short sentences, common words, one idea each, active voice, a named actor.
 
-- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
-  Say what you did, what you found, what comes next.
-- **Files you write:** no AI filler ("Furthermore", "In conclusion", "It is important to note",
-  "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
-  invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
-  improves performance".
-- **Be direct, name the thing.** The fewest words that carry the fact; a word that only adds tone
-  comes out. Never a metaphor, a narrative line, or a question. Say what must happen: "The alerter
-  retries three times, then dead-letters." Every title that names work is an instruction, a verb
-  plus its object: "Implement the alerter service", never "One message out, and the three places it
-  goes".
-- **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
-  Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
+- **Replies to the user.** Bullets, not paragraphs. Say what you did, what you found, what comes next.
+  No filler, no praise, no restating the request.
+- **Files you write.** No AI filler ("Furthermore", "In conclusion", "It is important to note",
+  "delve", "leverage", "robust", "seamless"), no warm-up opener, no invented summary. Vary sentence
+  length. Concrete names, numbers, and paths, never "significantly improves performance".
+- **Be direct, name the thing.** The fewest words that carry the fact. Cut empty intensifiers:
+  `honestly`, `genuinely`, `truly`, `clearly`, `obviously`. Never a metaphor, a narrative line, or a
+  question. Every title that names work is a verb plus its object: "Implement the alerter service".
+- **No long dashes.** A full stop, a comma, a colon, or brackets instead of `—` and `–`. Hyphens,
+  flags, and slugs stay. A format contract that requires `—` wins.
 - **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
   once in plain words, then use it. Simple English is about the sentence, not the term.
 
 Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
 decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
-pre-save check, is `source/Writing Style.md` in the bundle's `source-map` skill.
+pre-save check, is `references/Writing Style.md` in the bundle's `grilling` skill.
+
+## Judge by the four virtues
+
+- **Wisdom.** Unclear is a question, not a guess. A contradiction, a missing decision, code that looks
+  dead, a change that is risky or hard to reverse: grill it, never pick for the engineer.
+- **Courage.** Say the hard thing. A plan a weaker model cannot execute is a plan defect, not a reason
+  to raise the tier. Never stop to report a helper skill as missing.
+- **Justice.** Write every answer where the next session reads it, never only in the chat. Name the
+  tier you actually used. Never report a same-tier spawn as a cheaper run.
+- **Temperance.** Touch only what you were pointed at. Cutting a comment out of the code is asked for,
+  not assumed. No invented summary, no scope you were not given.
 
 ## Tooling: prefer `arctool`
 
@@ -67,20 +74,16 @@ slug.
 
 ## Session strategy: fresh context per task (whole-queue mode)
 
-The plan is the only state carrier — statuses live in `plan.md`, work lives in per-task commits — so nothing needs to
-survive in conversation context between tasks, and quality drops when it does: a long session accumulates earlier
-tasks' file reads and diffs until the harness compacts mid-work, and a squeezed executor loses acceptance criteria
-first. Give every task a fresh context.
+Give every task a fresh context. The plan carries all the state: statuses in `plan.md`, work in per-task
+commits, so nothing needs to survive in conversation between tasks.
 
 Probe once: can this harness spawn subagents with their own clean context (e.g. the Agent/Task tool in Claude Code)?
 
 ### Executor tier: ask, never assume
 
-A task block is written to be run by a weaker model than the one that planned it. That is the opening line of
-`../plan/references/plan-format.md` (flat installs: `../arcdlc-plan/references/plan-format.md`) and Step 2 of
-`/arcdlc:plan`. So the task subagent should cost less than you do, and there are two dials, not one: the model, and
-the effort or reasoning level it runs at. A strong model at its lowest effort is often the right answer for a task
-block that already carries every decision.
+A task block is written to be run by a weaker model than the one that planned it, so the subagent should
+cost less than you do. A tier is two dials, not one: the model, and the effort level it runs at. A strong
+model at its lowest effort often fits a block that already carries every decision.
 
 You pick neither dial on your own. Both belong to the engineer, and you ask once per run.
 
@@ -112,11 +115,10 @@ Resolve the tier in this order, and stop at the first line that answers:
 Ask only when you are about to spawn. Single-task mode (`/arcdlc:execute <slug> <TASK-ID>`) runs in the current
 session, so there is no tier to choose and no question to ask.
 
-The tier is not a quality dial. When the executor meets a decision its task block does not carry, it grills the
-engineer or blocks the task (per-task contract, step 7). It never retries the task at a higher tier, and you never
-raise the tier to get past it. A block a weaker model cannot execute is a plan defect, and
-`/arcdlc:plan <slug>` sharpens that block at planner tier. Name the tier the run used, and where it came from, in
-the report.
+The tier is not a quality dial. When the executor meets a decision its block does not carry, it grills the
+engineer or blocks the task (per-task contract, step 7). Never retry at a higher tier: a block a weaker
+model cannot execute is a plan defect that `/arcdlc:plan <slug>` sharpens. Name the tier the run used,
+and where it came from, in the report.
 
 **Orchestrator mode (subagents available).** Run the queue as a thin dispatcher and implement nothing yourself:
 
@@ -153,6 +155,11 @@ in a loop) until `arctool next` exits `3` (no `TODO` left).
 Single-task mode (`/arcdlc:execute <slug> <TASK-ID>`) needs none of this: execute it directly in the current session.
 
 ## Per-task contract
+
+Work trunk-based. Branch off trunk for the task, keep the branch short-lived, commit once per task, and
+merge back the same day. Ship incomplete work behind a flag rather than on a branch that lives for
+days. Never open a long-lived release or feature branch, and never batch several tasks into one branch:
+the plan's one-task-one-commit rule is what keeps trunk releasable.
 
 For each task, in order (in orchestrator mode, the spawned subagent performs these steps for its one task):
 
@@ -207,11 +214,14 @@ hit one of these:
 - The task tells you to change code you can find no caller for, and the answer decides whether it is
   dead or called from outside this repository.
 
-How to ask: prefer the bundle's `arcdlc-grilling` skill. If it cannot be invoked here, read its
-`SKILL.md` (`../grilling/SKILL.md`, flat installs: `../arcdlc-grilling/SKILL.md`) and run the same
-protocol inline. **One question per turn**: ask, wait for the answer, then ask the next, each with your
-recommended answer. Never a numbered round of questions, never report a helper skill as missing, and
-never turn a guess into code.
+Prefer this bundle's own `arcdlc-grilling` skill (`/arcdlc:grilling`). If it cannot be invoked here,
+read `../grilling/SKILL.md` (flat installs: `../arcdlc-grilling/SKILL.md`) and run its protocol
+inline. What is mandatory is the grilled interview, never the invocation: never stop to report a
+helper skill as missing, and never look for a grilling skill outside this bundle. **One question per
+turn**: ask, wait for the answer, then ask the next, each carrying your recommended answer and one
+line of why. Never a numbered round. Facts are yours to find: if the code, config, or an existing doc
+answers it, look it up instead of asking. Write each decision down the moment it settles, glossary
+terms into `CONTEXT.md` and hard trade-offs into `docs/adr/NNNN-<slug>.md`, never only in the chat.
 
 Where the answer goes, so nobody has to answer it twice:
 
@@ -226,9 +236,8 @@ Where the answer goes, so nobody has to answer it twice:
 
 ## Commit message: Conventional Commits
 
-Every commit this skill makes — per-task commits and verification-phase fixes alike — follows the Conventional
-Commits 1.0.0 specification, bundled at `../source-map/source/Conventional Commits.md` (flat installs:
-`../arcdlc-source-map/source/Conventional Commits.md`). Read that reference when a case below is not covered.
+Every commit this skill makes, per-task commits and verification-phase fixes alike, follows the
+Conventional Commits 1.0.0 specification. The rules below are the whole of it that ArcDLC uses.
 
 The shape:
 
@@ -246,8 +255,7 @@ Mechanical rules:
 - **type** — derived from what the diff actually does, not from the task's wording: `feat` (new behavior), `fix`
   (bug fix), `docs`, `test`, `refactor` (no behavior change), `perf`, `build`, `ci`, `chore`. If a task spans two
   types, the dominant one wins — never split one task across two commits.
-- **scope** — always the initiative slug, including in single-initiative repos: `feat(payments-v2): …`. This
-  replaces the former `[payments-v2]` subject prefix.
+- **scope** — always the initiative slug, including in single-initiative repos: `feat(payments-v2): …`.
 - **description** — imperative mood, lower case, no trailing period; keep the whole subject line ≤ 72 characters.
 - **breaking change** — when the task intentionally breaks an interface (the plan says so), append `!` after the
   scope (`feat(payments-v2)!: …`) **and** add a `BREAKING CHANGE: <what breaks and what callers must do>` footer.

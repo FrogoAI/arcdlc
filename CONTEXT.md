@@ -19,15 +19,23 @@ skills, `arctool`, ADRs, and architecture documents.
   verifies drift without writing.
 - **Removal** — `/arcdlc:remove <slug>`: engineer-confirmed deletion of an initiative folder plus
   registry cleanup. Git history is the archive; no graveyard copies in the tree.
-- **Pipeline skills** — `aic`, `plan`, `execute`, `examinate`, `assist`, `archive` (plus the
-  lifecycle skills `remove` and `policy`, and `plan-human` beside the chain).
-- **Comment register** — `docs/aics/<slug>/comments.md`: one block per code comment marker (`TODO`,
-  `FIXME` and friends) found in the repository. `arctool scan` writes the evidence and deletes the
-  comment from the code, so the register becomes the only copy of that marker text. `/arcdlc:assist`
-  writes the judgement, and every block whose verdict is `ACTIONABLE` is mirrored into `plan.md` as a
-  task. The file is append-only: blocks are filled in, never rewritten or removed. See [ADR-0015](docs/adr/0015-comment-register-is-scanned-by-arctool-and-judged-by-the-skill.md).
-- **Marker** — a word that opens a code comment to mark unfinished work: `TODO` by default, also
-  `FIXME`, `HACK`, `XXX`, `BUG`. A word that merely appears inside a comment is not a marker.
+- **Pipeline skills** — `aic`, `plan`, `execute`, `examinate`, `assist`, `archive`, plus the
+  lifecycle skills `remove` and `policy`, `plan-human` beside the chain, and `grilling` under them all.
+  Ten in total.
+- **Comment register** — `docs/aics/<slug>/comments.md`: one block per code comment marker found in
+  the repository. `arctool scan` writes the evidence; it removes the comment from the code only with
+  `--strip`, which `/arcdlc:assist` passes after the engineer says yes. Once stripped, the register is
+  the only copy of that marker text. `/arcdlc:assist` writes the judgement, and every block whose
+  verdict is `ACTIONABLE` is mirrored into `plan.md` as a task. The file is append-only: blocks are
+  filled in, never rewritten or removed. See [ADR-0015](docs/adr/0015-comment-register-is-scanned-by-arctool-and-judged-by-the-skill.md)
+  and [ADR-0017](docs/adr/0017-a-marker-is-arcdlc-in-a-comment-and-cutting-it-is-asked-for.md).
+- **Marker** — a word that opens a code comment to mark unfinished work. The default is `ARCDLC`,
+  the bundle's own word, so a sweep never touches the `TODO` and `FIXME` notes a repository already
+  had; `--marker TODO` is how a team opts in. Only a single-line comment carries one: `// ARCDLC ...`
+  counts, `/* ARCDLC ... */` does not, in every language. A word that merely appears inside a comment,
+  or inside a string, is not a marker. See [ADR-0018](docs/adr/0018-only-single-line-comments-carry-markers.md).
+- **Group tag** — `ARCDLC:T1` in three files is one record and one task, named after the tag
+  (`ARCDLC-CMT-T1`). Tags fold to upper case and must contain a letter. See [ADR-0016](docs/adr/0016-comment-markers-group-by-tag.md).
 - **Executor tier** — the model and the effort level a `/arcdlc:execute` task subagent runs at. Never
   below the capability floor: shell commands, file edits, the project's test and lint commands, a
   commit. `/arcdlc:execute` never picks it alone. It asks once per run, unless a task's `HOW` or the
@@ -40,13 +48,14 @@ skills, `arctool`, ADRs, and architecture documents.
 - **Slot permutation** — the semantics of `arctool order`. The named tasks keep the positions they
   already hold in `plan.md`, and only their contents are permuted among those positions. A task that
   is not named never moves. See [ADR-0013](docs/adr/0013-order-is-a-slot-permutation.md).
-- **Reference library** — `skills/source-map/source/`: the bundled reference documents, reached only
-  through the routing table in `skills/source-map/SKILL.md` (one row per document). Agent-facing: a
-  document earns its place by changing what an agent produces.
-- **Source document** — one file in the reference library. Either a **generator template** (consumed
-  by `/arcdlc:aic` to produce an architecture document) or an **audit target** (a rule set
-  `/arcdlc:examinate` checks code against); an audit target must expose rules a gap block can cite by
-  identifier.
+- **Reference document** — a bundled file in the `references/` folder of the skill that consumes it.
+  It earns its place only by changing what an agent produces, so it is either a **generator template**
+  (copied by `/arcdlc:aic` to produce an architecture document) or an **audit target** (a rule set
+  `/arcdlc:examinate` checks code against, exposing identifiers a gap block can cite). A rule the agent
+  must always follow is not a reference document: it goes inline in the `SKILL.md`, because a skill is
+  loaded while a reference is only read if the agent opens it. See [ADR-0020](docs/adr/0020-reference-library-dissolved-into-the-skills.md).
+- **The four virtues** — wisdom, courage, justice, temperance: how a skill decides, not how it writes.
+  `## Judge by the four virtues` is verbatim in all ten `SKILL.md` files and pinned by CI.
 
 ## Executor tier pin
 

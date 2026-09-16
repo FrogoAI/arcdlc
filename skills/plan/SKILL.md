@@ -16,28 +16,35 @@ the contract `/arcdlc:execute` parses mechanically.
 
 ## Talk simple, write like a human
 
-Plain English, everywhere: short sentences, common words, one idea each, active voice, a named
-actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
+Plain English everywhere: short sentences, common words, one idea each, active voice, a named actor.
 
-- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
-  Say what you did, what you found, what comes next.
-- **Files you write:** no AI filler ("Furthermore", "In conclusion", "It is important to note",
-  "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
-  invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
-  improves performance".
-- **Be direct, name the thing.** The fewest words that carry the fact; a word that only adds tone
-  comes out. Never a metaphor, a narrative line, or a question. Say what must happen: "The alerter
-  retries three times, then dead-letters." Every title that names work is an instruction, a verb
-  plus its object: "Implement the alerter service", never "One message out, and the three places it
-  goes".
-- **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
-  Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
+- **Replies to the user.** Bullets, not paragraphs. Say what you did, what you found, what comes next.
+  No filler, no praise, no restating the request.
+- **Files you write.** No AI filler ("Furthermore", "In conclusion", "It is important to note",
+  "delve", "leverage", "robust", "seamless"), no warm-up opener, no invented summary. Vary sentence
+  length. Concrete names, numbers, and paths, never "significantly improves performance".
+- **Be direct, name the thing.** The fewest words that carry the fact. Cut empty intensifiers:
+  `honestly`, `genuinely`, `truly`, `clearly`, `obviously`. Never a metaphor, a narrative line, or a
+  question. Every title that names work is a verb plus its object: "Implement the alerter service".
+- **No long dashes.** A full stop, a comma, a colon, or brackets instead of `—` and `–`. Hyphens,
+  flags, and slugs stay. A format contract that requires `—` wins.
 - **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
   once in plain words, then use it. Simple English is about the sentence, not the term.
 
 Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
 decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
-pre-save check, is `source/Writing Style.md` in the bundle's `source-map` skill.
+pre-save check, is `references/Writing Style.md` in the bundle's `grilling` skill.
+
+## Judge by the four virtues
+
+- **Wisdom.** Unclear is a question, not a guess. A contradiction, a missing decision, code that looks
+  dead, a change that is risky or hard to reverse: grill it, never pick for the engineer.
+- **Courage.** Say the hard thing. A plan a weaker model cannot execute is a plan defect, not a reason
+  to raise the tier. Never stop to report a helper skill as missing.
+- **Justice.** Write every answer where the next session reads it, never only in the chat. Name the
+  tier you actually used. Never report a same-tier spawn as a cheaper run.
+- **Temperance.** Touch only what you were pointed at. Cutting a comment out of the code is asked for,
+  not assumed. No invented summary, no scope you were not given.
 
 ## Initiative selection
 
@@ -75,21 +82,13 @@ matters goes into the block.
 - Size each task so a single agent session can implement, test, and commit it: one coherent slice,
   roughly ≤5–6 files in `WHERE`. If it spans unrelated modules, split it.
 - Order blocks by dependency: the runner executes top-to-bottom, so a task may only depend on tasks above it.
-- `HOW` records the design decisions the executor must not re-derive or guess: signatures, naming,
-  data shapes, algorithm choice, edge cases, error handling — resolved by you from the architecture
-  document. Name the relevant section of a long reference here (e.g. `see aic.md §"Data model"`).
-  When adjacent work must not be touched, fence it: `Out of scope: <thing> (covered by <TASK-ID>).`
-- `WHERE` lists the exact files/modules expected to change, per layer of the target project.
-- `Acceptance` gives at least one testable success criterion — the task's definition of done that
-  `/arcdlc:execute` must demonstrate before marking it `DONE`. Prefer `GIVEN … WHEN … THEN …`
-  scenarios; each criterion must be confirmable by a test or observable behavior, not a paraphrase of
-  `WHAT`. Where a criterion is test-verifiable, name the runnable check (test file or command, e.g.
-  ``go test ./internal/x/...``). This is the contract's teeth: a task with no acceptance criteria is
-  not plannable.
-- `References` must include the architecture document and any ADRs the task relies on — clean file
-  paths only (section pointers go in `HOW`).
-- Word every field the way `## Talk simple, write like a human` says: plain sentences, active voice, concrete
-  names and paths, no filler, no long dashes. Vague text costs the executor a guess.
+- `references/plan-format.md` defines what each key means and which are multi-line. Read it; do not
+  re-derive it here. Two judgements are yours, not the contract's: `HOW` must resolve every decision
+  the architecture document settles, so the executor never re-derives one, and `References` must name
+  the architecture document plus every ADR the task relies on.
+- A task with no `Acceptance` criteria is not plannable. This is the contract's teeth.
+- Word every field the way `## Talk simple, write like a human` says. Vague text costs the executor a
+  guess.
 - Every block ends with `- Status: TODO.`
 - If `docs/aics/<slug>/gap.md` or `docs/aics/<slug>/comments.md` exists, keep it in sync per the Register Sync
   rules in the format guide.
@@ -121,25 +120,17 @@ no-op — note that and continue.
   mapping from Step 2.5, then the task blocks. No runner instructions inside the plan.
 - Validate against the runner's parsing rules before finishing. Prefer the `arctool` CLI, which enforces the format
   contract mechanically (source at the arcdlc repo root; flat installs may ship it on `PATH`):
-  - Probe once with `command -v arctool` (or install it from the arcdlc repo root via
-    `make build`/`make release`). If found, run `arctool validate --strict --aic <slug>` (or `--plan <path>`) and fix
+  - Probe once with `command -v arctool` (or install it from the arcdlc repo root: `make install`). If found, run `arctool validate --strict --aic <slug>` (or `--plan <path>`) and fix
     every finding before handoff — exit `0` means clean.
-  - If `arctool` is unavailable, say so once and hand-check the same rules from `plan-format.md`:
-    - Every `###` block contains a `- Status:` line (missing status = silently skipped by the runner).
-    - Status values are uppercase with optional trailing period.
-    - Task IDs are unique.
-    - Every block has a non-empty `- Acceptance:` section (`--strict` fails otherwise — it implies
-      `--require-acceptance`).
-- Fix the order when it is wrong. The dependency order from Step 2 is the run order, and the same
-  `command -v arctool` probe above decides how you change it:
-  - With `arctool`: `arctool order <ID> <ID> … --aic <slug>` (or `--plan <path>`) re-orders the task
-    blocks. Add `--dry-run` to see the new order without writing the file.
-  - The named tasks swap among the positions they already hold, so "move to first" is a swap, not a
-    shift. On `T1 T2 T3`, `arctool order T3 T1` gives `T3 T2 T1`: T2 keeps the middle slot. Name the
-    whole span to hoist a task and keep the rest in relative order, so `arctool order T3 T1 T2` gives
-    `T3 T1 T2`. A task you do not name never moves.
-  - Without `arctool`: move the `###` blocks by hand, then re-check that every block still carries
-    its `- Status:` line (a block that lost it is silently skipped by the runner).
+  - Without `arctool`, say so once and hand-check the "Authoring Rules" section of `plan-format.md`.
+    The one that bites silently: a `###` block with no `- Status:` line is skipped by the runner.
+- Fix the order when it is wrong. The dependency order from Step 2 is the run order.
+  - With `arctool`: `arctool order <ID> <ID> … --aic <slug>` re-orders the blocks; `--dry-run` shows
+    the result without writing. It permutes slots, so the named tasks swap among the positions they
+    already hold and an unnamed task never moves. Name the whole span to hoist one and keep the rest
+    in relative order. See [ADR-0013](../../docs/adr/0013-order-is-a-slot-permutation.md).
+  - Without `arctool`: move the `###` blocks by hand, then re-check every block still carries its
+    `- Status:` line.
   - Reorder between `/arcdlc:execute` runs, not during one. Nothing stops a reorder while a task is
     `TAKEN`, and the agent holding that task keeps working from the block it already read.
 - Self-sufficiency check (the litmus test): reread each block as if you were a weaker model that has

@@ -21,28 +21,35 @@ The story format is defined in `references/story-format.md`. Read it before writ
 
 ## Talk simple, write like a human
 
-Plain English, everywhere: short sentences, common words, one idea each, active voice, a named
-actor. Cut empty intensifiers: `honestly`, `genuinely`, `truly`, `clearly`, `obviously` add nothing.
+Plain English everywhere: short sentences, common words, one idea each, active voice, a named actor.
 
-- **Replies to the user:** bullets, not paragraphs. No filler, no praise, no restating the request.
-  Say what you did, what you found, what comes next.
-- **Files you write:** no AI filler ("Furthermore", "In conclusion", "It is important to note",
-  "delve", "leverage", "robust", "seamless", "In today's fast-paced world"), no warm-up opener, no
-  invented summary. Vary sentence length. Concrete names, numbers, and paths, never "significantly
-  improves performance".
-- **Be direct, name the thing.** The fewest words that carry the fact; a word that only adds tone
-  comes out. Never a metaphor, a narrative line, or a question. Say what must happen: "The alerter
-  retries three times, then dead-letters." Every title that names work is an instruction, a verb
-  plus its object: "Implement the alerter service", never "One message out, and the three places it
-  goes".
-- **No long dashes.** Use a full stop, a comma, a colon, or brackets instead of `—` and `–`.
-  Hyphens, flags, and slugs stay. A format contract that requires `—` wins.
+- **Replies to the user.** Bullets, not paragraphs. Say what you did, what you found, what comes next.
+  No filler, no praise, no restating the request.
+- **Files you write.** No AI filler ("Furthermore", "In conclusion", "It is important to note",
+  "delve", "leverage", "robust", "seamless"), no warm-up opener, no invented summary. Vary sentence
+  length. Concrete names, numbers, and paths, never "significantly improves performance".
+- **Be direct, name the thing.** The fewest words that carry the fact. Cut empty intensifiers:
+  `honestly`, `genuinely`, `truly`, `clearly`, `obviously`. Never a metaphor, a narrative line, or a
+  question. Every title that names work is a verb plus its object: "Implement the alerter service".
+- **No long dashes.** A full stop, a comma, a colon, or brackets instead of `—` and `–`. Hyphens,
+  flags, and slugs stay. A format contract that requires `—` wins.
 - **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
   once in plain words, then use it. Simple English is about the sentence, not the term.
 
 Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
 decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
-pre-save check, is `source/Writing Style.md` in the bundle's `source-map` skill.
+pre-save check, is `references/Writing Style.md` in the bundle's `grilling` skill.
+
+## Judge by the four virtues
+
+- **Wisdom.** Unclear is a question, not a guess. A contradiction, a missing decision, code that looks
+  dead, a change that is risky or hard to reverse: grill it, never pick for the engineer.
+- **Courage.** Say the hard thing. A plan a weaker model cannot execute is a plan defect, not a reason
+  to raise the tier. Never stop to report a helper skill as missing.
+- **Justice.** Write every answer where the next session reads it, never only in the chat. Name the
+  tier you actually used. Never report a same-tier spawn as a cheaper run.
+- **Temperance.** Touch only what you were pointed at. Cutting a comment out of the code is asked for,
+  not assumed. No invented summary, no scope you were not given.
 
 ## Initiative selection
 
@@ -52,7 +59,7 @@ The slug is the **required first positional argument**: `/arcdlc:plan-human <slu
 
 - `docs/aics/<slug>/plan.md` is **required**. If it does not exist, stop and tell the user to run `/arcdlc:plan` first. Never write stories from a verbal description: the task queue is the source of truth for what the work is.
 - `docs/aics/<slug>/aic.md` for the goals, the phase split, the alert or feature catalogue, and the constraints an engineer needs.
-- `docs/aics/<slug>/CONTEXT.md` for the project's own words. Use them. Do not invent a synonym for a term the project already has.
+- `CONTEXT.md` at the repo root for the project's own words. Use them. Do not invent a synonym for a term the project already has.
 - `docs/adr/` for the decisions a story has to state as fact.
 
 Read all of `plan.md` before cutting a single story. A story that covers half a task is worse than no story.
@@ -86,10 +93,14 @@ ask the engineer the moment you hit one of these:
 - A task names no deployable unit, so you cannot tell which story it belongs to.
 - The phase split in `plan.md` does not match the architecture document.
 
-How to ask: prefer the bundle's `arcdlc-grilling` skill. If it cannot be invoked here, read its
-`SKILL.md` (`../grilling/SKILL.md`, flat installs: `../arcdlc-grilling/SKILL.md`) and run the same
-protocol inline. **One question per turn**: ask, wait for the answer, then ask the next, each with your
-recommended answer. Never a numbered round of questions, and never report a helper skill as missing.
+Prefer this bundle's own `arcdlc-grilling` skill (`/arcdlc:grilling`). If it cannot be invoked here,
+read `../grilling/SKILL.md` (flat installs: `../arcdlc-grilling/SKILL.md`) and run its protocol
+inline. What is mandatory is the grilled interview, never the invocation: never stop to report a
+helper skill as missing, and never look for a grilling skill outside this bundle. **One question per
+turn**: ask, wait for the answer, then ask the next, each carrying your recommended answer and one
+line of why. Never a numbered round. Facts are yours to find: if the code, config, or an existing doc
+answers it, look it up instead of asking. Write each decision down the moment it settles, glossary
+terms into `CONTEXT.md` and hard trade-offs into `docs/adr/NNNN-<slug>.md`, never only in the chat.
 
 Where the answer goes:
 
@@ -126,7 +137,7 @@ Report the four counts to the user: stories, tasks covered, acceptance criteria 
 
 - Write `docs/aics/<slug>/plan-human.md` in the order `references/story-format.md` gives: the heading section, then the phase headings and their stories.
 - **Mark the heading section as not ticket text.** Everything from the first story heading down is copied into a tracker as it stands. The section above it explains the initiative and is for the repository only. Say that in one line, or somebody will paste the whole file into one ticket.
-- Record the story to task to ticket mapping in `docs/aics/<slug>/CONTEXT.md`, under the delivery section: story number, title, plan tasks, tracker id, phase. That table is how the next session knows which ticket holds which work.
+- Record the story to task to ticket mapping in `CONTEXT.md` at the repo root, under the delivery section: story number, title, plan tasks, tracker id, phase. That table is how the next session knows which ticket holds which work.
 
 ## Step 6: sync a tracker, only when asked
 
