@@ -1,6 +1,6 @@
 ---
 name: arcdlc-examinate
-description: Examine existing code for compliance with a named architecture, policy, or design (e.g. /arcdlc:examinate MDCA — also DDD, SOLID, ECS, the Go guides, KISS, or any named standard such as Clean Code or Twelve-Factor), with a project policy authored by /arcdlc:policy (e.g. /arcdlc:examinate docs/policies/log-retention.md), or with the project's own AIC. Records violations as gap blocks in docs/aics/<slug>/gap.md and adds matching TODO tasks to docs/aics/<slug>/plan.md. Use when the user runs /arcdlc:examinate, invokes arcdlc-examinate, or asks for a compliance audit / gap analysis of the codebase.
+description: Examine existing code for compliance with a named architecture, policy, or design (e.g. /arcdlc:examinate MDCA — also DDD, SOLID, ECS, Modern Go, the Go architecture guides, KISS, or any named standard such as Clean Code or Twelve-Factor), with a project policy authored by /arcdlc:policy (e.g. /arcdlc:examinate docs/policies/log-retention.md), or with the project's own AIC. Records violations as gap blocks in docs/aics/<slug>/gap.md and adds matching TODO tasks to docs/aics/<slug>/plan.md. Use when the user runs /arcdlc:examinate, invokes arcdlc-examinate, or asks for a compliance audit / gap analysis of the codebase.
 argument-hint: "<slug> [MDCA|DDD|SOLID|...|policy-path]"
 ---
 
@@ -11,13 +11,12 @@ executable plan so `/arcdlc:execute` can close them.
 
 ## Talk simple, write like a human
 
-Plain English everywhere: short sentences, common words, one idea each, active voice, a named actor.
+Every rule here governs everything you emit, chat messages exactly as much as the files you write.
+Plain English: short sentences, common words, one idea each, active voice, a named actor.
 
-- **Replies to the user.** Bullets, not paragraphs. Say what you did, what you found, what comes next.
-  No filler, no praise, no restating the request.
-- **Files you write.** No AI filler ("Furthermore", "In conclusion", "It is important to note",
-  "delve", "leverage", "robust", "seamless"), no warm-up opener, no invented summary. Vary sentence
-  length. Concrete names, numbers, and paths, never "significantly improves performance".
+- **No AI filler, anywhere.** Not "Furthermore", "In conclusion", "It is important to note", "delve",
+  "leverage", "robust", "seamless". No warm-up opener, no praise, no restating the request back, no
+  invented summary. Concrete names, numbers, and paths, never "significantly improves performance".
 - **Be direct, name the thing.** The fewest words that carry the fact. Cut empty intensifiers:
   `honestly`, `genuinely`, `truly`, `clearly`, `obviously`. Never a metaphor, a narrative line, or a
   question. Every title that names work is a verb plus its object: "Implement the alerter service".
@@ -25,10 +24,13 @@ Plain English everywhere: short sentences, common words, one idea each, active v
   flags, and slugs stay. A format contract that requires `—` wins.
 - **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
   once in plain words, then use it. Simple English is about the sentence, not the term.
+- **Shape.** In chat, bullets rather than paragraphs: what you did, what you found, what comes next.
+  In files, vary sentence length so the prose does not read as a list.
 
-Short talk, full content. Brevity is for your replies, never for the files: never drop a rule, path,
-decision, trade-off, or acceptance criterion to save space. The full standard, with examples and a
-pre-save check, is `references/Writing Style.md` in the bundle's `grilling` skill.
+Only the length differs. A reply is short; a file is complete. Never drop a rule, path, decision,
+trade-off, or acceptance criterion from a file to save space, and never pad a reply to fill one. The
+full standard, with examples and a pre-save check, is `references/Writing Style.md` in the bundle's
+`grilling` skill.
 
 ## Judge by the four virtues
 
@@ -53,13 +55,16 @@ not exist yet (a fresh audit, e.g. `mdca-audit`), confirm the slug with the user
 ## Step 1 — Resolve the standard to audit against
 
 - With a standard as the second argument (e.g. `/arcdlc:examinate <slug> MDCA`): read the matching rule set from `references/` next to this file, in full — e.g. MDCA → `mdca.md`; DDD → `ddd.md`; SOLID → `solid.md`;
-  Go architecture → `Go Server.md` / `Go Client.md` / `Go Library.md`.
+  Go architecture → `Go Server.md` / `Go Client.md` / `Go Library.md`; modern Go → `Modern Go.md`.
+  For `Modern Go.md`, read the `go` line in the target project's `go.mod` first. A rule that needs a
+  newer Go than the project declares is not a violation: report it once in the register intro as an
+  upgrade opportunity, and file no gap block for it.
 - **With a standard that has no bundled rule set** (Clean Code, Twelve-Factor, trunk-based development,
   a language style guide): audit against it from your own knowledge of that standard. Say in the gap
   register's intro that the rule set was not bundled, and cite each finding by the standard's own named
   principle ("Twelve-Factor III, config in the environment"), never by an invented identifier. Only
-  `mdca.md`, `solid.md`, `ddd.md` and `ECS.md` carry identifiers a gap block may cite as `MDCA-P3.2`,
-  `SOLID-7` and the like.
+  `mdca.md`, `solid.md`, `ddd.md`, `ECS.md` and `Modern Go.md` carry identifiers a gap block may cite,
+  as `MDCA-P3.2`, `SOLID-7`, `GO-12` and the like.
 - With a project policy path as the second argument (e.g. `/arcdlc:examinate <slug> docs/policies/log-retention.md`,
   typically one authored by `/arcdlc:policy`): read that policy in full and extract its Allowed/Prohibited rules as the
   checkable rule set.

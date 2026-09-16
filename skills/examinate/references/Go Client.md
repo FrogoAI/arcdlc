@@ -9,7 +9,7 @@ See `Go Server.md` for the server-side counterpart this document contrasts with 
 realizes MDCA, plus its DDD and Event-Driven Design sections. The normative MDCA definition itself
 (principles `P1`–`P10`, layering, tactical rules; Appendix B names the client realization described
 here) lives in `mdca.md`, and general Go coding rules — formatting, naming, errors, concurrency —
-are ordinary Go practice and are not restated here. The Registry / Systems / assemblage vocabulary used throughout comes
+live in `Modern Go.md`. The Registry / Systems / assemblage vocabulary used throughout comes
 from `ECS.md`, whose conformance rules `ECS-C1`–`ECS-E1` govern component and system design inside a
 scene. This document extends all of them with client-specific concerns.
 

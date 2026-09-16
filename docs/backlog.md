@@ -6,6 +6,10 @@ out of scope by the initiative that found it, and each needs its own interview b
 Harvested on 2026-09-16 from the five initiatives retired that day. Git history holds the full
 initiative folders; the ADR named beside an entry holds the reasoning.
 
+One entry has already been closed: the deferred "add modern Go coverage" question was answered on
+2026-09-16 by `skills/examinate/references/Modern Go.md`, 28 citable rules covering what changed in
+Go after most published Go code was written.
+
 ## Plan and ordering
 
 - **Should `/arcdlc:examinate` place gap tasks by dependency order instead of appending them?**
