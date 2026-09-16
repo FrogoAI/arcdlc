@@ -17,6 +17,25 @@ Go after most published Go code was written.
 - **Should a task block gain a `- DEPENDS:` key, with `arctool order --auto` deriving the order from
   it?** The command line designed for `arctool order` does not change if this is added later. See
   [ADR-0013](adr/0013-order-is-a-slot-permutation.md).
+
+  **Raised again 2026-09-16, with a stronger reason.** Orchestrator mode spawns strictly one subagent at
+  a time, because the queue is dependency-ordered and commits must not interleave. On a 150-task queue
+  that serialises 150 spawns, and most of those tasks are almost certainly independent of each other.
+  The ordering is implicit today, so nothing can tell which. `- DEPENDS:` is the precondition for ever
+  running independent tasks in parallel, and a long queue is where that would pay.
+
+- **Where should the executor tier pin live?** [ADR-0019](adr/0019-the-executor-tier-is-asked-for-not-guessed.md)
+  put it in `CONTEXT.md`, which is global: one value for the whole project.
+  [ADR-0021](adr/0021-a-planned-task-must-be-mechanical.md) then measured 55 real tasks and found tier
+  fitness varies per initiative, not per project: `source-library-cleanup` had 30 repetitive tasks with a
+  median `HOW` of 10 lines and suits a cheap tier, while `ordering` had 5 design-heavy ones with a median
+  of 33 and suits the same model at low effort. Those two want different tiers and today must share one
+  pin.
+
+  The precedence ladder already has the finest grain (a task's `HOW`) and the coarsest (the global pin,
+  then asking). The missing rung is per-initiative, which is exactly where the data says the answer
+  changes. A marker in `plan.md`, like the source stamp, is the natural place. Changing the plan format is
+  a contract change, so this needs a decision rather than a patch.
 - **Should `arctool validate` warn on irregular block spacing?** Both `order` and `archive` normalise
   spacing silently today, which is consistent, so nothing is broken while this stays open.
 
