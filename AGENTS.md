@@ -90,7 +90,7 @@ checks. Do not merge with a red pipeline.
   asks the next, each carrying a recommended answer. Never a numbered round. Six skills restate this in
   one shared paragraph for their inline fallback (`aic`, `policy`, `examinate`, `assist`, `plan-human`,
   `execute`); change it in all seven together.
-- **The seven task keys are the contract; a custom key is carried, not judged.** A key-shaped line the
+- **The eight task keys are the contract; a custom key is carried, not judged.** A key-shaped line the
   format does not define is preserved with its indented body, surfaced under `extra` in `arctool`'s
   JSON, and ignored by `validate`. Absorption of a multi-line key stops at *any* key, defined or not:
   before that, an unknown key was swallowed into the section above it, corrupting that section as well
@@ -176,11 +176,15 @@ checks. Do not merge with a red pipeline.
   [ADR-0003](docs/adr/0003-initiative-removal-by-skill-not-arctool.md).
 - **The executor tier is asked for, never guessed.** A cheap tier is safe because the plan is
   mechanical, not the other way round. A tier is a model plus an effort level. Order, first
-  answer wins: the task's `HOW`, then the `Executor tier:` pin in `CONTEXT.md`, then one question to the
-  engineer before the first spawn, then in-session mode. Any tier must clear the capability floor: shell,
-  file edits, the project's test and lint commands, a commit. A block a weaker model cannot execute is a
-  plan defect, never a reason to raise the tier. See
-  [ADR-0019](docs/adr/0019-the-executor-tier-is-asked-for-not-guessed.md).
+  answer wins: the task's optional `- Executor:` line (`- Executor: opus, high effort.`), then the
+  `Executor tier:` pin in `CONTEXT.md`, then one question to the engineer before the first spawn, then
+  in-session mode. A task pin binds that one task and is written by `/arcdlc:plan` only when the
+  engineer asked for it; `HOW` never names a tier. `arctool` returns it as `executor` in `next --json`
+  and `show --json`, and `validate --strict` reports `empty-executor` for a line with nothing on it.
+  Any tier must clear the capability floor: shell, file edits, the project's test and lint commands, a
+  commit. A block a weaker model cannot execute is a plan defect, never a reason to raise the tier or
+  to add a pin. See [ADR-0019](docs/adr/0019-the-executor-tier-is-asked-for-not-guessed.md) and
+  [ADR-0025](docs/adr/0025-a-task-pins-its-executor-tier-with-an-executor-key.md).
 - **The reference library is dissolved.** Bundled documents live in the `references/` folder of the skill
   that consumes them, and a document earns its place only by changing what an agent produces. There is no
   `source-map` skill and no routing table. See

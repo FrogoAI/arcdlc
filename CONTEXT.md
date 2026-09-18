@@ -38,11 +38,16 @@ skills, `arctool`, ADRs, and architecture documents.
   (`ARCDLC-CMT-T1`). Tags fold to upper case and must contain a letter. See [ADR-0016](docs/adr/0016-comment-markers-group-by-tag.md).
 - **Executor tier** — the model and the effort level a `/arcdlc:execute` task subagent runs at. Never
   below the capability floor: shell commands, file edits, the project's test and lint commands, a
-  commit. `/arcdlc:execute` never picks it alone. It asks once per run, unless a task's `HOW` or the
-  pin below already names one. Defined in `skills/execute/SKILL.md`.
+  commit. `/arcdlc:execute` never picks it alone. It asks once per run, unless a task's `Executor`
+  line or the pin below already names one. Defined in `skills/execute/SKILL.md`.
 - **Executor pin** — the optional `Executor tier: <name>` line in this file. When it is there,
   `/arcdlc:execute` uses it exactly as written and asks nothing. It may name an effort level too, for
-  example `Executor tier: opus, low effort`.
+  example `Executor tier: opus, low effort`. It covers every task that has no task pin.
+- **Task pin** — the optional `- Executor:` key on one task in `plan.md`, for example
+  `- Executor: opus, high effort.` or `- Executor: sonnet`. It binds that task only, above the executor
+  pin and above the question, and `/arcdlc:plan` writes it only when the engineer asked for that task
+  to run there. `arctool next --json` returns it as `executor`. See
+  [ADR-0025](docs/adr/0025-a-task-pins-its-executor-tier-with-an-executor-key.md).
 - **Plan contract** — the task-block format defined in `skills/plan/references/plan-format.md`,
   parsed mechanically by `internal/plan`.
 - **Slot permutation** — the semantics of `arctool order`. The named tasks keep the positions they
@@ -60,7 +65,8 @@ skills, `arctool`, ADRs, and architecture documents.
 ## Executor tier pin
 
 `/arcdlc:execute` reads this file for one optional line and uses it for every task subagent it
-spawns. The line stands on its own, at the start of a line, and reads like `Executor tier: haiku` or
+spawns, except a task whose block carries its own `- Executor:` line, which wins for that task. The
+line stands on its own, at the start of a line, and reads like `Executor tier: haiku` or
 `Executor tier: opus, low effort`.
 
 The pin is how you stop being asked. No pin is set for this repository, so every whole-queue run asks

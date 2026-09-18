@@ -59,6 +59,7 @@ type Task struct {
 
 	What       string
 	How        string // optional: implementation decisions the executor must follow
+	Executor   string // optional: the tier this one task runs at, above the CONTEXT.md pin
 	Where      string
 	Why        string
 	References []string
@@ -67,8 +68,8 @@ type Task struct {
 	StatusRaw  string // the status token as written (for casing checks), e.g. "TODO" or "Todo"
 
 	// Presence flags for required-key validation (a key can be present but empty).
-	// HasHow is informational only: HOW is never required.
-	HasWhat, HasHow, HasWhere, HasWhy, HasRefs, HasStatus, HasAcceptance bool
+	// HasHow and HasExecutor are informational only: neither key is required.
+	HasWhat, HasHow, HasExecutor, HasWhere, HasWhy, HasRefs, HasStatus, HasAcceptance bool
 
 	// Extra holds key-shaped lines the contract does not define, in document
 	// order. They are carried through untouched: not validated, not required,
@@ -104,7 +105,7 @@ type Plan struct {
 
 var (
 	reHeading = regexp.MustCompile(`^###\s+(\S+?)\s*(?:\(([^)]*)\))?\s*:\s*(.*?)\s*$`)
-	reKey     = regexp.MustCompile(`^-\s+(WHAT|HOW|WHERE|WHY|References|Acceptance|Status):\s?(.*)$`)
+	reKey     = regexp.MustCompile(`^-\s+(WHAT|HOW|Executor|WHERE|WHY|References|Acceptance|Status):\s?(.*)$`)
 	// Any key-shaped line, including one the contract does not define. A plan may
 	// carry custom keys: they are not the contract, but they are part of the task
 	// and the executor must receive them. Absorption stops at any key, or an
@@ -256,6 +257,9 @@ func parseBlock(lines []srcLine, start, end int) Task {
 		case "WHY":
 			t.Why, t.HasWhy = strings.TrimSpace(val), true
 			i++
+		case "Executor":
+			t.Executor, t.HasExecutor = normExecutor(val), true
+			i++
 		case "References":
 			t.References, t.HasRefs = parseRefs(val), true
 			i++
@@ -339,6 +343,17 @@ func normStatus(v string) (Status, string) {
 	default:
 		return StatusNone, tok
 	}
+}
+
+// normExecutor trims an Executor value the way a reader does: surrounding
+// whitespace and one trailing period, so "- Executor: opus, high effort." and
+// "- Executor: opus, high effort" pin the same tier. Nothing else is
+// interpreted: the value is the engineer's, written for the harness they run,
+// and the dispatcher uses it exactly as returned here.
+func normExecutor(v string) string {
+	s := strings.TrimSpace(v)
+	s = strings.TrimSuffix(s, ".")
+	return strings.TrimSpace(s)
 }
 
 // looksLikePath is the loose heuristic for the strict WHERE check: a concrete

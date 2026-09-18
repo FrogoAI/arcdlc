@@ -113,7 +113,8 @@ buys you is freedom to run the queue on a cheaper tier, and a tier is two dials,
 and the effort level it runs at. A strong model at its lowest effort often fits a block that already
 carries every decision, and usually beats a weaker model at the same price.
 
-You pick neither dial on your own. Both belong to the engineer, and you ask once per run.
+You pick neither dial on your own. Both belong to the engineer, and you ask once per run. A task can
+carry its own answer on an `Executor` line, and then that task is not asked about.
 
 The floor is capability, not price. Whatever tier the run lands on, the subagent must be able to:
 
@@ -124,30 +125,39 @@ The floor is capability, not price. Whatever tier the run lands on, the subagent
 
 Resolve the tier in this order, and stop at the first line that answers:
 
-1. **The task names it.** A task's `HOW` names a model or an effort level. The planner decided it, so it binds that
-   task, exactly like every other `HOW` decision.
+1. **The task pins it.** A task's `- Executor:` line, for example `- Executor: opus, high effort.` or
+   `- Executor: sonnet`. It is `executor` in `arctool next --json` (empty when the task has none), and in the
+   block itself when you read it by hand. The engineer asked for that task to run there, so it binds that one
+   task, above the project pin and above any answer given this run. It says nothing about the other tasks. A
+   tier named in `HOW` is not a pin and is not read: `HOW` is about the code, and a tier in it belongs on an
+   `Executor` line, which `/arcdlc:plan` moves it to.
 2. **The project pin.** A line in `CONTEXT.md` that starts with `Executor tier:`, for example
    `Executor tier: haiku` or `Executor tier: opus, low effort`. Use it exactly as written and do not ask. The
    engineer wrote it for the harness they actually run. (`arctool sync` rewrites `AGENTS.md` and `README.md` only,
-   so a pin in `CONTEXT.md` survives every sync.)
+   so a pin in `CONTEXT.md` survives every sync.) It covers every task that has no `Executor` line.
 3. **Ask the engineer.** One question, one turn, before the first spawn: which model and which effort level should
    run this queue. Name the options this harness actually exposes, and carry a recommended answer, which is the
-   cheapest combination that clears the floor. Then use that answer for every task in the run and for the
-   verification subagent, and offer to write it into `CONTEXT.md` as the pin above so the next run does not ask
-   again.
+   cheapest combination that clears the floor. Then use that answer for every task in the run that has no
+   `Executor` line, and for the verification subagent, and offer to write it into `CONTEXT.md` as the pin above
+   so the next run does not ask again. When every `TODO` task carries an `Executor` line there is nothing to
+   ask for the tasks; ask only for the verification subagent, or run it at the tier the most tasks pinned and
+   say so.
 4. **Nobody to ask, or nothing to choose.** A non-interactive run (`claude -p ...`), or a harness that cannot vary
    the model or the effort of a subagent. Then use in-session mode below and say so in the report. Never spawn a
    subagent at your own tier and report it as a cheaper run: a fresh same-tier subagent buys clean context, not a
    cheaper executor.
 
 Ask only when you are about to spawn. Single-task mode (`/arcdlc:execute <slug> <TASK-ID>`) runs in the current
-session, so there is no tier to choose and no question to ask.
+session, so there is no tier to choose and no question to ask. If that task carries an `Executor` line, name it in
+the report and say it was not applied, because nothing in the current session can change the model.
 
 The tier is not a quality dial. When the executor meets a decision its block does not carry, it grills the
 engineer or blocks the task (per-task contract, step 7). Never retry at a higher tier. A block that is not
 mechanical is a plan defect, and raising the tier hides it: the task gets done by judgement nobody
 recorded, and the next run of that plan behaves differently. `/arcdlc:plan <slug>` sharpens the block
-instead. Name the tier the run used, and where it came from, in the report.
+instead. That includes an `Executor` line: you never add one to `plan.md` (you never edit `plan.md`), and a
+blocked task is re-spawned at the same tier with the answer, never at a higher one. Name the tier the run
+used, and where it came from, in the report, per task where an `Executor` line overrode the run tier.
 
 **Orchestrator mode (subagents available).** Run the queue as a thin dispatcher and implement nothing yourself:
 
@@ -156,7 +166,9 @@ instead. Name the tier the run used, and where it came from, in the report.
 2. Spawn ONE fresh subagent, never several in parallel. This is a decision, not a limitation: the plan is
    an ordered list, not a dependency graph, so it runs top to bottom one task at a time. That keeps the
    history linear and the run resumable from a single pointer, and it is why no task declares what it
-   depends on. Where throughput matters, run separate initiatives, which are independent by construction. Spawn it at the tier resolved above, never at one you picked yourself. Its prompt must name the
+   depends on. Where throughput matters, run separate initiatives, which are independent by construction. Spawn it
+   at the task's `Executor` tier when its block has one, otherwise at the run tier resolved above, never at one
+   you picked yourself. Its prompt must name the
    initiative slug, the task ID, the per-task contract to follow (point it at this skill file and
    `../plan/references/plan-format.md`; flat installs: `../arcdlc-plan/references/plan-format.md`), and the
    accumulated notes from earlier task reports.
@@ -394,8 +406,8 @@ never would:
 - `arctool validate --strict --aic <slug>` exits 0. This also re-checks the source stamp, so a design that
   moved during a long run surfaces here rather than never.
 
-**2. The project is whole.** Mechanical, so delegate it to one final subagent at the task tier, and take
-back only the verdict:
+**2. The project is whole.** Mechanical, so delegate it to one final subagent at the run tier (the pin or
+the answer, never a single task's `Executor` line), and take back only the verdict:
 
 - Build, test and lint at the repository level, not only the subproject the tasks touched:
   the project's documented commands, or `make test` and `make lint`, skipping targets that do not exist.
@@ -421,6 +433,6 @@ looks like when neither has a test for the other's assumption.
 Summarize per task: what changed, validation results, and the commit. List every decision you grilled
 for, marked as a plan defect or as something reality forced, so the planner can harden the blocks that
 were not mechanical. Name the executor tier the run used and where
-it came from: a task's `HOW`, the `CONTEXT.md` pin, the engineer's answer this run, or in-session because there was
-no tier to choose or nobody to ask. Suggest `/arcdlc:archive <slug>` when several `DONE` blocks have accumulated in
-the plan.
+it came from: the `CONTEXT.md` pin, the engineer's answer this run, or in-session because there was no tier to
+choose or nobody to ask. Then list every task whose `Executor` line overrode it, with the tier it ran at. Suggest
+`/arcdlc:archive <slug>` when several `DONE` blocks have accumulated in the plan.

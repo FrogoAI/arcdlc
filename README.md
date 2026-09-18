@@ -458,6 +458,10 @@ A plan task block looks like this (full contract in
 - Status: TODO.
 ```
 
+One optional line, `- Executor: opus, high effort.` or `- Executor: sonnet`, pins the tier for that
+one task above the `Executor tier:` pin in `CONTEXT.md`. `/arcdlc:plan` writes it only when you ask
+for it, and `arctool next --json` returns it as `executor`.
+
 Every `arctool` command requires an explicit selection: `--aic <slug>` to target an initiative, or
 `--plan <path>` for a file (with neither, `arctool` lists the initiatives and exits 2):
 

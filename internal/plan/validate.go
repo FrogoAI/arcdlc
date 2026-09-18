@@ -117,6 +117,10 @@ func (p *Plan) Validate(opts ValidateOpts) []Finding {
 				f = append(f, Finding{SevError, t.ID, "where-no-path",
 					fmt.Sprintf("task %s WHERE lists no concrete file/module", label(t)), t.Line})
 			}
+			if t.HasExecutor && t.Executor == "" {
+				f = append(f, Finding{SevError, t.ID, "empty-executor",
+					fmt.Sprintf("task %s has an empty Executor line: name the tier (model, effort) or delete the line", label(t)), t.Line})
+			}
 			if t.HasAcceptance && strings.TrimSpace(t.Acceptance) == "" {
 				f = append(f, Finding{SevError, t.ID, "empty-acceptance",
 					fmt.Sprintf("task %s has an empty Acceptance section", label(t)), t.Line})

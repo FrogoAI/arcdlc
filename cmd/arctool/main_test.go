@@ -915,3 +915,40 @@ func TestCmdScanJSONHasNoEditsUnlessAsked(t *testing.T) {
 		t.Fatalf("new = %+v, want the block", got.New)
 	}
 }
+
+// TestCmdNextJSONCarriesTheExecutorPin pins that the dispatcher can read a
+// task's tier from `arctool next --json` instead of from prose: the field is
+// there, named "executor", and empty (not missing) when the task has no pin.
+func TestCmdNextJSONCarriesTheExecutorPin(t *testing.T) {
+	src := "# plan\n\n### AIC-1: Migrate the ledger\n- WHAT: x.\n- Executor: opus, high effort.\n" +
+		"- WHERE: internal/a.go\n- WHY: y.\n- References: `a`.\n- Status: TODO.\n\n" +
+		"### AIC-2: Rename a flag\n- WHAT: x.\n- WHERE: internal/b.go\n- WHY: y.\n- References: `a`.\n- Status: TODO.\n"
+	path := filepath.Join(t.TempDir(), "plan.md")
+	if err := os.WriteFile(path, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	var code int
+	stdout := captureStdout(t, func() { code = cmdNext([]string{"--json", "--plan", path}) })
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0", code)
+	}
+	var got map[string]any
+	if err := json.Unmarshal([]byte(stdout), &got); err != nil {
+		t.Fatalf("output is not JSON: %v\n%s", err, stdout)
+	}
+	if got["executor"] != "opus, high effort" {
+		t.Errorf("executor = %#v, want %q", got["executor"], "opus, high effort")
+	}
+
+	stdout = captureStdout(t, func() { code = cmdShow([]string{"AIC-2", "--json", "--plan", path}) })
+	if code != 0 {
+		t.Fatalf("show exit=%d, want 0", code)
+	}
+	got = nil
+	if err := json.Unmarshal([]byte(stdout), &got); err != nil {
+		t.Fatalf("show output is not JSON: %v\n%s", err, stdout)
+	}
+	if v, ok := got["executor"]; !ok || v != "" {
+		t.Errorf("a task without a pin must carry executor \"\", got %#v (present=%v)", v, ok)
+	}
+}

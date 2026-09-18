@@ -102,13 +102,18 @@ published Go code was written.
   concrete failure that ordering cannot express, not with a wish for speed. See
   [ADR-0024](adr/0024-the-plan-is-a-queue-not-a-graph.md).
 
-- **Where should the executor tier pin live?** **Decided 2026-09-16: `CONTEXT.md` is fine, keep it.**
-  ADR-0021 showed tier fitness varies per initiative, which argued for a per-initiative pin, but the
-  precedence ladder already covers it without a format change: a run with no pin asks once, so an
-  initiative that wants a different tier gets answered differently that run, and a task that wants one
-  specifically says so in its `HOW`. Residual, accepted: a global pin is used silently, so an initiative
-  needing a different tier relies on the engineer editing the one line or overriding in `HOW`. A plan
-  format change was judged too much machinery for that.
+- **Where should the executor tier pin live?** **Decided 2026-09-16: `CONTEXT.md` is fine, keep it.
+  Re-opened and amended 2026-09-18: the run pin stays in `CONTEXT.md`, and a task pins its own tier
+  with an `Executor` key in `plan.md`.** The first decision reasoned that a task wanting a different
+  tier could say so in its `HOW`, so a format change was too much machinery. That residual did not
+  hold up: a tier in `HOW` is prose the dispatcher has to read for, `arctool next --json` could not
+  show it, and the route invited a planner to write "run on opus" past a block that was not
+  mechanical. The engineer asked for an explicit per-task override of the `CONTEXT.md` pin, for
+  example `- Executor: opus, high effort.` on one migration and `- Executor: sonnet` on a rename. It is
+  one optional single-line key, first in the resolution order, written only when the engineer asks for
+  it, and `HOW` no longer names a tier. A per-initiative pin is still not added: an initiative whose
+  every task wants one tier writes it on each task, or the engineer answers the question that run. See
+  [ADR-0025](adr/0025-a-task-pins-its-executor-tier-with-an-executor-key.md).
 
 - **Should rarely-used sections move out of a `SKILL.md` into `references/`?** Raised because
   `execute` is 20 KB and loads in full to run one task, and because ADR-0020 weakened the premise of

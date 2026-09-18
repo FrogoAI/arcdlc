@@ -1,6 +1,6 @@
 # Plan Task Authoring Guide
 
-**Reviewed**: 2026-09-16
+**Reviewed**: 2026-09-18
 
 This guide defines the `docs/aics/<slug>/plan.md` task format. The plan is an executable queue: `/arcdlc:execute` (or
 any compatible runner) picks tasks off it mechanically, so the format is a contract, not a style preference.
@@ -52,6 +52,7 @@ gate. It is ordinary prose, not a `### ` task block, so the runner ignores it; o
 - HOW:
   <Optional. Implementation decisions the executor must follow: signatures, naming, data shapes,
   edge cases, error handling. End with "Out of scope: …" when adjacent work must NOT be touched.>
+- Executor: <Optional. The tier this one task runs at, model plus optional effort: `opus, high effort`.>
 - WHERE:
   Layer `domain`: <files/modules>
   Layer `repository`: <files/modules>
@@ -80,15 +81,25 @@ this, the reader does.
 
 ### Section keys
 
-The parser reads exactly these keys (exact casing). `WHAT`, `WHY`, `References`, and `Status` are
-**single-line** — anything on following lines is invisible to the runner. `HOW`, `WHERE`, and
+The parser reads exactly these keys (exact casing). `WHAT`, `Executor`, `WHY`, `References`, and
+`Status` are **single-line** — anything on following lines is invisible to the runner. `HOW`, `WHERE`, and
 `Acceptance` are **multi-line**: they absorb indented lines until the next key. Keep multi-line
 bodies to plain/bulleted lines with inline backticks — a fenced code block ends the section.
 
 - `WHAT` (required) — the scope, one sentence.
 - `HOW` (optional) — the design decisions a weaker executor would otherwise have to guess:
   function/interface signatures, naming, data shapes, algorithm choice, edge cases, error handling.
-  Also the place for scope fencing: `Out of scope: <thing> (covered by <TASK-ID>).`
+  Also the place for scope fencing: `Out of scope: <thing> (covered by <TASK-ID>).` `HOW` is about
+  the code. It never names the model or effort level that runs the task; that is `Executor`.
+- `Executor` (optional) — the executor tier for this one task, written the way the `Executor tier:`
+  pin in `CONTEXT.md` is written: a model, then optionally a comma and an effort level, for example
+  `- Executor: opus, high effort.` or `- Executor: sonnet`. `/arcdlc:execute` uses it ahead of the
+  `CONTEXT.md` pin and ahead of its own question, for this task only. The parser trims surrounding
+  whitespace and one trailing period and interprets nothing else; `arctool next --json` returns it as
+  `executor`, empty when the task has none. It is written only when the engineer asked for that task
+  to run on that tier. It is never a way past a block that is not mechanical: a task that needs a
+  stronger model to come out right is a task that needs a sharper block. `--strict` reports
+  `empty-executor` for a line with nothing on it.
 - `WHERE` (required) — the exact files/modules expected to change, one `Layer` line per layer. The
   layer names above match the ArcDLC Go server layout; for other projects keep the `Layer` line
   format with that project's real layer/module names.
@@ -108,7 +119,7 @@ bodies to plain/bulleted lines with inline backticks — a fenced code block end
 `- Rollout plan:`) is carried through untouched: it is not validated, never required, and never
 dropped. It absorbs its own indented body exactly as a defined multi-line key does, it appears in
 `arctool show` and `arctool next --json` under `extra`, in document order, and `arctool validate`
-says nothing about it. The seven keys above are the contract; anything else is part of the task, and
+says nothing about it. The eight keys above are the contract; anything else is part of the task, and
 the executor receives the whole task.
 
 The one thing a custom key must not do is shadow a defined one. `- Acceptence:` is a custom key, not
@@ -167,7 +178,8 @@ The `plan.md` copy must preserve:
 
 - The same task ID and heading (including the `(MISSING|PARTIAL|DRIFT)` tag, which only gap-derived tasks carry).
 - The same `WHAT`, `HOW` (when present), `WHERE`, `WHY`, and `Acceptance` content.
-- Executor metadata: `References` (pointing at the register the task came from) and `Status`.
+- Executor metadata: `References` (pointing at the register the task came from), `Status`, and
+  `Executor` when the engineer pinned one. A register never carries `Executor`; it is a plan line.
 
 The copy must drop the lines that belong to the register alone: `comments.md` carries `- Marker:` lines (the finding's
 identity: file plus marker text) and `- Verdict:`, and neither means anything to the runner. Comment-derived tasks take
@@ -181,7 +193,7 @@ Use the register as the evidence, and `plan.md` as the executable queue — both
 1. Use unique `<TASK-ID>` values (for example: `WA240-VER-03`, `AIC-1`). IDs need only be unique **within one
    initiative's `plan.md`** — each `/arcdlc:execute` run targets a single plan.
 2. Keep exactly one task per `###` block, headings at level `###`, section keys exact
-   (`WHAT`, `HOW`, `WHERE`, `WHY`, `Acceptance`, `References`, `Status`).
+   (`WHAT`, `HOW`, `Executor`, `WHERE`, `WHY`, `Acceptance`, `References`, `Status`).
 3. Keep `Status` values uppercase (`TODO`, `TAKEN`, `DONE`, `BLOCKED`), preferably with a trailing
    period (`- Status: TODO.`).
 4. Size each task so one agent session can implement, test, and commit it: one coherent slice,
@@ -205,7 +217,9 @@ Use the register as the evidence, and `plan.md` as the executable queue — both
    correctly" gives the executor nothing to check. The executor is a weaker model than the planner:
    it will not notice a criterion it cannot verify, it will decide it passed. A runnable check fails
    loudly where a guess passes silently.
-10. Do not place executor instructions inside `plan.md`; update this file instead.
+10. Do not place executor instructions inside `plan.md`; update this file instead. The one thing a
+    task may tell the executor about itself is its tier, on an `Executor` line, and only because the
+    engineer asked for it.
 
 ## Minimal Example
 

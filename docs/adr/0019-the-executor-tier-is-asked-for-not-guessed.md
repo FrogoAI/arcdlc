@@ -5,6 +5,8 @@
 - Initiative: none (bundle-wide, tightens `/arcdlc:execute`)
 - Amended by: [ADR-0021](0021-a-planned-task-must-be-mechanical.md), which replaces the
   weaker-model premise with a mechanical-task requirement. The tier is still asked for, never guessed.
+- Amended by: [ADR-0025](0025-a-task-pins-its-executor-tier-with-an-executor-key.md), which replaces
+  step 1 of the order below: a task pins its tier with an `Executor` key, and `HOW` no longer names one.
 - Relates to: `skills/plan/references/plan-format.md` (opening line) and Step 2 of
   `skills/plan/SKILL.md`, which both already write each task for a weaker executor
 

@@ -102,6 +102,12 @@ mechanical is telling you one of two things, and neither is "use a stronger mode
   cases, error handling: yes. The implementation line by line: no. If you are writing the code in
   prose, the task is too big or a decision is still open. Writing it twice, once as prose and once as
   code, costs more than it saves and is the failure this format exists to prevent.
+- **`Executor` is written only when the engineer asked for it.** The optional `- Executor:` line pins
+  the tier for one task (`- Executor: opus, high effort.`, `- Executor: sonnet`), above the
+  `Executor tier:` pin in `CONTEXT.md`. Write it when the engineer named the task and the tier, in the
+  interview or in the request, and never because a block looks hard: a task that needs a stronger model
+  to come out right is not mechanical, and the fix is a sharper block. A tier you find written in a
+  task's `HOW` moves onto an `Executor` line; the dispatcher reads only that line.
 - A task with no `Acceptance` criteria is not plannable, and a criterion the executor cannot check is
   no better. Name a command, a path, a test, an exit code, or write `GIVEN … WHEN … THEN`. "Works
   correctly" is not a criterion: the executor has no context to judge it and will decide it passed.
