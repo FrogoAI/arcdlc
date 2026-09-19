@@ -68,6 +68,49 @@ and use the manual fallback noted in each step. Either way `plan.md` stays the s
 Pass the resolved initiative to every `arctool` call as `--aic <slug>` (or `--plan <path>`); `arctool`
 always requires an explicit selection.
 
+## In a workspace
+
+Detect a workspace once per run, the same way `/arcdlc:plan` does: `git rev-parse --is-inside-work-tree`
+fails in the working directory, and `git -C docs rev-parse --show-toplevel` resolves to `<cwd>/docs` (see
+the `Workspace` and `Hub` terms in `CONTEXT.md`). The hub's default branch is the short name of
+`git -C docs symbolic-ref refs/remotes/origin/HEAD`, or the current branch when that ref is missing. In a
+workspace the per-task contract below runs across two repositories: the hub at `docs/`, and the product
+repository the task names.
+
+1. **Read the task's repository first.** `arctool next --json` returns the task's `Repo` custom key as
+   `extra.Repo` (fallback: the `- Repo:` line); see the `Repo key` term in `CONTEXT.md` and the `Repo` key
+   subsection of `plan-format.md`. It names the one repository the task's `WHERE` files live in. A
+   workspace task with no `Repo` key is a plan defect: `arctool block <id> -m "no Repo key; plan defect"`,
+   and stop.
+2. **Every status write commits the hub.** `take`, `done`, `block` and `todo` each change `plan.md` in the
+   hub, so each one is followed by a hub commit and push. Do not run `git -C docs add docs/aics/<slug>/plan.md`:
+   `-C docs` already moves into the hub, so that path does not exist there. Commit the file directly with a
+   pathspec instead, then push:
+   ```
+   git -C docs commit -m "chore(<slug>): mark <TASK-ID> <STATUS>" -m "Refs: <TASK-ID>" -m "#AI-assisted" -- aics/<slug>/plan.md
+   git -C docs push origin <default>
+   ```
+   `<STATUS>` is the status the write just set: `TAKEN`, `DONE`, `BLOCKED`, or `TODO`.
+3. **The code commit lands in the task's repository.** Make it in `<Repo>`, on the branch shape that
+   repository's own `AGENTS.md` sets; when that guide says nothing, use the trunk-based short-lived task
+   branch from "Per-task contract" below. Write the message in the Conventional Commits shape from
+   "Commit message: Conventional Commits" below, with `Refs: <TASK-ID>`. A task with `Repo: docs` makes one
+   hub commit that holds both the change and the status; there is no separate code commit.
+4. **Order the three commits.** `take`, then its hub commit and push; implement and commit in `<Repo>`;
+   `done`, then its hub commit and push. The code commit always sits between the two status commits.
+5. **Retry a rejected hub push exactly once.** A non-fast-forward rejection is retried after
+   `git -C docs pull --ff-only origin <default>`. A fast-forward that itself fails, or a second rejection,
+   blocks the task with the git error verbatim as the reason, and ends the run.
+6. **A product repository is never pushed by a run.** Leave its commits local. List every repository with
+   unpushed commits in the report.
+7. **Tell the subagent which repository it owns.** The spawn prompt names the task's `Repo` and this
+   section, alongside the per-task contract. The subagent runs that repository's documented test and lint
+   commands from inside it, not from the workspace root.
+8. **Verification covers every touched repository.** Part 2 runs build, test and lint inside every
+   repository named by a `Repo` key of a `DONE` task, not only in the hub. Part 1 gains two checks:
+   `git -C docs status --porcelain` is empty, and `git -C docs log origin/<default>..HEAD` is empty, so an
+   unpushed hub commit is caught the same way a leftover `TAKEN` task is.
+
 ## Initiative selection
 
 The initiative slug is the **required first positional argument**: `/arcdlc:execute <slug> [TASK-ID]`
@@ -249,7 +292,8 @@ For each task, in order (in orchestrator mode, the spawned subagent performs the
    they are binding, not suggestions. Note its `acceptance` criteria: they are the definition of done you must
    satisfy in step 5. *Fallback: read `plan.md` and take the first `### ` block whose `- Status:` is `TODO`,
    including its `- HOW:` and `- Acceptance:` sections.*
-2. Claim it before touching code: `arctool take <id>` (flips `TODO`→`TAKEN`; refuses a non-`TODO` task). A `TAKEN` block
+2. Claim it before touching code: `arctool take <id>` (flips `TODO`→`TAKEN`; refuses a non-`TODO` task). In a
+   workspace this status change is also committed and pushed in the hub, see `## In a workspace`. A `TAKEN` block
    with no commit marks a crashed session. *Fallback: edit the block's `- Status: TODO.` to `- Status: TAKEN.`*
 3. Implement ONLY this task, exactly as written — including intentional breaking changes when the task says so.
    If the task is unclear, contradicts something, or would need a decision it does not carry, do not guess:
@@ -265,13 +309,14 @@ For each task, in order (in orchestrator mode, the spawned subagent performs the
    If a criterion is not covered by an existing test, add one (in the `Tests` files named in `WHERE`) so "met" is
    evidenced, not asserted. *Fallback: edit the status line to `- Status: DONE.`*
 6. Commit ONLY this task's changes plus the plan status update. Do not include unrelated pre-existing worktree
-   changes. Write the message exactly as specified in "Commit message: Conventional Commits" below. Do not push.
+   changes. Write the message exactly as specified in "Commit message: Conventional Commits" below. Do not push a
+   product repository; in a workspace the hub is pushed after every status commit, see `## In a workspace`.
 7. If the task cannot be completed — including any acceptance criterion you cannot satisfy: when the blocker is
    a question rather than a defect, grill the engineer if you are the session they started, and if you are a
    spawned subagent put the question in the block reason and return it unanswered (see below). Then `arctool block <id> -m
    "<one-line reason>"` naming the failing criterion (or `arctool todo <id>` to release it back to the queue), report
-   why, and stop — do not continue to the next task on failure. Never `arctool done` a task whose acceptance criteria
-   are unmet. The same rule covers an order inversion: while implementing, you find the task needs something a task
+   why, and stop — do not continue to the next task on failure. In a workspace, `block` and `todo` also commit and
+   push the hub, see `## In a workspace`. Never `arctool done` a task whose acceptance criteria are unmet. The same rule covers an order inversion: while implementing, you find the task needs something a task
    **below** it will build. Block it the same way, with a reason that names the other task: `arctool block <id> -m
    "needs <OTHER-ID>, which is below it"`. Then add one line to your report with the exact command that would fix the
    order, for example `arctool order <OTHER-ID> <id> --aic <slug>`, which swaps those two positions and leaves every

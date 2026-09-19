@@ -71,7 +71,7 @@ Decision: [ADR-0026](../../adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repo
   - GIVEN the per-task contract step 6 WHEN read THEN it no longer says only "Do not push" and points at `## In a workspace`.
   - GIVEN the change WHEN `go test ./internal/bundle/` runs THEN it passes, and the `## Talk simple, write like a human` and `## Judge by the four virtues` blocks are byte-identical to `skills/aic/SKILL.md` per the `awk` extraction in `.github/workflows/ci.yml`.
 - References: `docs/aics/init/aic.md`, `docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md`, `docs/adr/0024-the-plan-is-a-queue-not-a-graph.md`, `skills/execute/SKILL.md`, `skills/plan/references/plan-format.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### INIT-4: Add the hub-write paragraph to `aic`, `plan`, `examinate` and `assist`
 
