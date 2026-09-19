@@ -293,3 +293,41 @@ func TestLoadHTMLInitiative(t *testing.T) {
 		t.Errorf("DocRelPath = %q", got.DocRelPath)
 	}
 }
+
+func TestRebase(t *testing.T) {
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	inits := []Initiative{
+		{Slug: "pay", Title: "Payments", DocRelPath: "docs/aics/pay/aic.md"},
+		{Slug: "none", Title: "No Doc"}, // DocRelPath == ""
+	}
+
+	t.Run("base one level below the working directory", func(t *testing.T) {
+		got := Rebase(inits, filepath.Join(wd, "docs"))
+		if got[0].DocRelPath != "aics/pay/aic.md" {
+			t.Errorf("DocRelPath = %q, want aics/pay/aic.md", got[0].DocRelPath)
+		}
+		if got[1].DocRelPath != "" {
+			t.Errorf("empty DocRelPath should stay empty, got %q", got[1].DocRelPath)
+		}
+	})
+
+	t.Run("base equal to the working directory", func(t *testing.T) {
+		got := Rebase(inits, wd)
+		if got[0].DocRelPath != "docs/aics/pay/aic.md" {
+			t.Errorf("DocRelPath = %q, want docs/aics/pay/aic.md", got[0].DocRelPath)
+		}
+		if got[1].DocRelPath != "" {
+			t.Errorf("empty DocRelPath should stay empty, got %q", got[1].DocRelPath)
+		}
+	})
+
+	t.Run("input is not mutated", func(t *testing.T) {
+		Rebase(inits, filepath.Join(wd, "docs"))
+		if inits[0].DocRelPath != "docs/aics/pay/aic.md" {
+			t.Errorf("Rebase mutated its input: %q", inits[0].DocRelPath)
+		}
+	})
+}

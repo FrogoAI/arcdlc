@@ -25,7 +25,7 @@ import (
 	"github.com/FrogoAI/arcdlc/internal/scan"
 )
 
-const version = "0.19.0"
+const version = "0.20.0"
 
 // aicsDir is the root directory under which each initiative gets its own folder
 // (docs/aics/<slug>/, holding plan.md, gap.md, comments.md, plan-archive.md).
@@ -62,6 +62,7 @@ usage:
                  (exit 3 when no marker is found)
   arctool archive  [--dry-run] [--aic SLUG | --plan PATH]    move DONE blocks to plan-archive.md
   arctool sync     [--check]                                 sync the initiative registry in AGENTS.md/README.md
+                 a symlinked target is written through, and links are relative to the real file
   arctool version
 
 initiative selection (required):
@@ -624,12 +625,23 @@ func cmdSync(args []string) int {
 // runSync scans dir for initiatives and updates each target file's registry
 // block. With check=true it writes nothing and returns 1 when any block is
 // stale. It is factored out of cmdSync so tests can drive it with temp paths.
+//
+// Each target is resolved with resolveSyncTarget first: a symlinked target
+// (a workspace hub's root AGENTS.md/README.md, ADR-0026) is written through
+// to the real file it points at, never replacing the symlink itself, and the
+// registry links inits carries are rebased onto that real file's directory
+// so they still resolve from where the file actually lives.
 func runSync(dir string, targets []string, check bool, out, errw io.Writer) int {
 	inits := scanInitiatives(dir)
 	if check {
 		stale := false
 		for _, f := range targets {
-			_, changed, err := registry.Preview(f, inits)
+			path, base, ok := resolveSyncTarget(f)
+			if !ok {
+				fmt.Fprintf(errw, "arctool: %s is a symlink to a missing file\n", f)
+				return 4
+			}
+			_, changed, err := registry.Preview(path, registry.Rebase(inits, base))
 			if err != nil {
 				fmt.Fprintf(errw, "arctool: %v\n", err)
 				return 4
@@ -646,7 +658,12 @@ func runSync(dir string, targets []string, check bool, out, errw io.Writer) int 
 		return 0
 	}
 	for _, f := range targets {
-		changed, err := registry.WriteFile(f, inits)
+		path, base, ok := resolveSyncTarget(f)
+		if !ok {
+			fmt.Fprintf(errw, "arctool: %s is a symlink to a missing file\n", f)
+			return 4
+		}
+		changed, err := registry.WriteFile(path, registry.Rebase(inits, base))
 		if err != nil {
 			fmt.Fprintf(errw, "arctool: %v\n", err)
 			return 4
@@ -658,6 +675,33 @@ func runSync(dir string, targets []string, check bool, out, errw io.Writer) int 
 		}
 	}
 	return 0
+}
+
+// resolveSyncTarget resolves target for arctool sync. When target is a
+// symlink, path is the real file filepath.EvalSymlinks resolves it to (so
+// Preview/WriteFile read and write the real file, never the link) and base
+// is that real file's directory, so a registry link is computed relative to
+// where the file actually lives. A target that is not a symlink — including
+// one that does not exist yet, which Preview/WriteFile turn into a fresh
+// stub — resolves to itself, with base set to its own absolute directory;
+// when target sits in the working directory this reproduces the existing
+// "docs/aics/<slug>/aic.md" links unchanged. ok is false only when target is
+// a symlink to a file that does not exist ("dangling"), in which case path
+// and base are meaningless and the caller must not read or write anything.
+func resolveSyncTarget(target string) (path, base string, ok bool) {
+	abs, err := filepath.Abs(target)
+	if err != nil {
+		return target, filepath.Dir(target), true
+	}
+	fi, err := os.Lstat(target)
+	if err != nil || fi.Mode()&os.ModeSymlink == 0 {
+		return target, filepath.Dir(abs), true
+	}
+	resolvedAbs, err := filepath.EvalSymlinks(abs)
+	if err != nil {
+		return "", "", false
+	}
+	return resolvedAbs, filepath.Dir(resolvedAbs), true
 }
 
 // scanInitiatives returns a registry entry for every <dir>/<slug>/ folder that

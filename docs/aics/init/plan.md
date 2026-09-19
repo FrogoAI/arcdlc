@@ -37,7 +37,7 @@ Decision: [ADR-0026](../../adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repo
   - GIVEN the existing `TestRunSync`, `TestRunSyncHTMLOnlyInitiative`, `TestRunSyncNoInitiativesStub` and `TestWriteFileStubAndIdempotent` WHEN `go test ./...` runs THEN they pass unchanged, so a non-symlinked target still gets `docs/aics/<slug>/aic.md`.
   - GIVEN the change WHEN `arctool version` runs THEN it prints `arctool 0.20.0`, and `gofmt -l .` prints nothing and `go vet ./...` is clean.
 - References: `docs/aics/init/aic.md`, `docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md`, `docs/adr/0002-registry-sync-via-marker-blocks.md`, `internal/registry/registry.go`, `cmd/arctool/main.go`.
-- Status: TODO.
+- Status: DONE.
 
 ### INIT-2: Document the `Repo` custom key in the plan format and make `/arcdlc:plan` write it in a workspace
 

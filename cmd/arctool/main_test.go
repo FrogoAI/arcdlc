@@ -285,6 +285,109 @@ func TestRunSyncNoInitiativesStub(t *testing.T) {
 	}
 }
 
+// chdir switches the process working directory to dir for the duration of
+// the test and restores it on cleanup. runSync resolves relative targets and
+// registry.Rebase resolves DocRelPath against the real working directory
+// (ADR-0026's workspace-hub layout: a root symlink into a sibling docs
+// repository), so exercising that path needs an actual chdir, not just a
+// temp-dir argument.
+func chdir(t *testing.T, dir string) {
+	t.Helper()
+	old, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.Chdir(old); err != nil {
+			t.Fatal(err)
+		}
+	})
+}
+
+// TestRunSyncThroughSymlink exercises the H7 fix (docs/aics/init/aic.md): a
+// workspace hub's root AGENTS.md is a symlink into docs/AGENTS.md, and sync
+// must write the real file, leave the symlink itself alone, and rebase the
+// registry link onto the real file's directory ("aics/pay/aic.md", not
+// "docs/aics/pay/aic.md").
+func TestRunSyncThroughSymlink(t *testing.T) {
+	root := t.TempDir()
+	chdir(t, root)
+
+	dir := filepath.Join(root, "docs", "aics", "pay")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "aic.md"), []byte("# Payments\n\n> take money\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	docsAgents := filepath.Join(root, "docs", "AGENTS.md")
+	if err := os.WriteFile(docsAgents, []byte("# AGENTS\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	rootAgents := filepath.Join(root, "AGENTS.md")
+	if err := os.Symlink(docsAgents, rootAgents); err != nil {
+		t.Fatal(err)
+	}
+
+	if code := runSync("docs/aics", []string{"AGENTS.md"}, false, io.Discard, io.Discard); code != 0 {
+		t.Fatalf("runSync exit=%d, want 0", code)
+	}
+
+	fi, err := os.Lstat(rootAgents)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fi.Mode()&os.ModeSymlink == 0 {
+		t.Fatalf("%s is no longer a symlink after sync", rootAgents)
+	}
+	b, err := os.ReadFile(docsAgents)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(b), "- [Payments](aics/pay/aic.md)") {
+		t.Errorf("docs/AGENTS.md missing rebased link:\n%s", b)
+	}
+
+	var out bytes.Buffer
+	if code := runSync("docs/aics", []string{"AGENTS.md"}, false, &out, io.Discard); code != 0 {
+		t.Fatalf("second runSync exit=%d, want 0", code)
+	}
+	if !strings.Contains(out.String(), "already up to date") {
+		t.Errorf("second run output = %q, want \"already up to date\"", out.String())
+	}
+}
+
+// TestRunSyncDanglingSymlink exercises the dangling-symlink guard: a root
+// link into a file that no longer exists must fail loudly (exit 4) rather
+// than silently write a fresh file over the link's target.
+func TestRunSyncDanglingSymlink(t *testing.T) {
+	root := t.TempDir()
+	chdir(t, root)
+
+	if err := os.MkdirAll(filepath.Join(root, "docs", "aics"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	rootAgents := filepath.Join(root, "AGENTS.md")
+	if err := os.Symlink(filepath.Join(root, "docs", "AGENTS.md"), rootAgents); err != nil {
+		t.Fatal(err)
+	}
+
+	var errBuf bytes.Buffer
+	code := runSync("docs/aics", []string{"AGENTS.md"}, false, io.Discard, &errBuf)
+	if code != 4 {
+		t.Fatalf("exit=%d, want 4", code)
+	}
+	if !strings.Contains(errBuf.String(), "is a symlink to a missing file") {
+		t.Errorf("stderr = %q, want the dangling-symlink message", errBuf.String())
+	}
+	if _, err := os.Stat(filepath.Join(root, "docs", "AGENTS.md")); !os.IsNotExist(err) {
+		t.Errorf("docs/AGENTS.md should not have been created, err=%v", err)
+	}
+}
+
 // --- arctool order ---
 
 // orderPlan writes a plan.md holding one minimal task block per id, in the

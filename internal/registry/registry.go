@@ -255,6 +255,37 @@ func truncate(s string) string {
 	return strings.TrimRight(string(r[:summaryMax]), " ") + "…"
 }
 
+// Rebase returns a copy of inits with each DocRelPath rewritten relative to
+// base instead of the working directory: abs is the working directory joined
+// with the current DocRelPath, and the new DocRelPath is
+// filepath.ToSlash(filepath.Rel(base, abs)). This is how arctool sync links a
+// registry file correctly when it is written through a symlink: base is the
+// real file's directory, not the symlink's, so a hub file gets
+// "aics/<slug>/aic.md" while a single-repository file keeps
+// "docs/aics/<slug>/aic.md" unchanged. An Initiative with an empty
+// DocRelPath (no architecture document) is copied unchanged; so is one whose
+// path cannot be rebased (no working directory, or no relative path between
+// base and abs, for example a different volume on Windows).
+func Rebase(inits []Initiative, base string) []Initiative {
+	out := make([]Initiative, len(inits))
+	wd, wdErr := os.Getwd()
+	for i, it := range inits {
+		if it.DocRelPath == "" || wdErr != nil {
+			out[i] = it
+			continue
+		}
+		abs := filepath.Join(wd, filepath.FromSlash(it.DocRelPath))
+		rel, err := filepath.Rel(base, abs)
+		if err != nil {
+			out[i] = it
+			continue
+		}
+		it.DocRelPath = filepath.ToSlash(rel)
+		out[i] = it
+	}
+	return out
+}
+
 // Render returns the registry block body: one bullet per initiative, sorted by
 // slug, or "_none_" when there are none. An initiative with no architecture
 // document (DocRelPath == "") is rendered without a link.
