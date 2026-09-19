@@ -117,6 +117,17 @@ interview**, in the order given:
 - If any entry in the list is not a known format and has no template in `references/`, **write nothing**:
   report the unknown name and list the supported formats.
 
+## In a workspace
+
+The working directory is a workspace when it is not a git work tree and `git -C docs rev-parse
+--show-toplevel` resolves to `<cwd>/docs` (see the `Workspace` and `Hub` terms in `CONTEXT.md`). In a
+workspace, `docs/` is a repository of its own. Every write this skill makes there, an architecture
+document, an ADR, a `CONTEXT.md` term, `gap.md`, `comments.md`, `plan.md`, is committed in the hub with
+`git -C docs commit -- <hub-relative paths>` under the message `docs(<slug>): <what changed>` plus
+`#AI-assisted`, and pushed to the hub's default branch at once. A rejected push is retried once after
+`git -C docs pull --ff-only`. Nothing is written into a product repository by these skills. `arctool
+sync` runs from the workspace root and writes through the root links.
+
 ## Step 1 — Gather existing context (before asking anything)
 
 Read what already exists so the interview builds on it instead of repeating it:

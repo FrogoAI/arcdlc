@@ -55,6 +55,19 @@ listing the existing initiatives under `docs/aics/` — never guess. If the name
 not exist yet (a fresh audit, e.g. `mdca-audit`), confirm the slug with the user and create
 `docs/aics/<slug>/`.
 
+## In a workspace
+
+The working directory is a workspace when it is not a git work tree and `git -C docs rev-parse
+--show-toplevel` resolves to `<cwd>/docs` (see the `Workspace` and `Hub` terms in `CONTEXT.md`). In a
+workspace, `docs/` is a repository of its own. Every write this skill makes there, an architecture
+document, an ADR, a `CONTEXT.md` term, `gap.md`, `comments.md`, `plan.md`, is committed in the hub with
+`git -C docs commit -- <hub-relative paths>` under the message `docs(<slug>): <what changed>` plus
+`#AI-assisted`, and pushed to the hub's default branch at once. A rejected push is retried once after
+`git -C docs pull --ff-only`. Nothing is written into a product repository by these skills. `arctool
+sync` runs from the workspace root and writes through the root links. `arctool scan` takes
+`--path <repo>` with the repository the task or the engineer names, never `.` at the root, because the
+default exclude list skips `docs` but not the sibling repositories.
+
 ## Step 1 — Resolve the standard to audit against
 
 - With a standard as the second argument (e.g. `/arcdlc:examinate <slug> MDCA`): read the matching rule set from `references/` next to this file, in full — e.g. MDCA → `mdca.md`; DDD → `ddd.md`; SOLID → `solid.md`;

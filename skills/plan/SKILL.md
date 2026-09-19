@@ -59,6 +59,17 @@ never guess. All inputs and outputs below live inside `docs/aics/<slug>/`, and t
 `arctool` as `--aic <slug>`. A legacy flat `docs/aics/plan.md` has no slug; tell the user to migrate
 it into a `docs/aics/<slug>/` folder.
 
+## In a workspace
+
+The working directory is a workspace when it is not a git work tree and `git -C docs rev-parse
+--show-toplevel` resolves to `<cwd>/docs` (see the `Workspace` and `Hub` terms in `CONTEXT.md`). In a
+workspace, `docs/` is a repository of its own. Every write this skill makes there, an architecture
+document, an ADR, a `CONTEXT.md` term, `gap.md`, `comments.md`, `plan.md`, is committed in the hub with
+`git -C docs commit -- <hub-relative paths>` under the message `docs(<slug>): <what changed>` plus
+`#AI-assisted`, and pushed to the hub's default branch at once. A rejected push is retried once after
+`git -C docs pull --ff-only`. Nothing is written into a product repository by these skills. `arctool
+sync` runs from the workspace root and writes through the root links.
+
 ## Step 1 — Locate the inputs
 
 - Architecture document: `docs/aics/<slug>/aic.md` by default; accept an explicit path or format argument

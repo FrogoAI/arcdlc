@@ -87,7 +87,7 @@ Decision: [ADR-0026](../../adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repo
   - GIVEN `skills/examinate/SKILL.md` and `skills/assist/SKILL.md` WHEN `grep -c -- '--path <repo>'` runs on each THEN each prints at least 1.
   - GIVEN the change WHEN `go test ./internal/bundle/` runs THEN it passes and both verbatim blocks in each file still match `skills/aic/SKILL.md` per the CI `awk` extraction.
 - References: `docs/aics/init/aic.md`, `docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md`, `skills/aic/SKILL.md`, `skills/examinate/SKILL.md`, `skills/assist/SKILL.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### INIT-5: Add the hub-write paragraph to `archive`, `remove`, `policy` and `plan-human`
 
