@@ -39,6 +39,9 @@ once.
 | clean up the finished tasks | `archive` |
 | we are done with cursor-support, retire it | `remove` |
 | delete the old plan folder | `remove` |
+| set up arcdlc in this repo | `init` |
+| we have five repos, set up a docs hub | `init` |
+| bootstrap the project for arcdlc | `init` |
 
 ## Known collisions
 
@@ -47,6 +50,8 @@ once.
   neither source, ask rather than guess.
 - **"build it"** is `execute` when a plan exists and `aic` when nothing is designed yet. The skill
   that fires should check for `docs/aics/<slug>/plan.md` before assuming.
+- **"set up"** pulls both `init` and `policy`. "Set up" with a policy word ("set up our on-call
+  process") is `policy`; "set up" naming a repository or a workspace is `init`.
 
 ## Rules for writing a description
 

@@ -8,8 +8,8 @@ Guidance for AI coding agents working **on this repository**. (If you are lookin
 ArcDLC is two deliverables in one repo, and they share a contract:
 
 1. **A skill bundle** (`skills/`, packaged by `.claude-plugin/`) — the `/arcdlc:*` delivery
-   workflow (aic, policy, plan, plan-human, examinate, assist, execute, remove, archive) plus the
-   `grilling` interview skill they all run on. Ten skills. Each owns the reference documents it
+   workflow (init, aic, policy, plan, plan-human, examinate, assist, execute, remove, archive) plus the
+   `grilling` interview skill they all run on. Eleven skills. Each owns the reference documents it
    consumes, in its own `references/` folder.
 2. **The `arctool` CLI** (`cmd/arctool`, `internal/plan`, `internal/registry`, `internal/scan`) — a
    deterministic runner for the plan format those skills produce and consume, the initiative registry
@@ -131,7 +131,7 @@ checks. Do not merge with a red pipeline.
   output, not prose. See the Conventions section below for where the rules live.
 - **Judgement follows the four virtues.** Wisdom (ask, do not guess), courage (say the hard thing),
   justice (write the answer down, name the tier you used), temperance (touch only what you were pointed
-  at). `## Judge by the four virtues` is verbatim in all ten `SKILL.md` files and CI pins it byte
+  at). `## Judge by the four virtues` is verbatim in all eleven `SKILL.md` files and CI pins it byte
   identical, exactly like the writing-style block.
 - **Every write is atomic and byte-preserving outside its own region.** `take`/`done`/`block`/`todo`
   rewrite only the one `- Status:` line via temp-file plus rename. `archive` writes the archive before
@@ -197,20 +197,20 @@ checks. Do not merge with a red pipeline.
 
 - One skill per directory under `skills/`, entry file always `SKILL.md`, YAML frontmatter with a
   `description` naming its triggers (the `/arcdlc:<name>` command and the `arcdlc-<name>` flat form).
-- **The description is the routing contract, and it is the only always-on cost.** All ten sit in
+- **The description is the routing contract, and it is the only always-on cost.** All eleven sit in
   context every session and nothing else decides whether a skill fires. Write the phrasings a person
   actually types, not a summary of what the skill does, and keep mechanics (arguments, output paths,
   format lists) in the body, which is read only after the skill fires. After changing one, re-run
   [docs/routing-checks.md](docs/routing-checks.md) by hand: no CI can test routing, because testing
   it means running a real agent.
-- **Two blocks are verbatim in all ten `SKILL.md` files**, after the intro and before the first step:
+- **Two blocks are verbatim in all eleven `SKILL.md` files**, after the intro and before the first step:
   `## Talk simple, write like a human` (how the agent talks and how it writes the files it produces)
   and `## Judge by the four virtues` (how it decides). Brevity applies to replies, never to files:
   neither block ever lets a rule, path, decision, or acceptance criterion be dropped. Keep both short
   but self-sufficient, because a skill is loaded while a reference is only read if the agent opens it.
   Only tables, examples, and the pre-save grep live in the long form,
-  `skills/grilling/references/Writing Style.md`. CI checks both blocks byte identical across all ten,
-  so copy them when adding a skill and change all ten plus the long form together.
+  `skills/grilling/references/Writing Style.md`. CI checks both blocks byte identical across all eleven,
+  so copy them when adding a skill and change all eleven plus the long form together.
 - Reference documents live in the `references/` folder of the skill that consumes them. A document
   earns its place by changing what an agent produces: a template a skill copies, or a rule set whose
   identifiers a gap block cites. Public knowledge the model already has does not belong here.

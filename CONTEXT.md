@@ -19,9 +19,9 @@ skills, `arctool`, ADRs, and architecture documents.
   verifies drift without writing.
 - **Removal** — `/arcdlc:remove <slug>`: engineer-confirmed deletion of an initiative folder plus
   registry cleanup. Git history is the archive; no graveyard copies in the tree.
-- **Pipeline skills** — `aic`, `plan`, `execute`, `examinate`, `assist`, `archive`, plus the
+- **Pipeline skills** — `init`, `aic`, `plan`, `execute`, `examinate`, `assist`, `archive`, plus the
   lifecycle skills `remove` and `policy`, `plan-human` beside the chain, and `grilling` under them all.
-  Ten in total.
+  Eleven in total.
 - **Comment register** — `docs/aics/<slug>/comments.md`: one block per code comment marker found in
   the repository. `arctool scan` writes the evidence; it removes the comment from the code only with
   `--strip`, which `/arcdlc:assist` passes after the engineer says yes. Once stripped, the register is
@@ -60,7 +60,7 @@ skills, `arctool`, ADRs, and architecture documents.
   must always follow is not a reference document: it goes inline in the `SKILL.md`, because a skill is
   loaded while a reference is only read if the agent opens it. See [ADR-0020](docs/adr/0020-reference-library-dissolved-into-the-skills.md).
 - **The four virtues** — wisdom, courage, justice, temperance: how a skill decides, not how it writes.
-  `## Judge by the four virtues` is verbatim in all ten `SKILL.md` files and pinned by CI.
+  `## Judge by the four virtues` is verbatim in all eleven `SKILL.md` files and pinned by CI.
 - **Workspace** — several git repositories checked out side by side under one directory, the
   **workspace root**, which is not itself a git repository. The agent, every `/arcdlc:*` command and
   every `arctool` call run from the root. See [ADR-0026](docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md).

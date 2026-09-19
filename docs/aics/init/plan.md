@@ -177,7 +177,7 @@ Decision: [ADR-0026](../../adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repo
   - GIVEN `docs/routing-checks.md` WHEN `grep -c '`init`' docs/routing-checks.md` runs THEN it prints at least 3.
   - GIVEN the change WHEN the CI steps "Check skill layout", "Check the writing-style block", "Check the virtues block" are run locally as the shell in `ci.yml` THEN each exits 0, and `HOME=<tmp> ARCDLC_NO_PLUGIN_CLI=1 ./install.sh --bindir <tmp>/bin` followed by `test -f <tmp>/.codex/skills/arcdlc-init/SKILL.md` exits 0.
 - References: `docs/aics/init/aic.md`, `.github/workflows/ci.yml`, `AGENTS.md`, `docs/routing-checks.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### INIT-10: Document the two layouts in the README and the bundle guide
 

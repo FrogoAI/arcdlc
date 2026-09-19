@@ -206,9 +206,10 @@ arcdlc/
 ├── .claude-plugin/          # plugin.json + marketplace.json (Claude Code plugin metadata)
 ├── .antigravity-plugin/     # the Antigravity plugin manifest
 ├── assets/                  # README banner (arcdlc_bg.svg)
-├── skills/                  # ten skills, one per directory (SKILL.md each)
+├── skills/                  # eleven skills, one per directory (SKILL.md each)
 │   ├── grilling/            # the one-question-at-a-time interview every skill runs on
 │   │   └── references/      # Writing Style.md, the shared writing standard
+│   ├── init/references/     # Scaffold Templates.md, the repository and workspace scaffold templates
 │   ├── aic/references/      # AIC, arc42, TSC, TOGAF, C4, ADR templates + diagram conventions
 │   ├── examinate/references/# MDCA, DDD, SOLID, ECS, the Go guides: the audit rule sets
 │   ├── policy/references/   # the Policy of Policies framework
