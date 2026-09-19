@@ -143,7 +143,60 @@ markers.*
 
 ## Step 4: scaffold a workspace
 
-Written by INIT-7.
+Runs only when Step 1 detected a workspace.
+
+1. **Check out the hub.** `docs/` is the hub (the `Hub` term in `CONTEXT.md`).
+   - `docs/` does not exist and Step 2 gave a remote: `git clone <url> docs`.
+   - `docs/` does not exist and Step 2 gave none: `mkdir docs && git -C docs init`.
+   - `docs/` exists and is a git work tree (`git -C docs rev-parse --is-inside-work-tree` succeeds):
+     use it as is.
+   - `docs/` exists and is not a git work tree: stop and report it. A plain folder named `docs` at a
+     workspace root is the one collision `docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md`
+     does not allow.
+2. **Check `arctool`.** When `command -v arctool` succeeds, run `arctool version`. Below `0.20.0`,
+   stop and report that the workspace rules need the `sync` fix shipped in `0.20.0`, naming
+   `install.sh` as how to get it.
+3. **Write the hub files**, from `references/Scaffold Templates.md`, filled the way Step 3 fills its
+   templates, from Step 2's answers and the repository table read in the next step. Never overwrite a
+   file that already exists.
+   1. `docs/AGENTS.md`. Missing: write it from the `docs/AGENTS.md` template, including the
+      repository table. Present: read it. Already holds `<!-- arcdlc:initiatives:begin -->`: leave it
+      untouched, and report it as skipped. Does not: append a `## Initiatives` section holding the
+      two markers with `_none_` between them, keeping every existing byte above it unchanged.
+   2. `docs/README.md`. The same rule as `docs/AGENTS.md`, with the `docs/README.md` template.
+   3. `docs/CLAUDE.md`. Missing: `ln -s AGENTS.md docs/CLAUDE.md`, then `git -C docs add CLAUDE.md`
+      so the symlink is tracked. Present as a regular file, or as a symlink to anything else: leave
+      it, and report it as skipped.
+   4. `docs/CONTEXT.md`. Missing: write it from the `docs/CONTEXT.md` template, `## Execution`
+      holding `Executor tier: <answer>` from Step 2, `## Repos` holding the same rows as the
+      `docs/AGENTS.md` table minus the remote and default-branch columns, `## Terms` empty. Present:
+      leave it, and report it as skipped.
+   5. `docs/adr/README.md`. Missing: write it from the `docs/adr/README.md` template (Step 3's
+      template, unchanged, placed at the hub root instead of under a repository's `docs/`). Present:
+      leave it, and report it as skipped.
+   6. `docs/aics/README.md`. Missing: write it from the `docs/aics/README.md` template (Step 3's
+      template, unchanged, same placement rule). Present: leave it, and report it as skipped.
+   7. `docs/Makefile`. Missing: write it from the `docs/Makefile` template. Present: leave it, and
+      report it as skipped.
+4. **Read the repository table.** For every direct child of the workspace root that is a git
+   repository, other than `docs/` itself: `git -C <repo> remote get-url origin` for the remote; the
+   short name of `git -C <repo> symbolic-ref refs/remotes/origin/HEAD` for the default branch when it
+   resolves, otherwise the output of `git -C <repo> branch --show-current` marked `(no origin/HEAD)`;
+   and a one-line purpose, asked in the interview, one question per turn. These rows fill the
+   `docs/AGENTS.md` table (name, remote, default branch, purpose) and the `docs/CONTEXT.md` `## Repos`
+   table (name, purpose).
+5. **Create the root links and commit.** Run `make -C docs init` from the workspace root. When
+   `command -v arctool` succeeds, run `arctool sync` from the root so the registry reflects whatever
+   the hub already holds (fallback, no `arctool`: leave `_none_` between the markers, which a freshly
+   written file already holds). Commit the hub: `git -C docs commit -m "docs: set up the docs hub" -m
+   "#AI-assisted"`. When a remote exists, `git -C docs push origin <default>`; on a non-fast-forward
+   rejection, retry once after `git -C docs pull --ff-only origin <default>`; a second rejection, or a
+   fast-forward that itself fails, stops the run and reports the git error verbatim.
+
+Report additions, for a workspace: the hub path, its remote or "no remote yet", the four root links,
+and the files left alone (as Step 3 reports them). When Step 1 found `docs/aics/` in a child
+repository and the interview's migration answer was no, offer `/arcdlc:init --migrate` as the next
+step instead of naming an initiative to start.
 
 ## Step 5: migrate
 

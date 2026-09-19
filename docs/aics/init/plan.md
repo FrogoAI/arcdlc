@@ -140,7 +140,7 @@ Decision: [ADR-0026](../../adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repo
   - GIVEN the generated hub `AGENTS.md` WHEN read THEN its repository table has one row per child repository with the remote URL and default branch, `grep -c '0.20.0' docs/AGENTS.md` prints at least 1, and `grep -c 'arcdlc:initiatives:begin' docs/AGENTS.md docs/README.md` prints 1 for each.
   - GIVEN the change WHEN `go test ./internal/bundle/` runs THEN it passes.
 - References: `docs/aics/init/aic.md`, `docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md`, `skills/init/SKILL.md`, `skills/init/references/Scaffold Templates.md`, `CONTEXT.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### INIT-8: Write the migration step of the `init` skill
 
