@@ -90,8 +90,11 @@ spawns, except a task whose block carries its own `- Executor:` line, which wins
 line stands on its own, at the start of a line, and reads like `Executor tier: haiku` or
 `Executor tier: opus, low effort`.
 
-The pin is how you stop being asked. No pin is set for this repository, so every whole-queue run asks
-one question before its first spawn: which model and which effort level should run the queue. Answer
-it there, or write the pin here and the question goes away. Either way the run names the tier it used
-in its report. `arctool sync` rewrites `AGENTS.md` and `README.md` only, so a pin here survives every
-sync.
+The pin is how you stop being asked. Either way the run names the tier it used in its report.
+`arctool sync` rewrites `AGENTS.md` and `README.md` only, so a pin here survives every sync.
+
+Executor tier: sonnet
+
+Set on 2026-09-19 for the `init` initiative: the harness in use (Claude Code) exposes a model per
+subagent and no effort dial, and every block carries its decisions, so the cheapest model that clears
+the capability floor runs the queue.
