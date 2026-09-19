@@ -200,9 +200,82 @@ step instead of naming an initiative to start.
 
 ## Step 5: migrate
 
-Written by INIT-8.
+Runs only in a workspace, after Step 4 finishes, when Step 2's migration answer was yes or the skill
+ran with `--migrate`. Moves every product repository's initiatives, ADRs and glossary terms into the
+hub, rewrites the moved plans so their paths are correct from the workspace root, and commits once per
+repository (AIC H8).
+
+1. **Merge and drop the workspace root's own `CONTEXT.md`, once, before the repository loop.** When a
+   regular file sits at `<workspace root>/CONTEXT.md` (Step 4's root link could not be created because
+   the file was already there; FrogoDB has one), merge its `## Terms` entries into `docs/CONTEXT.md`'s
+   `## Terms`, one entry per term: a term already in the hub is kept as it is, and an incoming term of
+   the same name is appended, tagged `(from root)`, for the engineer to reconcile. Delete the file,
+   then run `make -C docs init` again so the link Step 4 skipped now gets created.
+2. **For every direct child of the workspace root, other than `docs/`, that holds `docs/aics/`,
+   `docs/adr/`, or `CONTEXT.md`, in turn, stopping the whole run the moment a check fails:**
+   1. **Check before copying anything.** `git -C <repo> status --porcelain` must print nothing. If it
+      prints anything, stop before copying a single file, and name the repository (AIC R5). Compare
+      `git -C <repo> branch --show-current` to its default branch (the short name of `git -C <repo>
+      symbolic-ref refs/remotes/origin/HEAD`, or the current branch when that ref is missing, the same
+      resolution Step 4 uses for its repository table). When they differ, ask the engineer one
+      question, in the grilled style of Step 2: commit the migration on the current branch, or stop
+      until the repository is back on its default branch (AIC OQ2). Recommend committing on the
+      current branch: the commit is never pushed by this run, so it costs nothing to leave it wherever
+      the repository already sits. Never switch branches to answer it.
+   2. **Move its files into the hub.** Record `<short-sha>` as `git -C <repo> rev-parse --short HEAD`,
+      for the hub commit message. For every `docs/aics/<slug>` in `<repo>`, `cp -R
+      <repo>/docs/aics/<slug> docs/aics/<slug>`; if `docs/aics/<slug>` already exists in the hub, stop
+      and name the slug and the repository. For every `docs/adr/NNNN-*.md` in `<repo>`, copy it to
+      `docs/adr/` keeping its exact filename; if a file of that name already exists in the hub, stop
+      and name the file, not the number: two different `0001-*.md` files from two repositories are not
+      a collision (Q7). Merge `<repo>/CONTEXT.md`'s `## Terms` entries into `docs/CONTEXT.md`'s
+      `## Terms` the same way step 1 above merges the root's, tagged `(from <repo>)` instead of
+      `(from root)`.
+   3. **Rewrite every moved `plan.md` and `plan-archive.md`.** For each `### ` task block: add
+      `- Repo: <repo>` directly after its `- WHAT:` line, unless the block already carries a
+      `- Repo:` line; in its `WHERE` lines, for every backticked path, replace it with `<repo>/<path>`
+      when that combined path exists as a file or a directory in `<repo>`. A path that exists in
+      neither form is left exactly as written, and gets one line in the report naming its task ID
+      (AIC R6). Leave `References` entries and the `<!-- arcdlc:source -->` stamp alone: their
+      `docs/aics/<slug>/...` paths are already correct read from the workspace root.
+   4. **Validate before committing.** Run `arctool validate --strict --aic <slug>` from the workspace
+      root for every slug just moved from `<repo>`. Stop on a non-zero exit and list every finding it
+      printed; fix nothing silently.
+   5. **Update the hub's ADR index.** Append one row per moved ADR to `docs/adr/README.md`'s table, in
+      filename order: the number and filename from the file itself, the link text from its `# `
+      heading with the leading number stripped, and the status word from its `## Status` line. The
+      first time this hub gets a second repository's ADRs, also add one line above the table, once: a
+      bare number is not unique once two repositories' records share this folder, so cite a record by
+      its filename.
+   6. **Remove the moved parts from the repository.** `git -C <repo> rm -r docs/aics docs/adr` for
+      whichever of the two existed, `git -C <repo> rm CONTEXT.md` when it was merged above, and remove
+      both the `<!-- arcdlc:initiatives:begin -->` and `<!-- arcdlc:initiatives:end -->` marker lines,
+      and everything between them, from `<repo>/AGENTS.md` and `<repo>/README.md`.
+   7. **List stale text mentions, and leave them.** Now that `docs/aics` and `docs/adr` are gone from
+      `<repo>`, `grep -rn 'docs/aics/\|docs/adr/' <repo> --exclude-dir=.git` finds only a Makefile, a
+      script, or a test string still naming the paths that used to be local. Add every hit to the
+      report. Change none of them: they belong to `<repo>`, not to this migration.
+   8. **Commit both sides.** Hub: `git -C docs commit -m "docs: migrate initiatives and ADRs from
+      <repo> at <short-sha>" -m "#AI-assisted"`, then push and retry exactly as Step 4's hub commit
+      does. Product repository: one commit, `git -C <repo> commit -m "docs: move initiatives and ADRs
+      to the docs hub" -m "#AI-assisted"`, never pushed: a product repository keeps its own branch and
+      review flow (the Product repository term in `CONTEXT.md`).
+3. **Sync once, after every repository is migrated.** `arctool sync` from the workspace root.
+
+Out of scope: rewriting an existing hub's own `- Repo:` lines inside `WHERE` (AIC OQ3), moving
+reference documents unless the engineer names them in the interview (Q11), and preserving file history
+across the move. `git log` on a moved file starts at the migration commit; the hub commit names the
+source repository and its commit, so the earlier history can still be found there.
+
+Report additions, for a migration: per repository, the slugs moved, the ADR files moved, the terms
+merged, the unprefixed `WHERE` paths per task, the text mentions left in place, and the commit made in
+each repository. For every plan with at least one unprefixed path, add `/arcdlc:plan <slug>` to the
+report as that plan's next step.
 
 ## Report
 
 State the layout detected, every file created, every file left alone and why it was left, and the
-next step: `/arcdlc:aic <slug>` to start the first initiative.
+next step. On a fresh scaffold with no initiative yet, that step is `/arcdlc:aic <slug>` to start the
+first one. After a migration (Step 5), name the next step per plan instead: `/arcdlc:plan <slug>` for
+every plan that still has an unprefixed `WHERE` path, and nothing further for the rest, since their
+initiatives already run from the hub.

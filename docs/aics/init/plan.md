@@ -158,7 +158,7 @@ Decision: [ADR-0026](../../adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repo
   - GIVEN a hub that already holds `docs/adr/0001-a.md` WHEN a repository with the same filename is migrated THEN the skill's text says to stop and name the file.
   - GIVEN the change WHEN `go test ./internal/bundle/` runs THEN it passes.
 - References: `docs/aics/init/aic.md`, `docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md`, `docs/adr/0022-a-plan-records-the-design-it-came-from.md`, `skills/init/SKILL.md`, `skills/plan/references/plan-format.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### INIT-9: Register the eleventh skill in CI, the manifests, the counts and the routing checks
 
