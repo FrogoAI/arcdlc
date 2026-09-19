@@ -61,6 +61,27 @@ skills, `arctool`, ADRs, and architecture documents.
   loaded while a reference is only read if the agent opens it. See [ADR-0020](docs/adr/0020-reference-library-dissolved-into-the-skills.md).
 - **The four virtues** — wisdom, courage, justice, temperance: how a skill decides, not how it writes.
   `## Judge by the four virtues` is verbatim in all ten `SKILL.md` files and pinned by CI.
+- **Workspace** — several git repositories checked out side by side under one directory, the
+  **workspace root**, which is not itself a git repository. The agent, every `/arcdlc:*` command and
+  every `arctool` call run from the root. See [ADR-0026](docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md).
+- **Hub** — the git repository checked out as `docs/` directly under the workspace root. It holds
+  `aics/`, `adr/`, `policies/`, `AGENTS.md`, `CLAUDE.md` (a symlink to `AGENTS.md`), `README.md` and
+  `CONTEXT.md`, laid out exactly as a single repository's `docs/` folder plus those four files. The
+  name `docs` is the whole configuration: `docs/aics/<slug>/` resolves from the root unchanged. The hub
+  lives on its default branch only, with no branches and no pull requests, and is pushed after every
+  write. Nothing is ever linked or copied into a product repository.
+- **Root links** — the four symlinks at the workspace root, `AGENTS.md`, `CLAUDE.md`, `README.md` and
+  `CONTEXT.md`, each pointing at the file of the same name in the hub. Untracked, created and checked
+  by `make -C docs init` and `make -C docs check`, and the only thing the root holds.
+- **Product repository** — any repository in the workspace other than the hub. It keeps its own
+  `AGENTS.md` and its own branch and review flow; a run commits there and never pushes.
+- **Repo key** — the custom plan key `- Repo: <name>` a task carries in a workspace, naming the one
+  repository its `WHERE` files live in (`docs` for a hub-only task). Carried through by `arctool` as
+  `extra.Repo`; `WHERE` paths stay relative to the workspace root. Written by `/arcdlc:plan` and
+  `/arcdlc:init`'s migration step, read first by `/arcdlc:execute`.
+- **Layout** — what `/arcdlc:init` detects: **single repository** (the working directory is a git
+  repository, its `docs/` is a folder) or **workspace** (the working directory is not a git repository
+  and holds at least one). Every other skill is layout-blind by construction.
 
 ## Executor tier pin
 

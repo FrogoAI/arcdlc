@@ -162,7 +162,7 @@ instead of guessing. Task IDs need only be unique within one initiative's plan, 
 `docs/aics/`, and `/arcdlc:remove <slug>` retires a finished one.
 
 <!-- arcdlc:initiatives:begin -->
-_none_
+- [ArcDLC Init: one command that sets up a repository or a multi-repository workspace](docs/aics/init/aic.md) — Add `/arcdlc:init`, which detects whether it stands in one repository or in a workspace of several, scaffolds the files…
 <!-- arcdlc:initiatives:end -->
 
 ArcDLC is a universal delivery tool: it builds **applications** and authors **policies**, and both

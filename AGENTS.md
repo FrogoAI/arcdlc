@@ -28,7 +28,7 @@ Decided questions and the reasoning behind them live in [docs/backlog.md](docs/b
 before re-opening one:
 
 <!-- arcdlc:initiatives:begin -->
-_none_
+- [ArcDLC Init: one command that sets up a repository or a multi-repository workspace](docs/aics/init/aic.md) — Add `/arcdlc:init`, which detects whether it stands in one repository or in a workspace of several, scaffolds the files…
 <!-- arcdlc:initiatives:end -->
 
 ## Build, test, verify
