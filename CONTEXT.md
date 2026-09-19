@@ -76,8 +76,8 @@ skills, `arctool`, ADRs, and architecture documents.
 - **Product repository** — any repository in the workspace other than the hub. It keeps its own
   `AGENTS.md` and its own branch and review flow; a run commits there and never pushes.
 - **Repo key** — the custom plan key `- Repo: <name>` a task carries in a workspace, naming the one
-  repository its `WHERE` files live in (`docs` for a hub-only task). Carried through by `arctool` as
-  `extra.Repo`; `WHERE` paths stay relative to the workspace root. Written by `/arcdlc:plan` and
+  repository its `WHERE` files live in (`docs` for a hub-only task). Carried through by `arctool` under
+  `extra` as the entry whose `key` is `Repo`; `WHERE` paths stay relative to the workspace root. Written by `/arcdlc:plan` and
   `/arcdlc:init`'s migration step, read first by `/arcdlc:execute`.
 - **Layout** — what `/arcdlc:init` detects: **single repository** (the working directory is a git
   repository, its `docs/` is a folder) or **workspace** (the working directory is not a git repository

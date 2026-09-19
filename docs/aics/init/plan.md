@@ -1,6 +1,6 @@
 # Plan: init
 
-<!-- arcdlc:source docs/aics/init/aic.md sha256:c50e388973a72008961daaf3c5e5f3f4fabb7d36d860368a818dc1fdfae7163f -->
+<!-- arcdlc:source docs/aics/init/aic.md sha256:84ca0d7783e0133610230370b708b8d6da9834f69068f41693932a4822c6b973 -->
 
 Format: [`skills/plan/references/plan-format.md`](../../../skills/plan/references/plan-format.md).
 Source: [`aic.md`](aic.md), decided 2026-09-19. Terms: [`CONTEXT.md`](../../../CONTEXT.md).

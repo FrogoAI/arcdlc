@@ -91,7 +91,7 @@ or build files for a new project, and moving a repository's reference documents 
   the target plus a link base computed from the real file's directory; the rename stays atomic.
 - `aicsDir` stays the constant `docs/aics` (ADR-0001, ADR-0026). No environment variable, no marker
   file, no flag decides where initiatives live.
-- The `Repo` key is a custom key, carried by arctool 0.18.0 and later as `extra.Repo`. The plan
+- The `Repo` key is a custom key, carried by arctool 0.18.0 and later under `extra` as the entry whose `key` is `Repo`. The plan
   format's eight defined keys are unchanged; the parser, validator and mutator are untouched.
 - Skills are plain Markdown with no agent-specific syntax. Layout detection and every scaffold step
   are shell the skill carries in its own text (`git rev-parse`, `ln -sfn`, `git mv`).
@@ -184,7 +184,7 @@ skills and `arctool`. Its partners:
 - **Decision.** Every task in a workspace plan carries `- Repo: <name>` as a top-level custom key
   (`docs` for a hub-only task). `WHERE` paths are relative to the workspace root
   (`fdb-server/internal/migration/...`). `/arcdlc:plan` writes the key; `arctool next --json` returns
-  it as `extra.Repo`; `/arcdlc:execute` reads it first and treats a workspace task without one as a
+  it under `extra` as the entry whose `key` is `Repo`; `/arcdlc:execute` reads it first and treats a workspace task without one as a
   plan defect to block on. `plan-format.md` documents `Repo` as a recognised custom key.
 - **Justification.** It reaches the subagent mechanically today with no parser change. `WHERE` keeps
   its job of naming files, and the repository is readable from the path as well. A `WHERE` first line

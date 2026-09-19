@@ -77,8 +77,9 @@ the `Workspace` and `Hub` terms in `CONTEXT.md`). The hub's default branch is th
 workspace the per-task contract below runs across two repositories: the hub at `docs/`, and the product
 repository the task names.
 
-1. **Read the task's repository first.** `arctool next --json` returns the task's `Repo` custom key as
-   `extra.Repo` (fallback: the `- Repo:` line); see the `Repo key` term in `CONTEXT.md` and the `Repo` key
+1. **Read the task's repository first.** `arctool next --json` returns the task's `Repo` custom key under
+   `extra`, a list of `key` and `value` entries, as the entry whose `key` is `Repo` (fallback: the
+   `- Repo:` line); see the `Repo key` term in `CONTEXT.md` and the `Repo` key
    subsection of `plan-format.md`. It names the one repository the task's `WHERE` files live in. A
    workspace task with no `Repo` key is a plan defect: `arctool block <id> -m "no Repo key; plan defect"`,
    and stop.

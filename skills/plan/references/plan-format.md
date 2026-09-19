@@ -128,8 +128,8 @@ A workspace is a working directory that is not itself a git repository, where `d
 the `Workspace` and `Hub` terms in `CONTEXT.md`). In a workspace, every task carries `- Repo: <name>`
 as a top-level custom key, naming the one repository its `WHERE` files live in; a task that changes
 only the hub uses `Repo: docs`. `WHERE` paths are then relative to the workspace root, not to that
-repository (`fdb-server/internal/migration/...`). `arctool` carries the key through as `extra.Repo`
-and validates nothing about it, the same as any other custom key. `/arcdlc:execute` reads `Repo`
+repository (`fdb-server/internal/migration/...`). `arctool next --json` and `show --json` carry it under `extra`, a list of
+`key` and `value` entries, as the entry whose `key` is `Repo`, and validate nothing about it, the same as any other custom key. `/arcdlc:execute` reads `Repo`
 before anything else and blocks a workspace task that carries none. A task in a single repository
 never carries this key.
 
@@ -261,7 +261,7 @@ The same task in a workspace carries `- Repo:` right after `WHAT`, and every `WH
 the repository prefix, because it is read from the workspace root:
 
 ```md
-### WA999-VER-02: Add the site read endpoint (workspace form)
+### WA999-VER-03: Add the site read endpoint (workspace form)
 
 - WHAT: Add `/v2/siteapi/sites/{id}` read endpoint with legacy-compatible response.
 - Repo: ptolemy-v2
