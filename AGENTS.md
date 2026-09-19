@@ -169,6 +169,14 @@ checks. Do not merge with a red pipeline.
   `resolvePlan` in `cmd/arctool`. A folder is created lazily by `atomicWrite`. Task IDs are unique per
   plan, not globally. ADRs and `CONTEXT.md` stay global. See
   [ADR-0001](docs/adr/0001-initiative-selection-is-always-explicit.md).
+- **A workspace keeps its docs in a sibling repository named `docs`.** No environment variable, no
+  marker file: the name is the whole configuration, and `/arcdlc:init` clones or creates the hub under
+  it. Four symlinks at the workspace root, `AGENTS.md`, `CLAUDE.md`, `README.md`, and `CONTEXT.md`,
+  point into the hub; `arctool sync` writes through them into the hub's own files, never replacing a
+  link with a plain one. The hub lives on its default branch only, with a commit and a push after every
+  write. A workspace task carries a `- Repo: <name>` key naming the repository its `WHERE` files live
+  in, and `/arcdlc:execute` makes two commits per task: one in the hub, one in that repository. See
+  [ADR-0026](docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md).
 - **The initiative registry is generated.** `arctool sync` owns the `<!-- arcdlc:initiatives -->` blocks
   in `AGENTS.md` and `README.md`; `sync --check` fails on drift. Never hand-edit inside the markers.
   `/arcdlc:remove <slug>` deletes a folder after an explicit confirmation and re-syncs; `arctool` itself

@@ -193,4 +193,4 @@ Decision: [ADR-0026](../../adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repo
   - GIVEN `AGENTS.md` WHEN `grep -c 'sibling repository named `docs`' AGENTS.md` runs THEN it prints at least 1.
   - GIVEN the whole change set WHEN `go build ./... && go test ./... && gofmt -l . && go vet ./...` run THEN all pass and `gofmt` prints nothing.
 - References: `docs/aics/init/aic.md`, `docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md`, `README.md`, `AGENTS.md`.
-- Status: TODO.
+- Status: DONE.

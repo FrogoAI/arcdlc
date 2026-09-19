@@ -120,6 +120,7 @@ Installs the skills into every agent it detects (Claude Code, Codex, OpenCode, C
 binary for linux/darwin × amd64/arm64. Then, in your project:
 
 ```
+/arcdlc:init            # detect one repo or a workspace, scaffold what the skills need
 /arcdlc:aic <slug>       # grilled interview → docs/aics/<slug>/ architecture document
 /arcdlc:plan <slug>      # decompose it → docs/aics/<slug>/plan.md task queue
 /arcdlc:plan-human <slug> # board stories → docs/aics/<slug>/plan-human.md
@@ -137,6 +138,7 @@ argument (e.g. `/arcdlc:plan checkout`). Details and manual alternatives: [Insta
 
 | Command | What it does | Output |
 | --- | --- | --- |
+| `/arcdlc:init [--migrate]` | Detect the layout, grill, and scaffold. In a workspace, clone or create the `docs` hub, link the root, and migrate on request. | the six files, or the hub plus four root links |
 | `/arcdlc:aic <slug> [aic\|arc42\|tsc\|togaf\|c4\|adr]` | Build the initiative's architecture document (AIC by default). Always runs a grilled interview first. Formats combine: `arc42,tsc` writes both from one interview; `arc42:html` emits HTML. | `docs/aics/<slug>/<format>.md`, ADRs, `CONTEXT.md` |
 | `/arcdlc:policy <name>` | Author a governance policy per the Policy of Policies framework — grilled interview first. | `docs/policies/<name>.md` + index |
 | `/arcdlc:plan <slug>` | Decompose the approved architecture document into the executable task queue. | `docs/aics/<slug>/plan.md` |
@@ -179,6 +181,41 @@ policy has no code impact), the track ends with the policy document.
 Every plan task carries testable `Acceptance` criteria; `/arcdlc:execute` must demonstrate them
 before a task may be marked `DONE`. The full contract lives in
 [`skills/plan/references/plan-format.md`](skills/plan/references/plan-format.md).
+
+### One repository or a workspace
+
+`/arcdlc:init` detects which of two layouts it stands in. Single repository is the default and
+unchanged: `docs/aics/<slug>/`, `AGENTS.md`, `README.md`, and `CONTEXT.md` sit in that one repository,
+exactly as every example above shows them.
+
+A workspace is several repositories checked out side by side under a root that is not itself a git
+repository. Initiatives, ADRs, and the glossary live in one hub instead: a git repository cloned as
+`docs/` directly under that root, and `docs` is the only name it may have (see
+[ADR-0026](docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md)). Four
+symlinks at the root, `AGENTS.md`, `CLAUDE.md`, `README.md`, and `CONTEXT.md`, each point at the file
+of the same name in the hub; `make -C docs init` creates them on a new machine, and every agent and
+every `arctool` call runs from the root. The hub lives on its default branch only, and every write to
+it is followed by a commit and a push.
+
+A workspace task carries a `- Repo: <name>` key naming the one repository its `WHERE` files live in
+(`docs` for a task that touches only the hub), and its `WHERE` paths are relative to the workspace
+root, not to that repository. `/arcdlc:execute` makes two commits per task: one in the hub for the
+status change, one in the named repository for the code. The hub is pushed after each of its commits;
+the product repository is never pushed by a run. `arctool sync` runs from the workspace root, the same
+as every other command.
+
+```text
+root/
+├── AGENTS.md -> docs/AGENTS.md
+├── CLAUDE.md -> docs/CLAUDE.md
+├── README.md -> docs/README.md
+├── CONTEXT.md -> docs/CONTEXT.md
+├── docs/               # the hub, a git repository
+│   ├── aics/
+│   └── adr/
+├── fdb-server/         # a product repository
+└── fdb-client/         # a product repository
+```
 
 ## Agent support
 
