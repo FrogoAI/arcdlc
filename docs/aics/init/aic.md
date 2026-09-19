@@ -166,7 +166,7 @@ skills and `arctool`. Its partners:
 - **Decision.** Inside `docs/`: the same six files, with `aics/` and `adr/` at the hub root instead of
   under a `docs/` subfolder, and `docs/CLAUDE.md` a tracked symlink to `docs/AGENTS.md`. Plus a
   `Makefile` with `init` (create or relink the four root links, refuse to clobber a regular file) and
-  `check` (report a missing or wrong link, exit 1). At the root: `AGENTS.md`, `CLAUDE.md`,
+  `check` (report a missing or wrong link, exit non-zero; GNU make exits 2 on a failed recipe and reserves 1 for `-q`, so the contract is pass or fail, never a specific code). At the root: `AGENTS.md`, `CLAUDE.md`,
   `README.md`, `CONTEXT.md`, each a symlink to the file of the same name in `docs/`. The hub's
   `AGENTS.md` carries a repository table (name, remote, default branch, one line of purpose from the
   interview) and the workspace rules from H5 and H6. Nothing is written into a product repository.
