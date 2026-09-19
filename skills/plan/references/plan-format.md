@@ -1,6 +1,6 @@
 # Plan Task Authoring Guide
 
-**Reviewed**: 2026-09-18
+**Reviewed**: 2026-09-19
 
 This guide defines the `docs/aics/<slug>/plan.md` task format. The plan is an executable queue: `/arcdlc:execute` (or
 any compatible runner) picks tasks off it mechanically, so the format is a contract, not a style preference.
@@ -122,6 +122,17 @@ dropped. It absorbs its own indented body exactly as a defined multi-line key do
 says nothing about it. The eight keys above are the contract; anything else is part of the task, and
 the executor receives the whole task.
 
+### The `Repo` key (workspaces)
+
+A workspace is a working directory that is not itself a git repository, where `docs/` is one (see
+the `Workspace` and `Hub` terms in `CONTEXT.md`). In a workspace, every task carries `- Repo: <name>`
+as a top-level custom key, naming the one repository its `WHERE` files live in; a task that changes
+only the hub uses `Repo: docs`. `WHERE` paths are then relative to the workspace root, not to that
+repository (`fdb-server/internal/migration/...`). `arctool` carries the key through as `extra.Repo`
+and validates nothing about it, the same as any other custom key. `/arcdlc:execute` reads `Repo`
+before anything else and blocks a workspace task that carries none. A task in a single repository
+never carries this key.
+
 The one thing a custom key must not do is shadow a defined one. `- Acceptence:` is a custom key, not
 a misspelled `Acceptance`, so a task that carries it has no acceptance criteria and `--strict` will
 say so.
@@ -242,6 +253,32 @@ Use the register as the evidence, and `plan.md` as the executable queue — both
   - GIVEN an existing item id WHEN `GET /v2/sampleapi/items/{id}` THEN the response is 200 with the legacy-compatible body.
   - GIVEN an unknown id WHEN the same call is made THEN the response is 404.
   - GIVEN the new code WHEN `go test ./services/sampleapi/...` runs THEN `item_test.go` covers the 200 and 404 paths and passes.
+- References: `docs/aics/initiative-99/aic.md`.
+- Status: TODO.
+```
+
+The same task in a workspace carries `- Repo:` right after `WHAT`, and every `WHERE` path carries
+the repository prefix, because it is read from the workspace root:
+
+```md
+### WA999-VER-02: Add the site read endpoint (workspace form)
+
+- WHAT: Add `/v2/siteapi/sites/{id}` read endpoint with legacy-compatible response.
+- Repo: ptolemy-v2
+- HOW:
+  Handler calls `site.Service.Get(ctx, id)`; map `site.ErrNotFound` to 404, everything else to 500.
+  Response body mirrors the legacy v1 shape (see AIC §"Site API parity"). Do not rename fields.
+- WHERE:
+  Layer `handler`: `ptolemy-v2/services/siteapi/internal/handler/site.go`, `ptolemy-v2/services/siteapi/router.go`.
+  Layer `domain`: `ptolemy-v2/services/siteapi/internal/domain/site/{port,service}.go`.
+  Layer `repository`: `ptolemy-v2/services/siteapi/internal/repository/site.go`.
+  Tests: `ptolemy-v2/services/siteapi/internal/{handler,domain,repository}/site_test.go`.
+  Swagger/docs: `ptolemy-v2/services/siteapi/docs/swagger.json`.
+- WHY: Migration parity and consumer cutover are blocked without this route.
+- Acceptance:
+  - GIVEN an existing site id WHEN `GET /v2/siteapi/sites/{id}` THEN the response is 200 with the legacy-compatible body.
+  - GIVEN an unknown id WHEN the same call is made THEN the response is 404.
+  - GIVEN the new code WHEN `go test ./ptolemy-v2/services/siteapi/...` runs THEN `site_test.go` covers the 200 and 404 paths and passes.
 - References: `docs/aics/initiative-99/aic.md`.
 - Status: TODO.
 ```

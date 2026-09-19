@@ -115,6 +115,13 @@ mechanical is telling you one of two things, and neither is "use a stronger mode
 - Word every field the way `## Talk simple, write like a human` says. Vague text costs the executor a
   guess.
 - Every block ends with `- Status: TODO.`
+- **Detect a workspace before writing `Repo`.** The working directory is a workspace when
+  `git rev-parse --is-inside-work-tree` fails there and `git -C docs rev-parse --show-toplevel`
+  resolves to `<cwd>/docs` (see the `Workspace` term in `CONTEXT.md`). In a workspace, every task
+  gets `- Repo: <name>` directly after `WHAT`, naming the one repository its `WHERE` files live in,
+  and every `WHERE` path carries that repository's prefix (`fdb-server/internal/migration/...`). A
+  task that would change two repositories is two tasks. A task that changes only the hub uses
+  `Repo: docs`.
 - If `docs/aics/<slug>/gap.md` or `docs/aics/<slug>/comments.md` exists, keep it in sync per the Register Sync
   rules in the format guide.
 
@@ -170,7 +177,10 @@ no-op — note that and continue.
 ## Step 3 — Write and validate
 
 - Write `docs/aics/<slug>/plan.md`, starting with a one-line link back to the format guide, then the `## Risk Coverage`
-  mapping from Step 2.5, then the task blocks. No runner instructions inside the plan.
+  mapping from Step 2.5, then the task blocks. No runner instructions inside the plan. In a
+  workspace, the written `plan.md`, with every task's `- Repo:` key already in place, is committed
+  on the hub's default branch and pushed at once, message `docs(<slug>): write the plan`; a rejected
+  push is retried once after `git -C docs pull --ff-only`.
 - **Stamp the source.** Record which architecture document you decomposed, so a later `/arcdlc:aic`
   round cannot move the design underneath this plan unnoticed: `arctool stamp docs/aics/<slug>/<doc>
   --aic <slug>`, once per document you used. *Fallback without `arctool`: add

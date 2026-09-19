@@ -54,7 +54,7 @@ Decision: [ADR-0026](../../adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repo
   - GIVEN `skills/plan/SKILL.md` WHEN `grep -n 'Repo:' skills/plan/SKILL.md` runs THEN it prints at least two lines, one under Step 2 and one under Step 3.
   - GIVEN the change WHEN `go test ./internal/bundle/` runs THEN it passes.
 - References: `docs/aics/init/aic.md`, `docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md`, `skills/plan/references/plan-format.md`, `CONTEXT.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### INIT-3: Add the workspace per-task contract to `/arcdlc:execute`
 
