@@ -103,7 +103,7 @@ Decision: [ADR-0026](../../adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repo
   - GIVEN `skills/remove/SKILL.md` WHEN `grep -c 'git -C docs rm -r aics/' skills/remove/SKILL.md` runs THEN it prints at least 1.
   - GIVEN the change WHEN `go test ./internal/bundle/` runs THEN it passes and both verbatim blocks in each file still match `skills/aic/SKILL.md` per the CI `awk` extraction.
 - References: `docs/aics/init/aic.md`, `docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md`, `docs/adr/0003-initiative-removal-by-skill-not-arctool.md`, `skills/remove/SKILL.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### INIT-6: Create the `init` skill with layout detection, the interview and the single-repository scaffold
 

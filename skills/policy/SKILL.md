@@ -70,6 +70,18 @@ be long. The full standard, with examples and a pre-save check, is
 If the project keeps governance docs elsewhere, follow the project convention but keep the same
 file structure and the central index.
 
+## In a workspace
+
+The working directory is a workspace when it is not a git work tree and `git -C docs rev-parse
+--show-toplevel` resolves to `<cwd>/docs` (see the `Workspace` and `Hub` terms in `CONTEXT.md`). In a
+workspace, `docs/` is a repository of its own. Every write this skill makes there, `docs/policies/<name>.md`
+and its index, is committed in the hub with `git -C docs commit -- <hub-relative paths>` under the
+message `docs(<slug>): <what changed>` plus `#AI-assisted`, and pushed to the hub's default branch at
+once. A rejected push is retried once after `git -C docs pull --ff-only`. Nothing is written into a
+product repository by these skills. `arctool sync` runs from the workspace root and writes through the
+root links. In a hub, `docs/policies/<name>.md` is `policies/<name>.md` and its index is
+`policies/README.md`, the paths `git -C docs commit` takes.
+
 ## Step 0 — Gather context (before asking anything)
 
 Read what already exists so the interview builds on it instead of repeating it:

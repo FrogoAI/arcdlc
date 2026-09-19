@@ -58,6 +58,20 @@ The initiative slug is the **first positional argument** and is **required**: `/
   so the user can pick one. Never guess.
 - Resolve the folder `docs/aics/<slug>/`. If it does not exist, stop and say so, listing what does.
 
+## In a workspace
+
+The working directory is a workspace when it is not a git work tree and `git -C docs rev-parse
+--show-toplevel` resolves to `<cwd>/docs` (see the `Workspace` and `Hub` terms in `CONTEXT.md`). In a
+workspace, `docs/` is a repository of its own. Every write this skill makes there, the deleted folder
+and the two registry files, `AGENTS.md` and `README.md`, is committed in the hub with `git -C docs
+commit -- <hub-relative paths>` under the message `docs(<slug>): <what changed>` plus `#AI-assisted`,
+and pushed to the hub's default branch at once. A rejected push is retried once after `git -C docs
+pull --ff-only`. Nothing is written into a product repository by these skills. `arctool sync` runs
+from the workspace root and writes through the root links. This skill deletes the folder with
+`git -C docs rm -r aics/<slug>` (hub-relative) and refreshes the registry with `arctool sync` run from
+the root; the deletion and the two registry files are one hub commit, `docs(<slug>): remove the
+initiative`, pushed at once.
+
 ## Step 1 — Show what will be removed
 
 Before deleting anything, report the blast radius so the engineer decides with full information:
