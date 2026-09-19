@@ -122,7 +122,7 @@ Decision: [ADR-0026](../../adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repo
   - GIVEN a temp directory holding an `AGENTS.md` without markers WHEN Step 3 is followed THEN the original text is unchanged above an appended `## Initiatives` section, verified by `diff` of the original against the head of the new file.
   - GIVEN a temp git repository whose child directory is itself a git repository WHEN Step 1 is followed THEN the skill's text says to report the nested case and stop.
 - References: `docs/aics/init/aic.md`, `docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md`, `docs/adr/0019-the-executor-tier-is-asked-for-not-guessed.md`, `docs/routing-checks.md`, `skills/aic/SKILL.md`, `skills/grilling/references/Writing Style.md`, `internal/bundle/bundle.go`, `install.sh`.
-- Status: TODO.
+- Status: DONE.
 
 ### INIT-7: Write the workspace scaffold step of the `init` skill with the hub templates and Makefile
 
