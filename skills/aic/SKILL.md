@@ -160,8 +160,16 @@ one the request came from, and loses the rest: the numbers, the failure cases, t
   list. When several formats are requested, ask each topic once, where two sections cover the same
   ground (arc42 §4 and the AIC hypotheses).
 - Build the questions from each section's own guidance: its description and its **Ask** lines,
-  which every template carries (for arc42, in the Section Catalogue of `Arc42 Guide.md`). What the code, the config
-  or an ADR already answers, fill in, show, and move on.
+  which every template carries (for arc42, in the Section Catalogue of `Arc42 Guide.md`). What the
+  code, the config or an ADR already answers, fill in, show, and move on.
+- The Ask lines are where a section starts, not where it ends. Follow each answer down until the
+  section is settled, as the grilling protocol does, before moving to the next section.
+- **Grill a risk the moment it appears**, whether the engineer names it or you spot it in an answer.
+  Write it into the risks section, then ask, one question per turn, each with your recommended
+  answer: how likely it is and how bad it would be, then how it is mitigated. The engineer picks the
+  mitigation: reduce it by design (a new or amended hypothesis), detect it (a metric and the alert
+  value), accept it (the reason and who accepts it), defer it (an Open questions entry with an owner
+  and a phase), or not a real risk (the reason). Never write a mitigation nobody chose.
 - Before a theme that may not apply, ask whether it applies at all ("Does this initiative keep data
   of its own?"), so one answer closes several sections.
 - Every section closes one of three ways, and the engineer chooses which:
@@ -244,9 +252,9 @@ For a new document:
 ### Check coverage before handover
 
 Walk the template once more against the document, new or amended. Every section must hold content,
-a `Not applicable: <reason>` line, or an Open questions entry with an owner and a phase. A section
-with none of the three was skipped: ask about it now, one question at a time, before Step 4. The
-check counts sections, it never grades an answer. List the deferred items in your closing report.
+a `Not applicable: <reason>` line, or an Open questions entry with an owner and a phase, and every
+risk must carry a mitigation the engineer chose. A section or a risk with none was skipped: ask about
+it now, one question at a time, before Step 4. The check counts, it never grades an answer. List the deferred items in your closing report.
 
 ### Write it for a human reader (every format, Markdown and HTML)
 

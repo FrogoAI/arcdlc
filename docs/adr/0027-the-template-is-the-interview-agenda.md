@@ -46,6 +46,18 @@ note; git history keeps the old text. The hypotheses, arc42 §4 to §11 and the 
 keep the supersession rule. A changed input puts every decision resting on it in question, and each
 one is asked about: still holds, amend, or reverse.
 
+**The Ask lines start a section, grilling finishes it.** Each answer is followed down until the
+section is settled; the Ask lines guarantee breadth, the grilling protocol still supplies depth.
+
+**A risk is grilled when it appears, not at plan time.** Whoever raises it, the engineer or the
+agent, it goes into the risks section and is asked about one question at a time: likelihood and
+impact, then the mitigation. The engineer picks one of five: reduce it by design, detect it with a
+metric and an alert value, accept it with a reason and an owner, defer it as an open question, or
+dismiss it with a reason. The coverage check also requires a chosen mitigation on every risk.
+`/arcdlc:plan` Step 2.5 is unchanged and now mostly maps the recorded mitigations to tasks. A
+mitigation is often a design decision, a fallback or a limit, and finding it at plan time meant a
+trip back to `/arcdlc:aic`.
+
 **A re-run starts with the deferred items.** Open questions are the queue from one phase of an
 initiative to the next.
 
