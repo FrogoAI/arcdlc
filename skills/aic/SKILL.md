@@ -141,7 +141,7 @@ Read what already exists so the interview builds on it instead of repeating it:
 ## Step 2 — MANDATORY: grill the design
 
 Never write the architecture document straight from the request — the whole point of `/arcdlc:aic` is
-that the process is controlled: interview first, document second.
+that the process is controlled: every section is answered in the interview before it is written.
 
 Prefer this bundle's own `arcdlc-grilling` skill (`/arcdlc:grilling`). If it cannot be invoked here,
 read `../grilling/SKILL.md` (flat installs: `../arcdlc-grilling/SKILL.md`) and run its protocol
@@ -186,6 +186,16 @@ one the request came from, and loses the rest: the numbers, the failure cases, t
   section can be reopened: a `Not applicable` line becomes an answer when the initiative grows into
   it, and an answered section gains detail. Ask the engineer which sections this round is about when
   the request does not say.
+- **Write each section into the document the moment it closes**, before the next question: the
+  answer, the deferral under Open questions, the `Not applicable` line, the risk with its chosen
+  mitigation. Nothing goes in that the engineer did not answer. On a new initiative, create the file
+  from the template at the first closed section, with the `# <Title>` and `> ` summary as far as they
+  are known; on an existing one, amend it. Either way the rules of Step 3 govern every write. With
+  several formats, write the section into each file that holds it.
+- **The file is the interview's progress record.** After a context compaction, or in a new session,
+  re-read the document: a filled section is closed, an empty template slot is open. Resume at the
+  first open section. Never hold an answer only in the chat, because a compaction summary keeps the
+  gist and can drop the figure.
 
 **Drive the interview strategically, in this order.** An architecture document that lists technology
 without naming the problem it solves is a wish list, not a strategy.
@@ -204,6 +214,9 @@ the ranking you used, so the plan inherits the reason and not just the outcome.
 The interview ends only when the user confirms shared understanding or explicitly says to proceed.
 
 ## Step 3 — Write the document
+
+Step 2 has already written each section as it closed. The rules here govern those writes and the
+rest of the document alike.
 
 **If the document already exists, amend it. Never regenerate it.** Re-running `/arcdlc:aic <slug>` is
 the normal way a design matures: each round adds detail, tests an idea, or reverses a call. A document

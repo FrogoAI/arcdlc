@@ -8,7 +8,7 @@ argument-hint: "<what to grill>"
 
 Interview the engineer relentlessly until you both reach a shared understanding of the thing being
 built. This is the interview stage of the ArcDLC pipeline: `/arcdlc:aic` and `/arcdlc:policy` run it
-before they write a single line of their document.
+so that nothing goes into their document before the engineer has answered it.
 
 This skill ships inside the ArcDLC bundle. ArcDLC needs no external grilling skill — do not look for
 one, and do not report one as missing.
@@ -143,6 +143,9 @@ Customer or the User?), say so and settle it before moving on.
 `/arcdlc:aic` and `/arcdlc:policy` call this skill with a topic list they must cover. Then:
 
 - Cover every topic they name, plus whatever the design tree opens along the way.
+- If the caller writes its document as the interview goes (`/arcdlc:aic` does), write each topic
+  into it the moment the topic closes. That is not writing ahead of the engineer: the topic was
+  answered. The closing go-ahead below then covers the whole document, not the first write.
 - A topic closes one of three ways, and the engineer chooses: answered; deferred, with who answers
   it and by which phase; or not applicable, with the reason. Your recommended answer may be either
   of the last two.
@@ -160,4 +163,4 @@ in one closing turn:
 - Ask for the go-ahead.
 
 Do not write the document, the plan, or any code until the engineer confirms shared understanding or
-tells you to proceed.
+tells you to proceed. The one exception is a caller that writes each closed topic as it goes, above.
