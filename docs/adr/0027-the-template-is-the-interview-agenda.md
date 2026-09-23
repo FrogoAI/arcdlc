@@ -58,6 +58,14 @@ dismiss it with a reason. The coverage check also requires a chosen mitigation o
 mitigation is often a design decision, a fallback or a limit, and finding it at plan time meant a
 trip back to `/arcdlc:aic`.
 
+**Each section is written the moment it closes.** The interview used to write only glossary terms
+and ADRs as it went; every other answer lived in the chat until the end. A context compaction
+summarises the chat and can drop a figure, a deferral's owner, or which sections were already
+closed. So each closed section goes into the document at once, and the document is the progress
+record: after a compaction or in a new session, filled sections are closed, empty template slots
+are open, and the interview resumes at the first open one. The engineer's review and `arctool sync`
+still wait for Step 4.
+
 **A re-run starts with the deferred items.** Open questions are the queue from one phase of an
 initiative to the next.
 
@@ -78,6 +86,8 @@ initiative to the next.
 - **A rewritten goal leaves no trail in the document.** Only git history shows what a goal used to
   say. This was accepted because the goal is not a decision to defend: the decisions it fed are, and
   they keep their record.
+- **A half-written document sits in the initiative folder during the interview.** A plan run on it
+  stops at `/arcdlc:plan` Step 2.4 on the empty sections, so no draft marker was added.
 - **A weak answer passes.** Nothing grades it. `/arcdlc:plan` Step 2.4 still stops on a design too
   thin to plan, which is where a weak answer shows its cost.
 - **The AIC template is longer.** It is still one page of sections; the Ask lines are guidance for
