@@ -143,6 +143,9 @@ Customer or the User?), say so and settle it before moving on.
 `/arcdlc:aic` and `/arcdlc:policy` call this skill with a topic list they must cover. Then:
 
 - Cover every topic they name, plus whatever the design tree opens along the way.
+- A topic closes one of three ways, and the engineer chooses: answered; deferred, with who answers
+  it and by which phase; or not applicable, with the reason. Your recommended answer may be either
+  of the last two.
 - Run **one** interview even when the caller produces several documents from it.
 - Hand back the settled answers, the files you wrote (`CONTEXT.md`, ADR paths), and the still-open
   questions. The caller puts those open questions in its document, under "Open questions".

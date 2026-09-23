@@ -70,10 +70,14 @@ checks. Do not merge with a red pipeline.
   It never lowers the bar to get past the gate.
 - **An architecture document is amended, never regenerated.** Re-running `/arcdlc:aic <slug>` is how a
   design matures: each round adds detail, tests an idea, or reverses a call. Sections the interview did
-  not touch survive word for word. A reversed decision is superseded in the same run, in both places it
-  lives: the new ADR carries `- Supersedes:` and the old one's `- Status:` becomes
-  `Superseded by ...`. Two ADRs that disagree become gaps `/arcdlc:examinate` files against code
-  nobody wants changed.
+  not touch survive word for word. Inputs (goals, requirements, quality goals, constraints, context)
+  are rewritten in place when gathering data changes them, and each decision resting on a changed
+  input is asked about, never kept or changed silently. Decisions (hypotheses, arc42 §4 to §11, ADRs)
+  are superseded: a reversed one moves in the same run, in both places it lives: the new ADR carries
+  `- Supersedes:` and the old one's `- Status:` becomes `Superseded by ...`. Two ADRs that disagree
+  become gaps `/arcdlc:examinate` files against code nobody wants changed. The sections of the
+  template are the interview agenda, each closed as answered, deferred, or not applicable. See
+  [ADR-0027](docs/adr/0027-the-template-is-the-interview-agenda.md).
 - **Skills must stay install-agnostic.** Every `SKILL.md` must work as a Claude Code plugin command
   (`/arcdlc:<name>`) and as a flat skill (`arcdlc-<name>` on Codex, OpenCode, Cursor, Antigravity).
   Where a skill still reaches across to a sibling, keep both paths (`../grilling/...` and

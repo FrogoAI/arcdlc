@@ -152,8 +152,40 @@ line of why. Never a numbered round. Facts are yours to find: if the code, confi
 answers it, look it up instead of asking. Write each decision down the moment it settles, glossary
 terms into `CONTEXT.md` and hard trade-offs into `docs/adr/NNNN-<slug>.md`, never only in the chat.
 
-Cover at minimum: problem/goal, scope boundaries (in/out), key quality attributes, ownership and context boundaries,
-data model and storage, communication patterns, deployment model, tech stack deltas, risks, and open questions.
+**The template is the agenda.** An engineer designing a system thinks along one line, usually the
+one the request came from, and loses the rest: the numbers, the failure cases, the person woken at
+03:00. The template of each requested format names every part a finished document needs, so walk it:
+
+- Hand the interview the sections of every requested template, in template order, as its topic
+  list. When several formats are requested, ask each topic once, where two sections cover the same
+  ground (arc42 §4 and the AIC hypotheses).
+- Build the questions from each section's own guidance: its description and its **Ask** lines,
+  which every template carries (for arc42, in the Section Catalogue of `Arc42 Guide.md`). What the
+  code, the config or an ADR already answers, fill in, show, and move on.
+- The Ask lines are where a section starts, not where it ends. Follow each answer down until the
+  section is settled, as the grilling protocol does, before moving to the next section.
+- **Grill a risk the moment it appears**, whether the engineer names it or you spot it in an answer.
+  Write it into the risks section, then ask, one question per turn, each with your recommended
+  answer: how likely it is and how bad it would be, then how it is mitigated. The engineer picks the
+  mitigation: reduce it by design (a new or amended hypothesis), detect it (a metric and the alert
+  value), accept it (the reason and who accepts it), defer it (an Open questions entry with an owner
+  and a phase), or not a real risk (the reason). Never write a mitigation nobody chose.
+- Before a theme that may not apply, ask whether it applies at all ("Does this initiative keep data
+  of its own?"), so one answer closes several sections.
+- Every section closes one of three ways, and the engineer chooses which:
+  1. **Answered.** The decision goes into that section.
+  2. **Deferred.** It goes under Open questions with who answers it and by which phase or stage.
+     "Later" with no owner and no phase is not a deferral: ask for both.
+  3. **Not applicable.** The section keeps one line, `Not applicable: <reason>`.
+
+  Your recommended answer may itself be a deferral or not applicable. The engineer's answer stands,
+  even one you would not give: say the risk once, in the recommendation, then record the answer.
+  The architect decides; the agenda only makes sure nothing is decided by being forgotten.
+- On a re-run, start with what the document already lists under Open questions, then the sections
+  this round is about. That is how an initiative moves from one phase to the next. Any closed
+  section can be reopened: a `Not applicable` line becomes an answer when the initiative grows into
+  it, and an answered section gains detail. Ask the engineer which sections this round is about when
+  the request does not say.
 
 **Drive the interview strategically, in this order.** An architecture document that lists technology
 without naming the problem it solves is a wish list, not a strategy.
@@ -174,7 +206,21 @@ The interview ends only when the user confirms shared understanding or explicitl
 ## Step 3 — Write the document
 
 **If the document already exists, amend it. Never regenerate it.** Re-running `/arcdlc:aic <slug>` is
-the normal way a design matures: each round adds detail, tests an idea, or reverses a call. So:
+the normal way a design matures: each round adds detail, tests an idea, or reverses a call. A document
+holds two kinds of content, and they change differently:
+
+- **Inputs: the goals, requirements and constraints.** The AIC Goals group (Business Case, Functional
+  Overview, Quality Goals, both Constraints sections, Business Context), arc42 §1 to §3, and the
+  matching sections of the other formats. They describe the problem as it is known today, and
+  gathering data is expected to change them. When the interview changes one, rewrite it in place:
+  no reversal note, git history keeps the old text.
+- **Decisions: the hypotheses and everything built on them.** AIC Architectural Hypotheses and Risks,
+  arc42 §4 to §11, the ADRs. These are amended and superseded as the rules below say.
+- **A changed input puts the decisions on it in question.** Name each hypothesis or ADR that rests on
+  the input you changed and ask about it, one at a time: still holds, amend, or reverse. Never keep
+  one silently, never change one silently.
+
+For both kinds:
 
 - Keep every section this interview did not touch, word for word. A detail added three rounds ago and
   not discussed today is still the decision. Rewriting the file from the template silently drops it,
@@ -202,6 +248,13 @@ For a new document:
   Do not imagine, invent, or silently assume architecture conclusions.
 - Anything still undecided goes into an explicit "Open questions" section — never into the body as if decided.
 - Link the ADRs created during the interview from the document.
+
+### Check coverage before handover
+
+Walk the template once more against the document, new or amended. Every section must hold content,
+a `Not applicable: <reason>` line, or an Open questions entry with an owner and a phase, and every
+risk must carry a mitigation the engineer chose. A section or a risk with none was skipped: ask about
+it now, one question at a time, before Step 4. The check counts, it never grades an answer. List the deferred items in your closing report.
 
 ### Write it for a human reader (every format, Markdown and HTML)
 

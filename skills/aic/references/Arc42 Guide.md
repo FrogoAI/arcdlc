@@ -1,6 +1,6 @@
 # arc42 — How to Build the Document
 
-**Reviewed**: 2026-09-16
+**Reviewed**: 2026-09-23
 
 **What this is**: the complete instruction for turning an upstream arc42 template (this directory)
 into a finished arc42 document. The template is the **skeleton you copy**, this guide is **everything
@@ -79,7 +79,7 @@ carries a table of contents and stable anchor ids, so the work is different:
    they carry no content.
 
 A section that does not apply stays in place, in either format, with an explicit
-`Not applicable — <reason>` rather than being dropped. The Section Catalogue below is the same for
+`Not applicable: <reason>` rather than being dropped. The Section Catalogue below is the same for
 both formats — only the markup differs.
 
 ## Reading the template's slots
@@ -136,7 +136,11 @@ deeper (`5.1.1`, `7.2.1`, …), which is upstream's own numbering and is kept as
 
 # Section Catalogue
 
-Each entry gives **Write** (what belongs in the section) and **Shape** (the form it takes). The
+Each entry gives **Write** (what belongs in the section) and **Shape** (the form it takes). Where the
+section is easy to fill while missing the part that matters, it also gives **Ask**: the questions
+`/arcdlc:aic` puts to the engineer for it. Write, Shape and Ask together are the interview agenda,
+and every section ends answered, deferred to the Open questions list in §11 with who answers it and
+by which phase, or `Not applicable: <reason>`. The
 upstream *with-help* edition delivers three of its points as figures — the ISO 25010 categories
 (§1.2), the building-block hierarchy (§5), and the cross-cutting concept topics (§8). All three are
 reproduced below as text, so no image is needed to write any section. The originals are at
@@ -156,6 +160,9 @@ backlog. Link to the requirements documents if they exist, naming the version an
 **Shape**: short text, usually a tabular use-case format. Keep the extract as short as possible:
 balance readability of this document against redundancy with the requirements documents. 5–10
 architecturally significant requirements is the right order of magnitude.
+
+**Ask**: what is in the first stage, what is left out on purpose, and what does leaving it out cost?
+What condition opens the next stage?
 
 ### 1.2 Quality Goals
 
@@ -187,6 +194,9 @@ The upstream figure here is the ISO 25010:2023 category set. Choose from:
 | High availability | System remains operational with 99.9% uptime (8.7h downtime/year) |
 | Modifiability | New payment provider integrates in < 1 week |
 ```
+
+**Ask**: how many requests or user actions per second today and at the design target, and where do
+both numbers come from? What measurement proves each goal is met, and what number counts as a pass?
 
 ### 1.3 Stakeholders
 
@@ -223,6 +233,8 @@ guidelines, documentation or naming conventions).
 | **Organizational** | Team size, timeline, budget, skill availability |
 | **Conventions** | API versioning `/v1/`, branch naming `epic/{TASK}_{TITLE}`, Twelve-Factor compliance |
 
+**Ask**: which constraint, if lifted, would change the design most, and who can lift it?
+
 ## 3 Context and Scope
 
 **Write**: the delimitation of the system (the scope) from all its communication partners —
@@ -249,6 +261,9 @@ communication partner, inputs, outputs.
 | Merchant portal user | Payment intent, refund request | Transaction status, receipt |
 | Acquiring bank | Authorization result | Authorization request, capture |
 ```
+
+**Ask**: what must each partner change on its side, and how much work is it? Which partners can an
+attacker control? Which can be slow, or absent, without warning?
 
 ### 3.2 Technical Context
 
@@ -278,6 +293,9 @@ cornerstones the later detailed decisions rest on.
 **Shape**: keep the explanations short — 4–8 bullets or a table mapping quality goals to approaches.
 Say what was decided and why, grounded in the problem statement, the quality goals of 1.2, and the
 constraints of section 2. Refer to details in later sections rather than repeating them.
+
+**Ask**: why do the boundaries sit where they do, and why not the obvious other split? Which options
+lost, and by what criterion? Where does a rejected option stay reachable later without a rewrite?
 
 ## 5 Building Block View
 
@@ -313,6 +331,9 @@ packages per service in `internal/<service>/`; Level 3 = domain modules within t
 There is no fixed template for an interface. In the worst case you must specify syntax, semantics,
 protocols, error handling, restrictions, versions, qualities, and necessary compatibilities; in the
 best case an example or a simple signature is enough.
+
+**Ask**: does each deployable unit have a reason that a package inside an existing service cannot
+meet?
 
 **Shape — two alternatives for the contained blocks.** Either *one* table for a short, pragmatic
 overview of all blocks and their interfaces:
@@ -363,6 +384,11 @@ block instances shown — ordering guarantees, timeouts, retries, what happens w
 Notations: a numbered list of steps in natural language, activity diagrams or flow charts, sequence
 diagrams, BPMN or event process chains, state machines.
 
+**Ask**: how is data saved, and how is it found again, told on concrete values? What happens when a
+step fails, times out, or arrives twice, and what does the caller receive? When a dependency is slow,
+and when it is gone, does the system fail open or closed? How many calls to other services, and how
+many store reads and writes, does one user action make?
+
 ## 7 Deployment View
 
 **Write**: (1) the technical infrastructure the system executes on — geographical locations,
@@ -379,6 +405,11 @@ or any notation able to show nodes and channels.
 
 Align with the Twelve-Factor App: Factor X (Dev/Prod Parity), document all environments; Factor V
 (Build, Release, Run) — show the pipeline; Factor VII (Port Binding) — document port assignments.
+
+**Ask**: how many bytes per stored item, how many items alive at once, and for how long? What is the
+chosen store's throughput limit, where was it measured, what happens when it is reached, and how many
+nodes follow? What does it cost per month? How does it go live, how long does the old path run
+beside it, and how fast does it go back?
 
 ### 7.1 Infrastructure Level 1
 
@@ -420,6 +451,11 @@ The upstream figure here is a menu of candidates:
 | Build/Deploy | CI/CD pipeline description |
 
 Cross-reference the project's own engineering principles and the Twelve-Factor App where applicable.
+
+**Ask**: who may call what, how is the caller authenticated, what is encrypted, and which data is
+personal? Which metrics and alert values tell the person woken at 03:00 what broke? What is kept per
+event for audit, and for how long? Security is asked about in every document, even when the answer
+is `Not applicable: <reason>`.
 
 ## 9 Architecture Decisions
 
@@ -489,6 +525,10 @@ Scenario Name, Source, Stimulus, Environment, Artifact, Response, Response Measu
 [Bass+21]: Len Bass, Paul Clements, Rick Kazman, *Software Architecture in Practice*, 4th edition,
 Addison-Wesley, 2021. Worked examples of quality requirements: <https://quality.arc42.org>.
 
+**Ask**: was any goal checked on real data (a traffic sample, an export, a benchmark run) before the
+design was fixed? What effort does the change we already expect take: a new partner, a new provider,
+a new rule?
+
 ## 11 Risks and Technical Debts
 
 **Write**: the identified technical risks and technical debts, ordered by priority, each with the
@@ -503,6 +543,12 @@ product owners — need this as part of the overall risk analysis and measuremen
 | 1 | CBF false positive rate increases with list size | Medium | Low | Monitor FPR metric, auto-rebuild at threshold |
 | 2 | NATS delivery failure causes stale CBF | Low | High | Periodic full rebuild (daily), staleness alert |
 ```
+
+**Ask**: which one number breaks the design if it is wrong by ten times? Which assumptions does the
+design rest on, and what changes if one is false?
+
+End the section with **Open questions**: every answer the interview deferred, as a table of question,
+who answers it, and by when (phase or stage). A named unknown is fine; a hidden one is not.
 
 ## 12 Glossary
 
