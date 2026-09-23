@@ -94,6 +94,7 @@ resolve_agents() {
 if [ "$UNINSTALL" = 1 ]; then
   info "removing ArcDLC skills and $TOOL"
   rm -rf "$claude_dir/skills/$PLUGIN"
+  if command -v claude >/dev/null 2>&1; then claude plugin uninstall "$PLUGIN@$PLUGIN" >/dev/null 2>&1 || true; fi
   for s in $SUBSKILLS $LEGACY_SUBSKILLS; do
     rm -rf "$codex_dir/skills/$PLUGIN-$s" "$opencode_dir/skills/$PLUGIN-$s" "$cursor_dir/skills/$PLUGIN-$s" "$gemini_dir/config/skills/$PLUGIN-$s"
   done
@@ -141,10 +142,36 @@ if [ "$DO_SKILLS" = 1 ]; then
         # Prefer the official plugin CLI (Claude Code >= 2.1.157) when installing
         # from GitHub; otherwise drop the skills-directory plugin into
         # ~/.claude/skills, which Claude Code auto-loads as /arcdlc:<name>.
-        if [ -z "${ARCDLC_NO_PLUGIN_CLI:-}" ] && [ ! -f "$script_dir/.claude-plugin/plugin.json" ] \
-           && command -v claude >/dev/null && claude plugin --help >/dev/null 2>&1 \
+        # The two must never coexist: Claude Code refuses to load a skills-directory
+        # plugin whose name an installed plugin already holds.
+        plugin_cli=0
+        if [ -z "${ARCDLC_NO_PLUGIN_CLI:-}" ] && command -v claude >/dev/null \
+           && claude plugin --help >/dev/null 2>&1; then
+          plugin_cli=1
+        fi
+        plugin_installed=0
+        if [ "$plugin_cli" = 1 ] && claude plugin list 2>/dev/null | grep -qF "$PLUGIN@$PLUGIN"; then
+          plugin_installed=1
+        fi
+        if [ "$plugin_installed" = 1 ]; then
+          # Already a plugin: update it in place, even from a local clone, rather
+          # than add a skills-directory copy that would collide with it.
+          claude plugin marketplace update "$PLUGIN" >/dev/null 2>&1 || true
+          if claude plugin update "$PLUGIN@$PLUGIN" >/dev/null 2>&1; then
+            info "Claude Code: updated plugin $PLUGIN@$PLUGIN (commands: /$PLUGIN:<name>)"
+          else
+            warn "Claude Code: 'claude plugin update $PLUGIN@$PLUGIN' failed; run it by hand."
+          fi
+          if [ -f "$script_dir/.claude-plugin/plugin.json" ]; then
+            warn "Claude Code: the plugin is installed from the marketplace, so this checkout was not copied."
+            warn "to run the checkout instead: claude plugin uninstall $PLUGIN@$PLUGIN, then re-run ./install.sh"
+          fi
+          rm -rf "$claude_dir/skills/$PLUGIN"
+        elif [ "$plugin_cli" = 1 ] && [ ! -f "$script_dir/.claude-plugin/plugin.json" ] \
            && claude plugin marketplace add "$REPO" >/dev/null 2>&1 \
            && claude plugin install "$PLUGIN@$PLUGIN" >/dev/null 2>&1; then
+          # Sweep a copy an older install left in the skills directory.
+          rm -rf "$claude_dir/skills/$PLUGIN"
           info "Claude Code: installed via 'claude plugin' (marketplace $REPO, commands: /$PLUGIN:<name>)"
         else
           dest="$claude_dir/skills/$PLUGIN"
