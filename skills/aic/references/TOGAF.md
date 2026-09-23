@@ -1,6 +1,6 @@
 # TOGAF ADM & ArchiMate Instruction
 
-**Reviewed**: 2026-09-16
+**Reviewed**: 2026-09-23
 
 **Source**: TOGAF Standard (The Open Group), ArchiMate 3.2 Specification
 **Purpose**: Offline instruction for generating TOGAF Architecture Development Method documentation with ArchiMate diagrams. No internet connection required.
@@ -18,12 +18,19 @@ cross-domain (multiple business units affected), spans a phased legacy migration
 
 ## Document Structure (8 Sections)
 
+The **Ask** lines under a section are the questions `/arcdlc:aic` puts to the engineer to fill it,
+and are not copied into the document. Every section ends answered, deferred to §8.4 Open questions
+with who answers it and by which phase, or `Not applicable: <reason>`. None is deleted.
+
 ### 1. Architecture Vision (Phase A)
 
 Define the problem, stakeholders, principles, and scope.
 
 #### 1.1 Problem Statement
 Clear description of the business problem or opportunity driving this architecture work.
+
+**Ask**: what does the problem cost today, in money, time or risk, and where does that number come
+from? Who decides that the target state has been reached?
 
 #### 1.2 Stakeholders and Concerns
 
@@ -36,6 +43,8 @@ Clear description of the business problem or opportunity driving this architectu
 | # | Principle | Rationale | Implications |
 |:--|:----------|:----------|:-------------|
 | 1 | *principle name* | *why this matters* | *what this forces/enables* |
+
+**Ask**: which principle would change the design most if it were dropped, and who can drop it?
 
 Reference Engineering Principles (POL-ENG-001) for technology principles. Add initiative-specific principles here.
 
@@ -51,6 +60,9 @@ Reference Engineering Principles (POL-ENG-001) for technology principles. Add in
 | Data domains | ... | ... |
 | Technology platforms | ... | ... |
 
+**Ask**: what is left out on purpose, and what does leaving it out cost? Which quality goals, taken
+from the ISO 25010 list, must the target state meet, and what measurement proves each one?
+
 ---
 
 ### 2. Business Architecture (Phase B)
@@ -64,6 +76,9 @@ Table of capabilities with description and supporting systems.
 For each key process:
 - Trigger, Actors, Outcome
 - Process flow diagram (BPMN or ASCII)
+
+**Ask**: which business units and partners does each process cross, and what must each of them
+change? Which step fails, times out, or runs twice most often, and what happens then?
 
 #### 2.3 ArchiMate Business Layer Diagram
 
@@ -119,12 +134,20 @@ Model the application layer. **Color: `#B5FFFF`** (pale cyan) for all applicatio
 - Service inventory: name, responsibility, APIs, events produced/consumed
 - Integration patterns: NATS subjects (per Engineering Principles), REST endpoints
 
+**Ask**: why do the application boundaries sit there, and why not the obvious other split? Does each
+new component have a reason that an existing one cannot meet? Which partners can an attacker
+control, and which can be slow or absent without warning? When a dependency is slow, and when it is
+gone, does the system fail open or closed?
+
 #### 3.2 Data Architecture
 
 - Data entities and their relationships (ER diagram or ArchiMate data objects)
 - Data flow between services
 - Storage technology mapping (which service uses which DB)
 - Data ownership: which service is the source of truth for which entity
+
+**Ask**: how many bytes per record, how many records alive at once, and for how long? Which data is
+personal, and where is it allowed to live? How many reads and writes does one business action make?
 
 **ArchiMate Data Elements**:
 
@@ -158,6 +181,11 @@ Model the technology/infrastructure layer. **Color: `#C9E7B7`** (pale green) for
 - Infrastructure as Code references
 - Align with Twelve-Factor App factors VII (Port Binding), IX (Disposability), X (Dev/Prod Parity)
 
+**Ask**: what load does the target state carry today and at the design target, and where do both
+numbers come from? What is the throughput limit of each chosen platform, where was it measured, and
+what happens when it is reached? What does it cost per month? Which metrics and alert values tell
+the person woken at 03:00 what broke?
+
 ---
 
 ### 5. Opportunities and Solutions (Phase E)
@@ -169,6 +197,8 @@ Gap analysis between current (baseline) and target architectures.
 | Component | Baseline | Target | Gap | Action |
 |-----------|----------|--------|-----|--------|
 | *name* | *current state* | *desired state* | *what's missing* | *build / buy / reuse / migrate* |
+
+**Ask**: for each gap, why build rather than buy or reuse, and what option lost?
 
 #### 5.2 Solution Building Blocks
 
@@ -191,6 +221,9 @@ Define implementation phases using the Genesis -> Custom -> Product model from P
 | Genesis | *name* | PoC + core foundation | *estimate* | *what ships* |
 | Custom | *name* | MVP production-grade | *estimate* | *what ships* |
 | Product | *name* | Full feature set | *estimate* | *what ships* |
+
+**Ask**: what condition opens each next phase? How long does the old path run beside the new one,
+how fast can a phase be rolled back, and who decides?
 
 #### 6.2 Migration Dependency Diagram
 
@@ -220,6 +253,9 @@ Show dependencies between migration work packages. Which must complete before ot
 |---|------|-------------|--------|------------|-------|
 | 1 | *description* | H/M/L | H/M/L | *action* | *role* |
 
+**Ask**: which one number breaks the design if it is wrong by ten times? Which assumptions does the
+design rest on, and what changes if one is false?
+
 ---
 
 ### 8. Architecture Change Management (Phase H)
@@ -240,6 +276,14 @@ Reference Policy of Initiatives (POL-TECH-001) stages.
 | # | Debt Item | Impact | Priority | Remediation Plan |
 |---|-----------|--------|----------|-----------------|
 | 1 | *description* | *effect on quality* | H/M/L | *plan* |
+
+#### 8.4 Open questions
+
+Every answer the interview deferred. A named unknown is fine; a hidden one is not.
+
+| Question | Who answers | By when (phase) |
+|----------|-------------|-----------------|
+| *question* | *name or role* | *Genesis / Custom / Product* |
 
 ---
 
@@ -323,6 +367,6 @@ Embed in documents: `![Title](images/<name>.png)`
 | 3. IS Architecture | Architectural Hypotheses | 5. Building Block View |
 | 4. Technology Architecture | (Technical Constraints) | 7. Deployment View |
 | 5. Opportunities & Solutions | Technical Challenges & Risks | 11. Risks & Tech Debt |
-| 6. Migration Planning | Tasks (Genesis/Custom/Product) | - |
+| 6. Migration Planning | Functional Overview (stages) | - |
 | 7. Implementation Governance | - | 9. Architecture Decisions |
-| 8. Change Management | - | - |
+| 8. Change Management | Open questions | 11. Risks & Tech Debt |

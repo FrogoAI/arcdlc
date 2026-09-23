@@ -30,6 +30,7 @@ Every decision that was hard, surprising, or expensive to reverse. Newest last.
 | 0024 | [The plan is a queue, not a graph, and it runs in order](0024-the-plan-is-a-queue-not-a-graph.md) | Accepted |
 | 0025 | [A task pins its executor tier with an `Executor` key](0025-a-task-pins-its-executor-tier-with-an-executor-key.md) | Accepted |
 | 0026 | [A workspace keeps its docs in a sibling repository named `docs`](0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md) | Accepted |
+| 0027 | [The template is the interview agenda](0027-the-template-is-the-interview-agenda.md) | Accepted |
 
 A decision that changes an earlier one carries `Amends` or `Supersedes` in its header, and the
 earlier record points forward. Nothing here is deleted: a superseded ADR is how you find out why the
