@@ -196,10 +196,11 @@ session, so there is no tier to choose and no question to ask. If that task carr
 the report and say it was not applied, because nothing in the current session can change the model.
 
 The tier is not a quality dial. When the executor meets a decision its block does not carry, it grills the
-engineer or blocks the task (per-task contract, step 7). Never retry at a higher tier. A block that is not
+engineer or blocks the task (per-task contract, step 8). Never retry at a higher tier. A block that is not
 mechanical is a plan defect, and raising the tier hides it: the task gets done by judgement nobody
 recorded, and the next run of that plan behaves differently. `/arcdlc:plan <slug>` sharpens the block
-instead. That includes an `Executor` line: you never add one to `plan.md` (you never edit `plan.md`), and a
+instead. That includes an `Executor` line: you never add one to `plan.md` (you never edit `plan.md`, other than
+appending a finding through `arctool add`), and a
 blocked task is re-spawned at the same tier with the answer, never at a higher one. Name the tier the run
 used, and where it came from, in the report, per task where an `Executor` line overrode the run tier.
 
@@ -219,7 +220,7 @@ used, and where it came from, in the report, per task where an `Executor` line o
 3. **Tell the subagent it owns its own verification, and has nobody to ask.** Its prompt must say both
    plainly:
    - It verifies its own work. It reaches `DONE` only when every `Acceptance` criterion demonstrably
-     holds and tests and lint are green (step 5 of the contract). Nobody downstream re-checks a `DONE`
+     holds and tests and lint are green (step 6 of the contract). Nobody downstream re-checks a `DONE`
      task, so `DONE` is its assertion and it must mean it.
    - There is no engineer in its session. It must never grill and never guess in place of grilling. Its
      task is mechanical; if it turns out not to be, that is not its problem to solve. On any ambiguity,
@@ -227,11 +228,16 @@ used, and where it came from, in the report, per task where an `Executor` line o
      `arctool block <id> -m "<the question or the defect>"` and returns it to you, unanswered and
      unguessed. **Returning a blocked task is a successful outcome for a subagent, not a failure**, and
      saying so in the prompt is what stops a cheaper model guessing to look helpful.
+   - What a finding is, and the cap: a finding is a defect, risk or inconsistency you saw in a file you
+     read for this task, that this task does not cover and that does not stop it reaching `DONE`; ideas
+     and improvements are not findings, and a problem that stops the task is a block (step 8), not a
+     finding. File at most three, the three that matter most, and put how many you left out in your one
+     line of notes.
 
    It then executes the per-task contract below (take → implement → verify acceptance → done → commit) and
    reports back its final status, the question or defect if it blocked, and at most one line of notes
    useful to later tasks. Not the diff, not the test output: you do not need them.
-4. **A `DONE` task is done. Move on.** The subagent verified its own acceptance criteria in step 5 of the
+4. **A `DONE` task is done. Move on.** The subagent verified its own acceptance criteria in step 6 of the
    per-task contract and could not reach `DONE` without them holding. Re-running the same criteria here
    would catch only a subagent that lied about running them, and would cost you that output on every task
    in the queue. You are not the per-task check. Take the one line of notes it returned and spawn the next.
@@ -241,7 +247,7 @@ used, and where it came from, in the report, per task where an `Executor` line o
      Then re-spawn the same task with the answer in the prompt, and note in the report that the block was
      not mechanical, so `/arcdlc:plan` can harden it.
    - **The answer changes the plan**: leave it `BLOCKED`, stop the run, hand back to `/arcdlc:plan <slug>`.
-     You never edit `plan.md`.
+     You never edit `plan.md`, other than appending a finding through `arctool add`.
    - **It hit a defect rather than a question** (a criterion that cannot be satisfied, a contradiction in the
      code): stop the run and report. Never re-spawn at a higher tier to get past it: that is the
      tier-as-quality-dial mistake, and it buries a defect the plan should carry.
@@ -291,7 +297,7 @@ For each task, in order (in orchestrator mode, the spawned subagent performs the
    files named in its `references` and `where`/`whereLayers` — not the whole plan. Note its `how` field (when
    present): those are the planner's design decisions — signatures, naming, edge cases, out-of-scope fences — and
    they are binding, not suggestions. Note its `acceptance` criteria: they are the definition of done you must
-   satisfy in step 5. *Fallback: read `plan.md` and take the first `### ` block whose `- Status:` is `TODO`,
+   satisfy in step 6. *Fallback: read `plan.md` and take the first `### ` block whose `- Status:` is `TODO`,
    including its `- HOW:` and `- Acceptance:` sections.*
 2. Claim it before touching code: `arctool take <id>` (flips `TODO`→`TAKEN`; refuses a non-`TODO` task). In a
    workspace this status change is also committed and pushed in the hub, see `## In a workspace`. A `TAKEN` block
@@ -304,15 +310,26 @@ For each task, in order (in orchestrator mode, the spawned subagent performs the
    (extend within the same subproject when strictly needed to complete the task).
 4. Run the relevant tests and lint for the touched areas. If the subproject `Makefile` has `test`/`lint` targets, use
    `make test` and `make lint`; otherwise use the project's documented commands.
-5. Verify acceptance, then mark done. Walk **every** `acceptance` criterion from step 1 and confirm each is
+5. File what you saw outside this task. A finding is a defect, risk or inconsistency you saw in a file you read for
+   this task, that this task does not cover and that does not stop it reaching `DONE`; ideas and improvements are not
+   findings, and a problem that stops the task is a block (step 8), not a finding. File at most three, the three that
+   matter most, and put how many you left out in your one line of notes. Each is a task block with ID
+   `<TASK-ID>-F<n>` counting from 1, `WHAT`, `WHERE` with `file:line`, `WHY`, one runnable `Acceptance` check,
+   `References` naming the file you read and `docs/aics/<slug>/plan.md`, no `HOW`, and
+   `- Status: BLOCKED — found during <TASK-ID>: <reason>.` where the reason names what a person must decide, or reads
+   `ready to release` when the block is already mechanical. Append it with `arctool add --aic <slug> < <file>`; exit 1
+   means the block broke a rule, so fix it and retry, never drop the finding. *Fallback: append the block to the end
+   of `plan.md` by hand, after one blank line.* It is committed with this task (step 7); in a workspace it rides in
+   the hub commit that marks the task `DONE`. See `plan-format.md` `### Findings` for the full shape.
+6. Verify acceptance, then mark done. Walk **every** `acceptance` criterion from step 1 and confirm each is
    demonstrably met — by the test that exercises it or by the observable behavior it describes. Only when tests/lint
    are green **and** all criteria hold: `arctool done <id>` (flips `TAKEN`→`DONE`; touches no other task's status).
    If a criterion is not covered by an existing test, add one (in the `Tests` files named in `WHERE`) so "met" is
    evidenced, not asserted. *Fallback: edit the status line to `- Status: DONE.`*
-6. Commit ONLY this task's changes plus the plan status update. Do not include unrelated pre-existing worktree
+7. Commit ONLY this task's changes plus the plan status update. Do not include unrelated pre-existing worktree
    changes. Write the message exactly as specified in "Commit message: Conventional Commits" below. Do not push a
    product repository; in a workspace the hub is pushed after every status commit, see `## In a workspace`.
-7. If the task cannot be completed — including any acceptance criterion you cannot satisfy: when the blocker is
+8. If the task cannot be completed — including any acceptance criterion you cannot satisfy: when the blocker is
    a question rather than a defect, grill the engineer if you are the session they started, and if you are a
    spawned subagent put the question in the block reason and return it unanswered (see below). Then `arctool block <id> -m
    "<one-line reason>"` naming the failing criterion (or `arctool todo <id>` to release it back to the queue), report
@@ -323,7 +340,7 @@ For each task, in order (in orchestrator mode, the spawned subagent performs the
    order, for example `arctool order <OTHER-ID> <id> --aic <slug>`, which swaps those two positions and leaves every
    other block where it is. You never run that command: the engineer decides whether the plan changes, and the run
    stops here either way. *Fallback: set the status line to `- Status: BLOCKED — <reason>.` or back to `TODO`.*
-8. Repeat from step 1. When running the whole queue, stop when `arctool next` exits non-zero (code `3` = no `TODO`
+9. Repeat from step 1. When running the whole queue, stop when `arctool next` exits non-zero (code `3` = no `TODO`
    left). *Fallback: stop when no `TODO` block remains.*
 
 ## When a task is unclear, never guess (mandatory)
@@ -380,7 +397,8 @@ Where the answer goes, so nobody has to answer it twice:
 - A decision local to this task: put it in the commit body, under the task line.
 - A new term the project will reuse: add it to `CONTEXT.md`.
 - Do not edit another task, and do not rewrite this task's text in `plan.md`. Text edits race with the
-  status writes of a parallel run, and the plan belongs to `/arcdlc:plan`.
+  status writes of a parallel run, and the plan belongs to `/arcdlc:plan`. Appending a finding
+  (per-task contract, step 5) is the one exception.
 - No answer, or an answer that changes the plan: `arctool block <id> -m "<one-line reason>"`, report
   what you asked, and stop. The engineer decides whether the plan changes.
 - Every grilled decision, answered or not, goes in the run report: the task ID, the question, the

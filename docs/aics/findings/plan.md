@@ -103,7 +103,7 @@ Decision: [ADR-0029](../../adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-
   - GIVEN the change WHEN `grep -n 'at most three' skills/execute/SKILL.md` runs THEN it prints at least two lines (the contract step and the spawn prompt).
   - GIVEN the change WHEN `go test ./internal/bundle/...` and the `run` scripts of the CI steps `Check the writing-style block is the same in every skill` and `Check the virtues block is the same in every skill` in `.github/workflows/ci.yml` are run from the repository root THEN all three exit 0.
 - References: `docs/aics/findings/aic.md`, `docs/adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-end-of-the-plan.md`, `skills/execute/SKILL.md`, `skills/plan/references/plan-format.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### FND-5: Add the findings review to the end of an `/arcdlc:execute` run
 
