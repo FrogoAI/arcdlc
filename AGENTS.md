@@ -117,6 +117,12 @@ checks. Do not merge with a red pipeline.
   outcome for a subagent, not a failure**, and its spawn prompt says so, because a cheaper model will
   otherwise guess to look helpful. `BLOCKED` is the only thing the dispatcher engages with: it holds the
   engineer, so it grills, then re-spawns with the answer or hands back to `/arcdlc:plan`.
+- **A finding is filed, never dropped and never run unasked.** An executor that sees a problem outside
+  its task appends it as a `BLOCKED` task, `found during <TASK-ID>: <reason>`, ID `<TASK-ID>-F<n>`, at
+  most three per task, through `arctool add`. `next` never returns it. The dispatcher reviews each at
+  the end of the run: release, sharpen, redesign, or dismiss, written into the reason. `/arcdlc:plan`
+  acts on the verdicts. See
+  [ADR-0029](docs/adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-end-of-the-plan.md).
 - **The dispatcher stays thin, and is resumable.** In the loop it reads plan state, one line of notes per
   task, and a block reason. Not reports of successful work, not diffs, not test output. If it fills up
   anyway it stops at a task boundary and the engineer re-runs: the plan carries every status and the
@@ -141,8 +147,10 @@ checks. Do not merge with a red pipeline.
   identical, exactly like the writing-style block.
 - **Every write is atomic and byte-preserving outside its own region.** `take`/`done`/`block`/`todo`
   rewrite only the one `- Status:` line via temp-file plus rename. `archive` writes the archive before
-  compacting the plan. `order` re-parses its own output and writes nothing on a failed check. `scan`
-  appends to `comments.md` and may grow one block, never more, and never removes or renumbers one.
+  compacting the plan. `order` re-parses its own output and writes nothing on a failed check. `add`
+  appends one block after the last byte of the plan, changes no earlier byte, re-parses its own
+  output, and writes nothing on a failed check. `scan` appends to `comments.md` and may grow one
+  block, never more, and never removes or renumbers one.
   `scan` is also the only command that edits source files, and only with `--strip`, which deletes just
   the marker comment lines it registered. See [ADR-0013](docs/adr/0013-order-is-a-slot-permutation.md)
   and [ADR-0014](docs/adr/0014-exit-5-means-self-validation-failed.md).

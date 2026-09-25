@@ -161,4 +161,4 @@ Decision: [ADR-0029](../../adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-
   - GIVEN the change WHEN `grep -h '"version"' .claude-plugin/plugin.json .antigravity-plugin/plugin.json` runs THEN both lines read `"version": "0.35.0",`.
   - GIVEN the change WHEN `arctool sync --check` runs THEN it exits 0.
 - References: `docs/aics/findings/aic.md`, `docs/adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-end-of-the-plan.md`, `AGENTS.md`, `README.md`.
-- Status: TODO.
+- Status: DONE.

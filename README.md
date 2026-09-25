@@ -145,7 +145,7 @@ argument (e.g. `/arcdlc:plan checkout`). Details and manual alternatives: [Insta
 | `/arcdlc:plan-human <slug>` | Turn the task queue into the engineer stories a board shows: one story per service, numbered instructions, technical acceptance criteria, each self-contained so a ticket needs no file from this repository. | `docs/aics/<slug>/plan-human.md` + mapping in `CONTEXT.md` |
 | `/arcdlc:examinate <slug> [policy]` | Examine existing code for compliance with a named policy or design (`MDCA`, `DDD`, `SOLID`, …; default: the project's own AIC) and register gaps as plan tasks. | `docs/aics/<slug>/gap.md`, new TODO blocks in `docs/aics/<slug>/plan.md` |
 | `/arcdlc:assist <slug> [MARKER]` | Turn code comment markers into planned work: `arctool scan` sweeps the source for `// ARCDLC ...` (or `TODO`, `FIXME`, `HACK`, `XXX`, `BUG` when asked) and records each one, markers sharing a tag (`// ARCDLC:T1 ...`) become one record, the skill grills the engineer about the unclear ones, and every marker that names real work becomes a plan task. | `docs/aics/<slug>/comments.md`, new TODO blocks in `docs/aics/<slug>/plan.md`, the marker comments removed from the code once the engineer says so |
-| `/arcdlc:execute <slug> [TASK-ID]` | Implement all pending plan tasks (or one by ID): status `TODO→TAKEN→DONE`, tests/lint, one Conventional Commits commit per task. | code, tests, commits |
+| `/arcdlc:execute <slug> [TASK-ID]` | Implement all pending plan tasks (or one by ID): status `TODO→TAKEN→DONE`, tests/lint, one Conventional Commits commit per task. Problems seen outside a task are filed as blocked findings at the end of the plan and reviewed with you at the end of the run. | code, tests, commits |
 | `/arcdlc:remove <slug>` | Delete a design folder for good, after an explicit confirmation that warns references to it may be left pointing at nothing. | removed folder, refreshed `docs/aics/` + registry |
 | `/arcdlc:archive <slug>` | Move `DONE` task blocks into `docs/aics/<slug>/plan-archive.md`, keeping the plan small. | compacted plan + archive |
 | `/arcdlc:close <slug>` | Close a finished initiative in place: a `CLOSED.md` note with the outcome, the plan files deleted, no new work after. | `docs/aics/<slug>/CLOSED.md`, refreshed registry |
@@ -353,10 +353,12 @@ the copy loop.
 ### `arctool` CLI (optional, recommended)
 
 `arctool` is the deterministic companion for `docs/aics/<slug>/plan.md`: it validates the plan
-contract, picks the next task, and flips task status atomically so the agent never hand-edits status
-lines. It also sweeps the source for code comment markers (`arctool scan`) and writes the comment
-register `/arcdlc:assist` works from, which keeps that sweep out of the agent's context. It resolves the initiative from `--aic <slug>` or `--plan <path>` — a selection is always
-required. It is pure Go standard library — the binaries are static and need no runtime.
+contract, picks the next task, flips task status atomically so the agent never hand-edits status
+lines, and appends a checked task block (`arctool add`). It also sweeps the source for code comment
+markers (`arctool scan`) and writes the comment register `/arcdlc:assist` works from, which keeps
+that sweep out of the agent's context. It resolves the initiative from `--aic <slug>` or
+`--plan <path>` — a selection is always required. It is pure Go standard library — the binaries are
+static and need no runtime.
 
 Every ArcDLC skill probes `command -v arctool` and falls back to manual markdown handling when it
 is absent, so the CLI is always optional.
