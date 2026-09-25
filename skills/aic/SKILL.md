@@ -9,7 +9,8 @@ argument-hint: "<slug> [aic|arc42|tsc|togaf|c4|adr, comma-separated, :html for H
 Produce the architecture document that anchors the ArcDLC delivery pipeline. This is the entry point
 of the application track; `/arcdlc:policy` is the entry point of the governance track.
 
-`/arcdlc:aic` → `/arcdlc:plan` → `/arcdlc:execute` → `/arcdlc:archive` → `/arcdlc:remove`
+`/arcdlc:aic` → `/arcdlc:plan` → `/arcdlc:execute` → `/arcdlc:archive` → `/arcdlc:close`, with
+`/arcdlc:remove` named beside it for deleting a design for good.
 
 Feeding the same plan queue at any point: `/arcdlc:examinate` (compliance gaps), `/arcdlc:assist`
 (code comment markers). Beside the chain: `/arcdlc:plan-human` turns the queue into board stories.
@@ -68,6 +69,12 @@ The initiative slug is the **first positional argument** and is **required**:
 
 Write the architecture document — and later `plan.md` — inside that folder. ADRs stay **global** under
 `docs/adr/`; `CONTEXT.md` stays at the repo root (both are cross-cutting, not per-initiative).
+
+**A closed initiative is final.** If `docs/aics/<slug>/CLOSED.md` exists, stop and change nothing: say
+that `<slug>` was closed on the date in its `- Closed:` line, and that follow-up work is a new
+initiative with its own slug whose design links `docs/aics/<slug>/` as its starting point. No skill
+edits or deletes a closed initiative's files. The one exception is the `## Superseded` line that
+`/arcdlc:aic` appends to its `CLOSED.md` when another initiative's design reverses it.
 
 ## Argument: document format(s)
 
@@ -133,6 +140,8 @@ sync` runs from the workspace root and writes through the root links.
 Read what already exists so the interview builds on it instead of repeating it:
 
 - `docs/aics/` (list existing initiative folders; and `docs/aics/<slug>/` for this one's AIC, arc42, plan, gap register)
+- `docs/aics/*/CLOSED.md`: closed initiatives. Read each title and `- Outcome:` line and open the
+  designs related to this one; they are references and are never edited.
 - `CONTEXT.md` / `CONTEXT-MAP.md` (domain glossary)
 - `docs/adr/` (prior decisions)
 - `AGENTS.md`, `CLAUDE.md`, `README.md` of the target project
@@ -247,6 +256,15 @@ For both kinds:
   - Recorded only in the document body: replace the text, and note the reversal and its reason in the
     document, so the next reader does not re-litigate it.
   - Recorded in `CONTEXT.md`: a term whose meaning changed is redefined in place, not duplicated.
+  - Recorded in a closed initiative's design: append one line to that initiative's `CLOSED.md` under
+    a `## Superseded` heading, creating the heading at the end of the file when missing. The line is
+    `- Superseded in part by [<title>](../<name>/aic.md) on <YYYY-MM-DD>: <which sections>.`, or
+    `- Superseded by [<title>](../<name>/aic.md) on <YYYY-MM-DD>.` when the whole design is replaced,
+    where `<name>` and `<title>` are this initiative's slug and H1. Never touch the closed design
+    documents, and never start an `/arcdlc:aic` run on the closed initiative. When the reversed
+    design belongs to an initiative that is still open (no `CLOSED.md`), write nothing into it:
+    raise the disagreement as one grilling question, because two open designs that disagree are the
+    engineer's decision.
 - **If a plan already exists** at `docs/aics/<slug>/plan.md`, this round may have invalidated tasks
   derived from what you changed. Say so in the report, name the affected sections, and tell the
   engineer to re-run `/arcdlc:plan <slug>`. Never edit `plan.md` yourself: `/arcdlc:plan` owns it.

@@ -22,7 +22,7 @@ set -euo pipefail
 REPO="FrogoAI/arcdlc"
 PLUGIN="arcdlc"
 TOOL="arctool"
-SUBSKILLS="aic archive assist examinate execute grilling init plan plan-human policy remove"
+SUBSKILLS="aic archive assist close examinate execute grilling init plan plan-human policy remove"
 # Sub-skills that used to ship and no longer do. Swept on install and uninstall so an
 # upgrade does not strand them in the flat-skill directories.
 LEGACY_SUBSKILLS="source-map"

@@ -6,8 +6,9 @@ skills, `arctool`, ADRs, and architecture documents.
 - **Initiative** — one architecture-driven change effort, living entirely in `docs/aics/<slug>/`.
 - **Slug** — the initiative's identifier: a single kebab-case path segment (no `/`, no `..`).
   Mandatory first positional argument of every pipeline skill; `--aic SLUG` in `arctool`.
-- **Initiative folder** — `docs/aics/<slug>/`, holding the architecture document plus `plan.md`,
-  `gap.md`, `comments.md`, and `plan-archive.md` (the last three are always siblings of `plan.md`).
+- **Initiative folder** — `docs/aics/<slug>/`, holding the architecture document plus, while the
+  initiative is open, `plan.md`, `gap.md`, `comments.md`, `plan-human.md`, and `plan-archive.md`
+  (the last four are always siblings of `plan.md`); once closed, `CLOSED.md` replaces all five.
 - **Architecture document** — `aic`, `arc42`, `togaf`, `c4`, or `tsc` inside the initiative folder,
   as `.md` or (when asked for with `:html`) `.html`. One initiative may hold several; `arctool sync`
   picks one by format rank, `.md` before `.html`. Its first `# ` H1 is the initiative **title**; the one-line `> ` blockquote directly
@@ -15,13 +16,24 @@ skills, `arctool`, ADRs, and architecture documents.
 - **Registry** — the generated list of initiatives between `<!-- arcdlc:initiatives:begin -->`
   and `<!-- arcdlc:initiatives:end -->` in `AGENTS.md` and `README.md`. Owned by `arctool sync`;
   never edit inside the markers by hand.
-- **Sync** — `arctool sync [--check]`: regenerates the registry from `docs/aics/*/`; `--check`
-  verifies drift without writing.
-- **Removal** — `/arcdlc:remove <slug>`: engineer-confirmed deletion of an initiative folder plus
-  registry cleanup. Git history is the archive; no graveyard copies in the tree.
+- **Sync** — `arctool sync [--check]`: regenerates the registry from `docs/aics/*/`, leaving out any
+  folder that holds `CLOSED.md` and counting the closed ones in one line; `--check` verifies drift
+  without writing.
+- **Close** — `/arcdlc:close <slug>`: marks a finished initiative by writing `CLOSED.md` into
+  `docs/aics/<slug>/` and deleting `plan.md`, `plan-archive.md`, `plan-human.md`, `gap.md` and
+  `comments.md`. The design never moves. A closed initiative is final: no skill changes it or
+  deletes `CLOSED.md`. See [ADR-0028](docs/adr/0028-a-finished-initiative-is-closed-in-place.md).
+- **Removal** — `/arcdlc:remove <slug>`: engineer-confirmed deletion of `docs/aics/<slug>/` plus
+  registry cleanup. Git history keeps the deleted folder.
+- **Closed initiative** — an initiative folder holding `CLOSED.md`: the design documents, their
+  images, and the note with the close date, the **outcome** (`delivered`, `partly delivered` or
+  `stopped`) and what was left open. Kept as a reference for later designs.
+- **Phase** — the status of an initiative, read from its files by `arctool status`, never stored:
+  `designing` (no `plan.md`, no `CLOSED.md`), `in progress` (a task not `DONE`), `ready to close`
+  (every task `DONE`), `closed` (`CLOSED.md`).
 - **Pipeline skills** — `init`, `aic`, `plan`, `execute`, `examinate`, `assist`, `archive`, plus the
-  lifecycle skills `remove` and `policy`, `plan-human` beside the chain, and `grilling` under them all.
-  Eleven in total.
+  lifecycle skills `close`, `remove` and `policy`, `plan-human` beside the chain, and `grilling` under
+  them all. Twelve in total.
 - **Comment register** — `docs/aics/<slug>/comments.md`: one block per code comment marker found in
   the repository. `arctool scan` writes the evidence; it removes the comment from the code only with
   `--strip`, which `/arcdlc:assist` passes after the engineer says yes. Once stripped, the register is
@@ -60,7 +72,7 @@ skills, `arctool`, ADRs, and architecture documents.
   must always follow is not a reference document: it goes inline in the `SKILL.md`, because a skill is
   loaded while a reference is only read if the agent opens it. See [ADR-0020](docs/adr/0020-reference-library-dissolved-into-the-skills.md).
 - **The four virtues** — wisdom, courage, justice, temperance: how a skill decides, not how it writes.
-  `## Judge by the four virtues` is verbatim in all eleven `SKILL.md` files and pinned by CI.
+  `## Judge by the four virtues` is verbatim in all twelve `SKILL.md` files and pinned by CI.
 - **Workspace** — several git repositories checked out side by side under one directory, the
   **workspace root**, which is not itself a git repository. The agent, every `/arcdlc:*` command and
   every `arctool` call run from the root. See [ADR-0026](docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md).

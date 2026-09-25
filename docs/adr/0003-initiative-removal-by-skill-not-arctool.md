@@ -2,6 +2,7 @@
 
 ## Status
 
+Superseded by [ADR-0028](0028-a-finished-initiative-is-closed-in-place.md) (2026-09-25).
 Accepted (2026-07-03).
 
 ## Context

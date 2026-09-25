@@ -37,8 +37,12 @@ once.
 | ask me what I am missing | `grilling` |
 | the plan is getting long | `archive` |
 | clean up the finished tasks | `archive` |
-| we are done with cursor-support, retire it | `remove` |
-| delete the old plan folder | `remove` |
+| we are done with the payments initiative, close it | `close` |
+| wrap up the checkout work | `close` |
+| mark init as finished | `close` |
+| we are done with cursor-support, retire it | `close` |
+| delete the payments design for good | `remove` |
+| purge the old spike initiative | `remove` |
 | set up arcdlc in this repo | `init` |
 | we have five repos, set up a docs hub | `init` |
 | bootstrap the project for arcdlc | `init` |

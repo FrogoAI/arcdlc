@@ -288,25 +288,36 @@ func Rebase(inits []Initiative, base string) []Initiative {
 
 // Render returns the registry block body: one bullet per initiative, sorted by
 // slug, or "_none_" when there are none. An initiative with no architecture
-// document (DocRelPath == "") is rendered without a link.
-func Render(inits []Initiative) string {
-	if len(inits) == 0 {
-		return "_none_"
-	}
-	sorted := append([]Initiative(nil), inits...)
-	sort.Slice(sorted, func(i, j int) bool { return sorted[i].Slug < sorted[j].Slug })
-	var b strings.Builder
-	for i, it := range sorted {
-		if i > 0 {
-			b.WriteByte('\n')
+// document (DocRelPath == "") is rendered without a link. When closed > 0, the
+// body ends with a blank line and one line counting the initiative folders left
+// out because they hold CLOSED.md, so a closed initiative is dropped from the
+// list without vanishing from the file without a trace.
+func Render(inits []Initiative, closed int) string {
+	body := "_none_"
+	if len(inits) > 0 {
+		sorted := append([]Initiative(nil), inits...)
+		sort.Slice(sorted, func(i, j int) bool { return sorted[i].Slug < sorted[j].Slug })
+		var b strings.Builder
+		for i, it := range sorted {
+			if i > 0 {
+				b.WriteByte('\n')
+			}
+			if it.DocRelPath != "" {
+				fmt.Fprintf(&b, "- [%s](%s) — %s", it.Title, it.DocRelPath, it.Summary)
+			} else {
+				fmt.Fprintf(&b, "- %s — %s", it.Title, it.Summary)
+			}
 		}
-		if it.DocRelPath != "" {
-			fmt.Fprintf(&b, "- [%s](%s) — %s", it.Title, it.DocRelPath, it.Summary)
-		} else {
-			fmt.Fprintf(&b, "- %s — %s", it.Title, it.Summary)
-		}
+		body = b.String()
 	}
-	return b.String()
+	if closed <= 0 {
+		return body
+	}
+	noun := "initiatives"
+	if closed == 1 {
+		noun = "initiative"
+	}
+	return fmt.Sprintf("%s\n\n%d closed %s: run `arctool status`, or see `CLOSED.md` in each folder.", body, closed, noun)
 }
 
 // section is a fresh "## Initiatives" section wrapping body in the markers.
@@ -333,11 +344,12 @@ func Splice(content, body string) string {
 	return content + section(body)
 }
 
-// Preview returns the file content after applying inits and whether it differs
-// from what is on disk, writing nothing. A missing file previews as a minimal
-// stub (an H1 named after the file plus the "## Initiatives" section).
-func Preview(path string, inits []Initiative) (content string, changed bool, err error) {
-	body := Render(inits)
+// Preview returns the file content after applying inits and closed and whether
+// it differs from what is on disk, writing nothing. A missing file previews as
+// a minimal stub (an H1 named after the file plus the "## Initiatives"
+// section).
+func Preview(path string, inits []Initiative, closed int) (content string, changed bool, err error) {
+	body := Render(inits, closed)
 	old, err := os.ReadFile(path)
 	switch {
 	case err == nil:
@@ -351,11 +363,11 @@ func Preview(path string, inits []Initiative) (content string, changed bool, err
 	}
 }
 
-// WriteFile updates the registry block in path to reflect inits, rewriting only
-// the marker region (or appending a section / creating a stub as needed) via an
-// atomic temp-file + rename. It returns whether the file changed.
-func WriteFile(path string, inits []Initiative) (bool, error) {
-	next, changed, err := Preview(path, inits)
+// WriteFile updates the registry block in path to reflect inits and closed,
+// rewriting only the marker region (or appending a section / creating a stub as
+// needed) via an atomic temp-file + rename. It returns whether the file changed.
+func WriteFile(path string, inits []Initiative, closed int) (bool, error) {
+	next, changed, err := Preview(path, inits, closed)
 	if err != nil {
 		return false, err
 	}

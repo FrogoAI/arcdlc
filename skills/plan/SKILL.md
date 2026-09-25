@@ -59,6 +59,12 @@ never guess. All inputs and outputs below live inside `docs/aics/<slug>/`, and t
 `arctool` as `--aic <slug>`. A legacy flat `docs/aics/plan.md` has no slug; tell the user to migrate
 it into a `docs/aics/<slug>/` folder.
 
+**A closed initiative is final.** If `docs/aics/<slug>/CLOSED.md` exists, stop and change nothing: say
+that `<slug>` was closed on the date in its `- Closed:` line, and that follow-up work is a new
+initiative with its own slug whose design links `docs/aics/<slug>/` as its starting point. No skill
+edits or deletes a closed initiative's files. The one exception is the `## Superseded` line that
+`/arcdlc:aic` appends to its `CLOSED.md` when another initiative's design reverses it.
+
 ## In a workspace
 
 The working directory is a workspace when it is not a git work tree and `git -C docs rev-parse

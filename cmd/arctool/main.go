@@ -25,7 +25,7 @@ import (
 	"github.com/FrogoAI/arcdlc/internal/scan"
 )
 
-const version = "0.20.0"
+const version = "0.21.0"
 
 // aicsDir is the root directory under which each initiative gets its own folder
 // (docs/aics/<slug>/, holding plan.md, gap.md, comments.md, plan-archive.md).
@@ -39,6 +39,7 @@ usage:
   arctool next   [--json] [--aic SLUG | --plan PATH]         first TODO block (exit 3 if none)
   arctool show   <id> [--json] [--aic SLUG | --plan PATH]    one block by task ID
   arctool list   [--status TODO|TAKEN|DONE|BLOCKED] [--json] [--aic SLUG | --plan PATH]
+  arctool status [--json]   every initiative under docs/aics/ with its phase: designing, in progress, ready to close, closed
   arctool take|done|todo <id> [--force] [--aic SLUG | --plan PATH]   flip status (TODO->TAKEN->DONE / release)
   arctool block  <id> [-m reason] [--force] [--aic SLUG | --plan PATH]   mark BLOCKED
   arctool order  <id> <id> [<id>…] [--dry-run] [--aic SLUG | --plan PATH]   re-order task blocks
@@ -63,6 +64,7 @@ usage:
   arctool archive  [--dry-run] [--aic SLUG | --plan PATH]    move DONE blocks to plan-archive.md
   arctool sync     [--check]                                 sync the initiative registry in AGENTS.md/README.md
                  a symlinked target is written through, and links are relative to the real file
+                 folders holding CLOSED.md are left out and counted in one line
   arctool version
 
 initiative selection (required):
@@ -93,6 +95,8 @@ func main() {
 		os.Exit(cmdShow(os.Args[2:]))
 	case "list":
 		os.Exit(cmdList(os.Args[2:]))
+	case "status":
+		os.Exit(cmdStatus(os.Args[2:]))
 	case "take", "done", "block", "todo":
 		os.Exit(cmdMutate(os.Args[1], os.Args[2:]))
 	case "order":
@@ -632,7 +636,7 @@ func cmdSync(args []string) int {
 // registry links inits carries are rebased onto that real file's directory
 // so they still resolve from where the file actually lives.
 func runSync(dir string, targets []string, check bool, out, errw io.Writer) int {
-	inits := scanInitiatives(dir)
+	inits, closed := scanInitiatives(dir)
 	if check {
 		stale := false
 		for _, f := range targets {
@@ -641,7 +645,7 @@ func runSync(dir string, targets []string, check bool, out, errw io.Writer) int 
 				fmt.Fprintf(errw, "arctool: %s is a symlink to a missing file\n", f)
 				return 4
 			}
-			_, changed, err := registry.Preview(path, registry.Rebase(inits, base))
+			_, changed, err := registry.Preview(path, registry.Rebase(inits, base), closed)
 			if err != nil {
 				fmt.Fprintf(errw, "arctool: %v\n", err)
 				return 4
@@ -663,7 +667,7 @@ func runSync(dir string, targets []string, check bool, out, errw io.Writer) int 
 			fmt.Fprintf(errw, "arctool: %s is a symlink to a missing file\n", f)
 			return 4
 		}
-		changed, err := registry.WriteFile(path, registry.Rebase(inits, base))
+		changed, err := registry.WriteFile(path, registry.Rebase(inits, base), closed)
 		if err != nil {
 			fmt.Fprintf(errw, "arctool: %v\n", err)
 			return 4
@@ -705,20 +709,26 @@ func resolveSyncTarget(target string) (path, base string, ok bool) {
 }
 
 // scanInitiatives returns a registry entry for every <dir>/<slug>/ folder that
-// holds at least one .md or .html file, sorted by slug. HTML counts because
+// holds at least one .md or .html file, sorted by slug, plus the count of
+// folders left out because they hold CLOSED.md. HTML counts because
 // /arcdlc:aic writes an .html architecture document when asked for a format with
-// the :html suffix, and such an initiative must still reach the registry.
-func scanInitiatives(dir string) []registry.Initiative {
+// the :html suffix, and such an initiative must still reach the registry. A
+// closed folder is never loaded: it does not need a title or summary, only a
+// tally.
+func scanInitiatives(dir string) (inits []registry.Initiative, closed int) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil
+		return nil, 0
 	}
-	var inits []registry.Initiative
 	for _, e := range entries {
 		if !e.IsDir() {
 			continue
 		}
 		slug := e.Name()
+		if fileExists(filepath.Join(dir, slug, "CLOSED.md")) {
+			closed++
+			continue
+		}
 		sub, err := os.ReadDir(filepath.Join(dir, slug))
 		if err != nil {
 			continue
@@ -738,7 +748,7 @@ func scanInitiatives(dir string) []registry.Initiative {
 		}
 	}
 	sort.Slice(inits, func(i, j int) bool { return inits[i].Slug < inits[j].Slug })
-	return inits
+	return inits, closed
 }
 
 // atomicWrite writes data to path via a temp file in the same directory

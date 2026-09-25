@@ -1,5 +1,5 @@
 {
   "name": "arcdlc",
-  "version": "0.33.0",
+  "version": "0.34.0",
   "description": "ArcDLC — architecture and delivery workflow skill bundle. one-command setup of a repository or a multi-repository workspace with a docs hub, Installs for Claude Code, Codex, OpenCode, Cursor and Antigravity; developed and exercised on Claude Code."
 }

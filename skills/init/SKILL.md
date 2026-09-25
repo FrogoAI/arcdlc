@@ -10,7 +10,7 @@ Set up a repository, or a workspace of several repositories, so the rest of the 
 place to run. Every other skill reads `docs/aics/<slug>/`, `CONTEXT.md`, and the registry markers in
 `AGENTS.md` and `README.md`. `/arcdlc:init` is what creates them, before the first initiative exists.
 
-`/arcdlc:init` → `/arcdlc:aic` → `/arcdlc:plan` → `/arcdlc:execute` → `/arcdlc:archive` → `/arcdlc:remove`
+`/arcdlc:init` → `/arcdlc:aic` → `/arcdlc:plan` → `/arcdlc:execute` → `/arcdlc:archive` → `/arcdlc:close`
 
 Run it once. It never rewrites a file that already exists, so running it again only adds what is
 missing. Pass `--migrate` once a hub already exists, to also run Step 5 and move existing

@@ -133,22 +133,36 @@ func TestLoad(t *testing.T) {
 }
 
 func TestRender(t *testing.T) {
-	if got := Render(nil); got != "_none_" {
-		t.Errorf("Render(nil) = %q, want _none_", got)
+	if got := Render(nil, 0); got != "_none_" {
+		t.Errorf("Render(nil, 0) = %q, want _none_", got)
 	}
 	// Out-of-order input must render sorted by slug.
 	got := Render([]Initiative{
 		{Slug: "pay", Title: "Payments", Summary: "s2", DocRelPath: "docs/aics/pay/aic.md"},
 		{Slug: "checkout", Title: "Checkout", Summary: "s1", DocRelPath: "docs/aics/checkout/aic.md"},
-	})
+	}, 0)
 	want := "- [Checkout](docs/aics/checkout/aic.md) — s1\n" +
 		"- [Payments](docs/aics/pay/aic.md) — s2"
 	if got != want {
 		t.Errorf("Render sorted = %q, want %q", got, want)
 	}
 	// No architecture doc: bullet without a link.
-	if got := Render([]Initiative{{Slug: "x", Title: "x", Summary: "(no architecture doc)"}}); got != "- x — (no architecture doc)" {
+	if got := Render([]Initiative{{Slug: "x", Title: "x", Summary: "(no architecture doc)"}}, 0); got != "- x — (no architecture doc)" {
 		t.Errorf("Render no-doc = %q", got)
+	}
+}
+
+func TestRenderClosedCount(t *testing.T) {
+	if got := Render(nil, 2); got != "_none_\n\n2 closed initiatives: run `arctool status`, or see `CLOSED.md` in each folder." {
+		t.Errorf("Render(nil, 2) = %q", got)
+	}
+	got := Render([]Initiative{{Slug: "pay", Title: "Payments", Summary: "s", DocRelPath: "docs/aics/pay/aic.md"}}, 1)
+	want := "- [Payments](docs/aics/pay/aic.md) — s\n\n1 closed initiative: run `arctool status`, or see `CLOSED.md` in each folder."
+	if got != want {
+		t.Errorf("Render with one closed = %q, want %q", got, want)
+	}
+	if !strings.HasSuffix(got, "1 closed initiative: run `arctool status`, or see `CLOSED.md` in each folder.") {
+		t.Errorf("Render with one closed does not end with singular line: %q", got)
 	}
 }
 
@@ -192,7 +206,7 @@ func TestWriteFileStubAndIdempotent(t *testing.T) {
 	path := filepath.Join(dir, "README.md")
 	inits := []Initiative{{Slug: "pay", Title: "Payments", Summary: "s", DocRelPath: "docs/aics/pay/aic.md"}}
 
-	changed, err := WriteFile(path, inits)
+	changed, err := WriteFile(path, inits, 0)
 	if err != nil || !changed {
 		t.Fatalf("first WriteFile: changed=%v err=%v, want true/nil (stub created)", changed, err)
 	}
@@ -207,7 +221,7 @@ func TestWriteFileStubAndIdempotent(t *testing.T) {
 		t.Errorf("stub missing bullet:\n%s", b)
 	}
 
-	changed2, err := WriteFile(path, inits)
+	changed2, err := WriteFile(path, inits, 0)
 	if err != nil || changed2 {
 		t.Fatalf("second WriteFile: changed=%v err=%v, want false/nil (idempotent)", changed2, err)
 	}
@@ -223,7 +237,7 @@ func TestPreviewEmptyIsNone(t *testing.T) {
 	if err := os.WriteFile(path, []byte("# AGENTS\n\n"+beginMarker+"\nold\n"+endMarker+"\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	content, changed, err := Preview(path, nil)
+	content, changed, err := Preview(path, nil, 0)
 	if err != nil || !changed {
 		t.Fatalf("Preview: changed=%v err=%v", changed, err)
 	}
