@@ -173,8 +173,8 @@ Delete each of the five files that exists: `git rm <file>` when it is tracked, p
 it is not. Then refresh the registry. Probe once with `command -v arctool`: if present, run `arctool
 sync`. *Fallback (no `arctool`): delete the initiative's bullet from the `<!-- arcdlc:initiatives -->`
 blocks in `AGENTS.md` and `README.md`, and write or update the closed-count line the same way `arctool
-sync` does: a blank line, then `N closed initiatives: run \`arctool status\`, or see \`CLOSED.md\` in
-each folder.` (`1 closed initiative: ...` for one).*
+sync` does: a blank line, then ``N closed initiatives: run `arctool status`, or see `CLOSED.md` in
+each folder.`` (`1 closed initiative: ...` for one).*
 
 Leave the changes staged; do not commit unless asked. In a workspace, commit and push as the workspace
 section above says.

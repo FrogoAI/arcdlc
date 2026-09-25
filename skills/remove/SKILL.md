@@ -114,8 +114,8 @@ Proceed only on an explicit yes. On anything else, stop and change nothing.
    `arctool sync` (writes only the `<!-- arcdlc:initiatives -->` marker blocks); it also refreshes the
    closed-count line at the end of the block. *Fallback (no `arctool`): delete the initiative's bullet
    from those marker blocks by hand; if no initiatives remain, leave the block reading `_none_`. Then
-   write or update the closed-count line the same way `arctool sync` does: a blank line, then `N closed
-   initiatives: run \`arctool status\`, or see \`CLOSED.md\` in each folder.` (`1 closed initiative:
+   write or update the closed-count line the same way `arctool sync` does: a blank line, then ``N closed
+   initiatives: run `arctool status`, or see `CLOSED.md` in each folder.`` (`1 closed initiative:
    ...` for one), counting the folders that still hold `CLOSED.md`.*
 
 Do not commit on the user's behalf unless they ask; leave the deletion and registry edit staged so they
