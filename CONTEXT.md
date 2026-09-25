@@ -17,8 +17,18 @@ skills, `arctool`, ADRs, and architecture documents.
   never edit inside the markers by hand.
 - **Sync** — `arctool sync [--check]`: regenerates the registry from `docs/aics/*/`; `--check`
   verifies drift without writing.
-- **Removal** — `/arcdlc:remove <slug>`: engineer-confirmed deletion of an initiative folder plus
-  registry cleanup. Git history is the archive; no graveyard copies in the tree.
+- **Close** — `/arcdlc:close <slug>`: marks a finished initiative by writing `CLOSED.md` into
+  `docs/aics/<slug>/` and deleting `plan.md`, `plan-archive.md`, `plan-human.md`, `gap.md` and
+  `comments.md`. The design never moves. A closed initiative is final: no skill changes it or
+  deletes `CLOSED.md`. See [ADR-0028](docs/adr/0028-a-finished-initiative-is-closed-in-place.md).
+- **Removal** — `/arcdlc:remove <slug>`: engineer-confirmed deletion of `docs/aics/<slug>/` plus
+  registry cleanup. Git history keeps the deleted folder.
+- **Closed initiative** — an initiative folder holding `CLOSED.md`: the design documents, their
+  images, and the note with the close date, the **outcome** (`delivered`, `partly delivered` or
+  `stopped`) and what was left open. Kept as a reference for later designs.
+- **Phase** — the status of an initiative, read from its files by `arctool status`, never stored:
+  `designing` (no `plan.md`, no `CLOSED.md`), `in progress` (a task not `DONE`), `ready to close`
+  (every task `DONE`), `closed` (`CLOSED.md`).
 - **Pipeline skills** — `init`, `aic`, `plan`, `execute`, `examinate`, `assist`, `archive`, plus the
   lifecycle skills `remove` and `policy`, `plan-human` beside the chain, and `grilling` under them all.
   Eleven in total.

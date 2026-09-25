@@ -164,6 +164,7 @@ instead of guessing. Task IDs need only be unique within one initiative's plan, 
 `docs/aics/`, and `/arcdlc:remove <slug>` retires a finished one.
 
 <!-- arcdlc:initiatives:begin -->
+- [ArcDLC Close: a finished initiative keeps its design and stops taking tasks](docs/aics/aic-tracking/aic.md) — Add `/arcdlc:close <slug>`, which writes a `CLOSED.md` note into the initiative's folder and deletes its plan and regist…
 - [ArcDLC Init: one command that sets up a repository or a multi-repository workspace](docs/aics/init/aic.md) — Add `/arcdlc:init`, which detects whether it stands in one repository or in a workspace of several, scaffolds the files…
 <!-- arcdlc:initiatives:end -->
 

@@ -6,7 +6,7 @@ Every decision that was hard, surprising, or expensive to reverse. Newest last.
 |---|---|---|
 | 0001 | [Initiative selection is always explicit](0001-initiative-selection-is-always-explicit.md) | Accepted |
 | 0002 | [`arctool sync` maintains the initiative registry via HTML-comment marker blocks](0002-registry-sync-via-marker-blocks.md) | Accepted |
-| 0003 | [Initiative removal is a skill-side operation; arctool stays non-destructive](0003-initiative-removal-by-skill-not-arctool.md) | Accepted |
+| 0003 | [Initiative removal is a skill-side operation; arctool stays non-destructive](0003-initiative-removal-by-skill-not-arctool.md) | Superseded by ADR-0028 |
 | 0004 | [`/arcdlc:plan` enforces risk-mitigation coverage before handoff](0004-plan-enforces-risk-mitigation-coverage.md) | Accepted |
 | 0005 | [Antigravity support via a native plugin bundle with a flat-skills fallback](0005-antigravity-support-via-plugin-with-flat-fallback.md) | Accepted |
 | 0006 | [Cursor support via flat personal skills](0006-cursor-support-via-flat-personal-skills.md) | Accepted |
@@ -31,6 +31,7 @@ Every decision that was hard, surprising, or expensive to reverse. Newest last.
 | 0025 | [A task pins its executor tier with an `Executor` key](0025-a-task-pins-its-executor-tier-with-an-executor-key.md) | Accepted |
 | 0026 | [A workspace keeps its docs in a sibling repository named `docs`](0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md) | Accepted |
 | 0027 | [The template is the interview agenda](0027-the-template-is-the-interview-agenda.md) | Accepted |
+| 0028 | [A finished initiative is closed in place with a `CLOSED.md` note](0028-a-finished-initiative-is-closed-in-place.md) | Accepted |
 
 A decision that changes an earlier one carries `Amends` or `Supersedes` in its header, and the
 earlier record points forward. Nothing here is deleted: a superseded ADR is how you find out why the
