@@ -1,14 +1,14 @@
 ---
 name: arcdlc-remove
-description: Retire a finished initiative: delete its folder and clean it out of the initiative registry, always after an explicit confirmation. Use when someone says we are done with X, retire that initiative, delete the old plan, or clean up finished initiatives, or runs /arcdlc:remove <slug>, or invokes arcdlc-remove.
+description: Delete an initiative's folder for good, design included, after showing what is lost and an explicit confirmation. Use when someone says delete the design for good, purge the initiative, or throw away that initiative entirely, or runs /arcdlc:remove <slug>, or invokes arcdlc-remove.
 argument-hint: "<slug>"
 ---
 
 # ArcDLC Remove (/arcdlc:remove)
 
-Retire a finished initiative so it stops costing agent focus and context. This deletes the whole
-`docs/aics/<slug>/` folder and refreshes the initiative registry in `AGENTS.md` and `README.md`. Git
-history is the archive — nothing is copied into a graveyard folder.
+Delete an initiative's folder for good. This skill deletes the whole `docs/aics/<slug>/` folder, open
+or closed, and refreshes the initiative registry in `AGENTS.md` and `README.md`. Git history is the
+only copy afterwards. Finishing an initiative, with the design kept, is `/arcdlc:close`.
 
 Removal is **destructive** and always requires an explicit human confirmation. `arctool` itself has no
 delete command (it stays non-destructive); this skill does the deletion.
@@ -80,17 +80,30 @@ Before deleting anything, report the blast radius so the engineer decides with f
 - **Task counts by status.** Prefer `arctool` (probe once with `command -v arctool`):
   `arctool list --aic <slug>` prints the `TODO/TAKEN/DONE/BLOCKED` tallies. *Fallback (no `arctool`):
   read `docs/aics/<slug>/plan.md` and count `- Status:` lines by value.*
-- The **file list** under `docs/aics/<slug>/` (e.g. `aic.md`, `plan.md`, `gap.md`, `plan-archive.md`).
+- The **file list** under `docs/aics/<slug>/` (e.g. `aic.md`, `plan.md`, `gap.md`, `plan-archive.md`,
+  `CLOSED.md`).
+- When `CLOSED.md` exists, its `- Closed:` and `- Outcome:` lines, so the engineer sees this
+  initiative was already finished.
 
-If any task is **not `DONE`** (`TODO`, `TAKEN`, or `BLOCKED`), warn loudly and name the counts —
-removal discards not-yet-completed work. Removal is still allowed (abandoned initiatives also need
-cleanup), but the engineer must acknowledge it.
+If any task is **`TAKEN`**, stop and change nothing: name every `TAKEN` task by ID, because an agent is
+working on it right now.
+
+If any task is `TODO` or `BLOCKED`, warn loudly and name the counts: removal discards not-yet-completed
+work. Removal is still allowed (abandoned initiatives also need cleanup), but the engineer must
+acknowledge it.
 
 ## Step 2 — Require explicit confirmation (always)
 
-Ask the engineer to confirm the deletion, every time — there is no flag that skips this. State the
-folder path and, when relevant, the not-`DONE` task count. Proceed only on an explicit yes; on anything
-else, stop and change nothing.
+Ask the engineer to confirm the deletion, every time. There is no flag that skips this. State, every
+time:
+
+- The folder path.
+- That the design leaves the working tree and survives afterwards only in git history.
+- That other files may still reference this design, and remove does not rewrite links: those
+  references will be left to point at nothing.
+- That the engineer can cancel now, to handle the references first.
+
+Proceed only on an explicit yes. On anything else, stop and change nothing.
 
 ## Step 3 — Delete and clean the registry
 
@@ -98,9 +111,12 @@ else, stop and change nothing.
    staged for the user to commit). Otherwise remove it from the working tree (`rm -rf
    docs/aics/<slug>/`).
 2. Refresh the registry so the removed initiative disappears from `AGENTS.md` and `README.md`. Prefer
-   `arctool sync` (writes only the `<!-- arcdlc:initiatives -->` marker blocks). *Fallback (no
-   `arctool`): delete the initiative's bullet from those marker blocks by hand; if no initiatives
-   remain, leave the block reading `_none_`.*
+   `arctool sync` (writes only the `<!-- arcdlc:initiatives -->` marker blocks); it also refreshes the
+   closed-count line at the end of the block. *Fallback (no `arctool`): delete the initiative's bullet
+   from those marker blocks by hand; if no initiatives remain, leave the block reading `_none_`. Then
+   write or update the closed-count line the same way `arctool sync` does: a blank line, then `N closed
+   initiatives: run \`arctool status\`, or see \`CLOSED.md\` in each folder.` (`1 closed initiative:
+   ...` for one), counting the folders that still hold `CLOSED.md`.*
 
 Do not commit on the user's behalf unless they ask; leave the deletion and registry edit staged so they
 can review.

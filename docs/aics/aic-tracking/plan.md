@@ -113,7 +113,7 @@ Decision: [ADR-0028](../../adr/0028-a-finished-initiative-is-closed-in-place.md)
   - GIVEN `docs/routing-checks.md` WHEN `grep -n "retire it" docs/routing-checks.md` runs THEN the row ends in `` `close` |``, and `grep -c '`remove` |' docs/routing-checks.md` prints 2.
   - GIVEN the change WHEN `go test ./internal/bundle/...` runs THEN it passes.
 - References: `docs/aics/aic-tracking/aic.md`, `skills/remove/SKILL.md`, `docs/adr/0028-a-finished-initiative-is-closed-in-place.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### TRK-5: Add the closed-initiative check to `aic`, `plan`, `examinate` and `assist`
 
