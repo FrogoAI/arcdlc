@@ -8,9 +8,9 @@ Guidance for AI coding agents working **on this repository**. (If you are lookin
 ArcDLC is two deliverables in one repo, and they share a contract:
 
 1. **A skill bundle** (`skills/`, packaged by `.claude-plugin/`) — the `/arcdlc:*` delivery
-   workflow (init, aic, policy, plan, plan-human, examinate, assist, execute, remove, archive) plus the
-   `grilling` interview skill they all run on. Eleven skills. Each owns the reference documents it
-   consumes, in its own `references/` folder.
+   workflow (init, aic, policy, plan, plan-human, examinate, assist, execute, remove, archive, close)
+   plus the `grilling` interview skill they all run on. Twelve skills. Each owns the reference
+   documents it consumes, in its own `references/` folder.
 2. **The `arctool` CLI** (`cmd/arctool`, `internal/plan`, `internal/registry`, `internal/scan`) — a
    deterministic runner for the plan format those skills produce and consume, the initiative registry
    sync, and the code comment sweep (`arctool scan`) that writes the comment register.
@@ -92,9 +92,9 @@ checks. Do not merge with a red pipeline.
   and ends in an inline fallback (read the sibling's `SKILL.md`, run its protocol yourself). It never
   stops to report a helper skill as missing. The behaviour is mandatory, the invocation is not.
 - **The interview is one question at a time.** `skills/grilling` asks one question per turn, waits, then
-  asks the next, each carrying a recommended answer. Never a numbered round. Six skills restate this in
+  asks the next, each carrying a recommended answer. Never a numbered round. Eight skills restate this in
   one shared paragraph for their inline fallback (`aic`, `policy`, `examinate`, `assist`, `plan-human`,
-  `execute`); change it in all seven together.
+  `execute`, `init`, `close`); change it in all nine together (the eight plus `grilling`).
 - **The eight task keys are the contract; a custom key is carried, not judged.** A key-shaped line the
   format does not define is preserved with its indented body, surfaced under `extra` in `arctool`'s
   JSON, and ignored by `validate`. Absorption of a multi-line key stops at *any* key, defined or not:
@@ -136,7 +136,7 @@ checks. Do not merge with a red pipeline.
   output, not prose. See the Conventions section below for where the rules live.
 - **Judgement follows the four virtues.** Wisdom (ask, do not guess), courage (say the hard thing),
   justice (write the answer down, name the tier you used), temperance (touch only what you were pointed
-  at). `## Judge by the four virtues` is verbatim in all eleven `SKILL.md` files and CI pins it byte
+  at). `## Judge by the four virtues` is verbatim in all twelve `SKILL.md` files and CI pins it byte
   identical, exactly like the writing-style block.
 - **Every write is atomic and byte-preserving outside its own region.** `take`/`done`/`block`/`todo`
   rewrite only the one `- Status:` line via temp-file plus rename. `archive` writes the archive before
@@ -172,7 +172,8 @@ checks. Do not merge with a red pipeline.
   Skills take the slug as their first positional argument and `arctool` requires `--aic <slug>` or
   `--plan PATH`; missing means an error listing the initiatives, never a guess. The resolver is
   `resolvePlan` in `cmd/arctool`. A folder is created lazily by `atomicWrite`. Task IDs are unique per
-  plan, not globally. ADRs and `CONTEXT.md` stay global. See
+  plan, not globally. ADRs and `CONTEXT.md` stay global. A folder holding `CLOSED.md` is closed and
+  final: no skill changes it and no skill deletes `CLOSED.md`. See
   [ADR-0001](docs/adr/0001-initiative-selection-is-always-explicit.md).
 - **A workspace keeps its docs in a sibling repository named `docs`.** No environment variable, no
   marker file: the name is the whole configuration, and `/arcdlc:init` clones or creates the hub under
@@ -184,9 +185,12 @@ checks. Do not merge with a red pipeline.
   [ADR-0026](docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md).
 - **The initiative registry is generated.** `arctool sync` owns the `<!-- arcdlc:initiatives -->` blocks
   in `AGENTS.md` and `README.md`; `sync --check` fails on drift. Never hand-edit inside the markers.
-  `/arcdlc:remove <slug>` deletes a folder after an explicit confirmation and re-syncs; `arctool` itself
-  deletes nothing. See [ADR-0002](docs/adr/0002-registry-sync-via-marker-blocks.md) and
-  [ADR-0003](docs/adr/0003-initiative-removal-by-skill-not-arctool.md).
+  `/arcdlc:close <slug>` writes `CLOSED.md` and deletes the plan files; `sync` leaves closed
+  initiatives out of the registry and counts them in one line. `/arcdlc:remove <slug>` deletes a
+  folder after an explicit confirmation; `arctool` itself deletes nothing. See
+  [ADR-0002](docs/adr/0002-registry-sync-via-marker-blocks.md),
+  [ADR-0003](docs/adr/0003-initiative-removal-by-skill-not-arctool.md), and
+  [ADR-0028](docs/adr/0028-a-finished-initiative-is-closed-in-place.md).
 - **The executor tier is asked for, never guessed.** A cheap tier is safe because the plan is
   mechanical, not the other way round. A tier is a model plus an effort level. Order, first
   answer wins: the task's optional `- Executor:` line (`- Executor: opus, high effort.`), then the
@@ -210,20 +214,20 @@ checks. Do not merge with a red pipeline.
 
 - One skill per directory under `skills/`, entry file always `SKILL.md`, YAML frontmatter with a
   `description` naming its triggers (the `/arcdlc:<name>` command and the `arcdlc-<name>` flat form).
-- **The description is the routing contract, and it is the only always-on cost.** All eleven sit in
+- **The description is the routing contract, and it is the only always-on cost.** All twelve sit in
   context every session and nothing else decides whether a skill fires. Write the phrasings a person
   actually types, not a summary of what the skill does, and keep mechanics (arguments, output paths,
   format lists) in the body, which is read only after the skill fires. After changing one, re-run
   [docs/routing-checks.md](docs/routing-checks.md) by hand: no CI can test routing, because testing
   it means running a real agent.
-- **Two blocks are verbatim in all eleven `SKILL.md` files**, after the intro and before the first step:
+- **Two blocks are verbatim in all twelve `SKILL.md` files**, after the intro and before the first step:
   `## Talk simple, write like a human` (how the agent talks and how it writes the files it produces)
   and `## Judge by the four virtues` (how it decides). Brevity applies to replies, never to files:
   neither block ever lets a rule, path, decision, or acceptance criterion be dropped. Keep both short
   but self-sufficient, because a skill is loaded while a reference is only read if the agent opens it.
   Only tables, examples, and the pre-save grep live in the long form,
-  `skills/grilling/references/Writing Style.md`. CI checks both blocks byte identical across all eleven,
-  so copy them when adding a skill and change all eleven plus the long form together.
+  `skills/grilling/references/Writing Style.md`. CI checks both blocks byte identical across all twelve,
+  so copy them when adding a skill and change all twelve plus the long form together.
 - Reference documents live in the `references/` folder of the skill that consumes them. A document
   earns its place by changing what an agent produces: a template a skill copies, or a rule set whose
   identifiers a gap block cites. Public knowledge the model already has does not belong here.

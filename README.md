@@ -146,8 +146,9 @@ argument (e.g. `/arcdlc:plan checkout`). Details and manual alternatives: [Insta
 | `/arcdlc:examinate <slug> [policy]` | Examine existing code for compliance with a named policy or design (`MDCA`, `DDD`, `SOLID`, …; default: the project's own AIC) and register gaps as plan tasks. | `docs/aics/<slug>/gap.md`, new TODO blocks in `docs/aics/<slug>/plan.md` |
 | `/arcdlc:assist <slug> [MARKER]` | Turn code comment markers into planned work: `arctool scan` sweeps the source for `// ARCDLC ...` (or `TODO`, `FIXME`, `HACK`, `XXX`, `BUG` when asked) and records each one, markers sharing a tag (`// ARCDLC:T1 ...`) become one record, the skill grills the engineer about the unclear ones, and every marker that names real work becomes a plan task. | `docs/aics/<slug>/comments.md`, new TODO blocks in `docs/aics/<slug>/plan.md`, the marker comments removed from the code once the engineer says so |
 | `/arcdlc:execute <slug> [TASK-ID]` | Implement all pending plan tasks (or one by ID): status `TODO→TAKEN→DONE`, tests/lint, one Conventional Commits commit per task. | code, tests, commits |
-| `/arcdlc:remove <slug>` | Delete a completed initiative's folder and clean the registry — always after an explicit confirmation. | removed folder, refreshed `docs/aics/` + registry |
+| `/arcdlc:remove <slug>` | Delete a design folder for good, after an explicit confirmation that warns references to it may be left pointing at nothing. | removed folder, refreshed `docs/aics/` + registry |
 | `/arcdlc:archive <slug>` | Move `DONE` task blocks into `docs/aics/<slug>/plan-archive.md`, keeping the plan small. | compacted plan + archive |
+| `/arcdlc:close <slug>` | Close a finished initiative in place: a `CLOSED.md` note with the outcome, the plan files deleted, no new work after. | `docs/aics/<slug>/CLOSED.md`, refreshed registry |
 | `/arcdlc:grilling [topic]` | The interview every other command falls back to when something is unclear, contradictory, risky, or needs a human, usable on its own: relentless questions, **one at a time**, each with a recommended answer, until nothing is silently assumed. | settled decisions, `CONTEXT.md` terms, ADRs |
 
 Each skill carries the templates and rule sets it needs in its own `references/` folder: the
@@ -161,7 +162,8 @@ Each initiative gets its own folder `docs/aics/<slug>/` (holding the architectur
 (e.g. `/arcdlc:execute checkout`); a command run without a slug lists the initiatives and stops,
 instead of guessing. Task IDs need only be unique within one initiative's plan, and each
 `/arcdlc:execute` run works exactly one initiative. `arctool sync` keeps the list below in step with
-`docs/aics/`, and `/arcdlc:remove <slug>` retires a finished one.
+`docs/aics/`, and `/arcdlc:close <slug>` closes a finished one in place; `arctool status` lists every
+initiative with its phase.
 
 <!-- arcdlc:initiatives:begin -->
 - [ArcDLC Close: a finished initiative keeps its design and stops taking tasks](docs/aics/aic-tracking/aic.md) — Add `/arcdlc:close <slug>`, which writes a `CLOSED.md` note into the initiative's folder and deletes its plan and regist…
@@ -244,7 +246,7 @@ arcdlc/
 ├── .claude-plugin/          # plugin.json + marketplace.json (Claude Code plugin metadata)
 ├── .antigravity-plugin/     # the Antigravity plugin manifest
 ├── assets/                  # README banner (arcdlc_bg.svg)
-├── skills/                  # eleven skills, one per directory (SKILL.md each)
+├── skills/                  # twelve skills, one per directory (SKILL.md each)
 │   ├── grilling/            # the one-question-at-a-time interview every skill runs on
 │   │   └── references/      # Writing Style.md, the shared writing standard
 │   ├── init/references/     # Scaffold Templates.md, the repository and workspace scaffold templates
@@ -253,7 +255,7 @@ arcdlc/
 │   ├── policy/references/   # the Policy of Policies framework
 │   ├── plan/references/     # plan-format.md, the executable-plan contract
 │   ├── plan-human/references/  # story-format.md, the board-story contract
-│   └── policy/  execute/  assist/  remove/  archive/
+│   └── policy/  execute/  assist/  remove/  archive/  close/
 ├── docs/
 │   ├── adr/                 # architecture decision records (README.md indexes them)
 │   ├── aics/<slug>/         # one folder per initiative: arch doc, plan, gap, comments
@@ -403,7 +405,8 @@ task, audit an existing codebase, produce a different format, or retire a finish
 /arcdlc:aic payments arc42           # produce an arc42 doc in docs/aics/payments/
 /arcdlc:aic payments arc42,tsc       # arc42 + Tech Stack Canvas, from one interview
 /arcdlc:aic payments arc42:html      # the arc42 doc as HTML instead of Markdown
-/arcdlc:remove payments              # delete the finished initiative (after confirming)
+/arcdlc:close payments              # close the finished initiative, keep its design
+/arcdlc:remove payments              # delete the initiative for good (after confirming)
 ```
 
 ### Comment debt flow

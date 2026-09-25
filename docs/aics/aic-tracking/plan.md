@@ -175,4 +175,4 @@ Decision: [ADR-0028](../../adr/0028-a-finished-initiative-is-closed-in-place.md)
   - GIVEN the change WHEN `arctool sync --check` (or `go run ./cmd/arctool sync --check`) runs THEN it exits 0.
   - GIVEN the change WHEN `go test ./...` runs THEN it passes.
 - References: `docs/aics/aic-tracking/aic.md`, `docs/adr/0028-a-finished-initiative-is-closed-in-place.md`, `AGENTS.md`.
-- Status: TODO.
+- Status: DONE.
