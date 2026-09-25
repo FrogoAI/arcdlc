@@ -6,6 +6,8 @@
 - Amends: [ADR-0019](0019-the-executor-tier-is-asked-for-not-guessed.md). The tier is still asked for
   and never guessed. What changes is why a cheap tier is safe: the plan being mechanical, not the
   planner having aimed at a weaker model.
+- Amended by: [ADR-0029](0029-a-finding-is-filed-as-a-blocked-task-at-the-end-of-the-plan.md), which
+  files an executor's findings as `BLOCKED` tasks reviewed at the end of the run.
 
 ## Context
 
