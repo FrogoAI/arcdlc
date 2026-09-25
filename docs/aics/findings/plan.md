@@ -140,7 +140,7 @@ Decision: [ADR-0029](../../adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-
   - GIVEN the change WHEN `grep -c 'sharpen\|dismiss\|redesign' skills/plan/SKILL.md` runs THEN it prints 3 or more.
   - GIVEN the change WHEN `go test ./internal/bundle/...` and the `run` scripts of the CI steps `Check the writing-style block is the same in every skill` and `Check the virtues block is the same in every skill` in `.github/workflows/ci.yml` are run from the repository root THEN all three exit 0.
 - References: `docs/aics/findings/aic.md`, `docs/adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-end-of-the-plan.md`, `skills/plan/SKILL.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### FND-7: Update `AGENTS.md`, `README.md` and the bundle version for findings
 
