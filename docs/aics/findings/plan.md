@@ -65,7 +65,7 @@ Decision: [ADR-0029](../../adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-
   - GIVEN `fmt.Sprintf(usage, version)` WHEN it is searched THEN it contains `arctool add    [--aic SLUG | --plan PATH] < block.md` and `version` is `0.22.0`; checked by `TestUsageDocumentsAdd`.
   - GIVEN the change WHEN `go test ./...`, `go vet ./...` and `gofmt -l .` run THEN tests pass, vet is clean and gofmt prints nothing.
 - References: `docs/aics/findings/aic.md`, `cmd/arctool/main.go`, `internal/plan/add.go`.
-- Status: TODO.
+- Status: DONE.
 
 ### FND-3: Document findings and `arctool add` in the plan format guide
 
