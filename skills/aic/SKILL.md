@@ -69,6 +69,12 @@ The initiative slug is the **first positional argument** and is **required**:
 Write the architecture document — and later `plan.md` — inside that folder. ADRs stay **global** under
 `docs/adr/`; `CONTEXT.md` stays at the repo root (both are cross-cutting, not per-initiative).
 
+**A closed initiative is final.** If `docs/aics/<slug>/CLOSED.md` exists, stop and change nothing: say
+that `<slug>` was closed on the date in its `- Closed:` line, and that follow-up work is a new
+initiative with its own slug whose design links `docs/aics/<slug>/` as its starting point. No skill
+edits or deletes a closed initiative's files. The one exception is the `## Superseded` line that
+`/arcdlc:aic` appends to its `CLOSED.md` when another initiative's design reverses it.
+
 ## Argument: document format(s)
 
 The optional **second** positional argument selects the format (the first is the slug above). Resolve

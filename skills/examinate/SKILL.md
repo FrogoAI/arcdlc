@@ -55,6 +55,12 @@ listing the existing initiatives under `docs/aics/` — never guess. If the name
 not exist yet (a fresh audit, e.g. `mdca-audit`), confirm the slug with the user and create
 `docs/aics/<slug>/`.
 
+**A closed initiative is final.** If `docs/aics/<slug>/CLOSED.md` exists, stop and change nothing: say
+that `<slug>` was closed on the date in its `- Closed:` line, and that follow-up work is a new
+initiative with its own slug whose design links `docs/aics/<slug>/` as its starting point. No skill
+edits or deletes a closed initiative's files. The one exception is the `## Superseded` line that
+`/arcdlc:aic` appends to its `CLOSED.md` when another initiative's design reverses it.
+
 ## In a workspace
 
 The working directory is a workspace when it is not a git work tree and `git -C docs rev-parse

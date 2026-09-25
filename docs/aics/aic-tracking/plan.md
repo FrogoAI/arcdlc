@@ -133,7 +133,7 @@ Decision: [ADR-0028](../../adr/0028-a-finished-initiative-is-closed-in-place.md)
   - GIVEN the four files WHEN the line holding `A closed initiative is final` is extracted from each with `grep` and compared with `diff` THEN all four are identical.
   - GIVEN the change WHEN `go test ./internal/bundle/...` runs THEN it passes.
 - References: `docs/aics/aic-tracking/aic.md`, `docs/adr/0028-a-finished-initiative-is-closed-in-place.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### TRK-6: Teach `/arcdlc:aic` to read closed designs and record a reversal in their `CLOSED.md`
 
