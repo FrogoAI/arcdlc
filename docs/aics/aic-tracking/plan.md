@@ -57,7 +57,7 @@ Decision: [ADR-0028](../../adr/0028-a-finished-initiative-is-closed-in-place.md)
   - GIVEN a temp root with `docs/aics/open/aic.md` and `docs/aics/done/aic.md` plus `docs/aics/done/CLOSED.md` WHEN `runSync` writes `AGENTS.md` THEN the block holds the `open` bullet, no `done` bullet, and the `1 closed initiative:` line; and `runSync` with `check` true right after returns 0; checked by a new `TestRunSyncSkipsClosed` in `cmd/arctool/main_test.go`.
   - GIVEN the change WHEN `go build ./...`, `go test ./...`, `go vet ./...` and `gofmt -l .` run THEN all pass and gofmt prints nothing; `go run ./cmd/arctool version` prints `arctool 0.21.0`.
 - References: `docs/aics/aic-tracking/aic.md`, `docs/adr/0002-registry-sync-via-marker-blocks.md`, `internal/registry/registry.go`, `cmd/arctool/main.go`.
-- Status: TODO.
+- Status: DONE.
 
 ### TRK-3: Create the `/arcdlc:close` skill and register it as the twelfth skill
 

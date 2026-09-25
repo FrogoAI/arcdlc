@@ -225,6 +225,50 @@ func TestRunSync(t *testing.T) {
 	}
 }
 
+func TestRunSyncSkipsClosed(t *testing.T) {
+	root := t.TempDir()
+	aics := filepath.Join(root, "docs", "aics")
+	agents := filepath.Join(root, "AGENTS.md")
+
+	mkInit := func(slug, title, summary string) {
+		dir := filepath.Join(aics, slug)
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		body := "# " + title + "\n\n> " + summary + "\n"
+		if err := os.WriteFile(filepath.Join(dir, "aic.md"), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	mkInit("open", "Open Initiative", "still going")
+	mkInit("done", "Done Initiative", "finished")
+	if err := os.WriteFile(filepath.Join(aics, "done", "CLOSED.md"), []byte("- Closed: 2026-01-01\n- Outcome: shipped\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if code := runSync(aics, []string{agents}, false, io.Discard, io.Discard); code != 0 {
+		t.Fatalf("sync exit=%d, want 0", code)
+	}
+	b, err := os.ReadFile(agents)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := string(b)
+	if !strings.Contains(got, "[Open Initiative]") {
+		t.Errorf("registry missing open bullet:\n%s", got)
+	}
+	if strings.Contains(got, "[Done Initiative]") {
+		t.Errorf("registry should not list the closed initiative:\n%s", got)
+	}
+	if !strings.Contains(got, "1 closed initiative: run `arctool status`, or see `CLOSED.md` in each folder.") {
+		t.Errorf("registry missing closed count line:\n%s", got)
+	}
+
+	if code := runSync(aics, []string{agents}, true, io.Discard, io.Discard); code != 0 {
+		t.Fatalf("--check after write exit=%d, want 0 (not idempotent)", code)
+	}
+}
+
 func TestRunSyncHTMLOnlyInitiative(t *testing.T) {
 	// An initiative whose only architecture document is HTML (written by
 	// /arcdlc:aic <slug> arc42:html) must still reach the registry: scanInitiatives
