@@ -32,6 +32,7 @@ Every decision that was hard, surprising, or expensive to reverse. Newest last.
 | 0026 | [A workspace keeps its docs in a sibling repository named `docs`](0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md) | Accepted |
 | 0027 | [The template is the interview agenda](0027-the-template-is-the-interview-agenda.md) | Accepted |
 | 0028 | [A finished initiative is closed in place with a `CLOSED.md` note](0028-a-finished-initiative-is-closed-in-place.md) | Accepted |
+| 0029 | [A finding is filed as a blocked task at the end of the plan](0029-a-finding-is-filed-as-a-blocked-task-at-the-end-of-the-plan.md) | Accepted |
 
 A decision that changes an earlier one carries `Amends` or `Supersedes` in its header, and the
 earlier record points forward. Nothing here is deleted: a superseded ADR is how you find out why the

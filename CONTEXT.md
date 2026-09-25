@@ -60,6 +60,12 @@ skills, `arctool`, ADRs, and architecture documents.
   pin and above the question, and `/arcdlc:plan` writes it only when the engineer asked for that task
   to run there. `arctool next --json` returns it as `executor`. See
   [ADR-0025](docs/adr/0025-a-task-pins-its-executor-tier-with-an-executor-key.md).
+- **Finding** — a defect, risk or inconsistency an `/arcdlc:execute` executor sees in files it read
+  for its task, that its own task does not cover and that does not stop its task reaching `DONE`. A
+  problem that stops the task is not a finding: it is a `BLOCKED` question or defect, as before. The
+  executor files a finding as a task block appended to the end of the same `plan.md`, with
+  `- Status: BLOCKED — found during <TASK-ID>: <reason>.`, through `arctool add`. At the end of the run
+  `/arcdlc:execute` takes each one to the engineer. Designed in `docs/aics/findings/`.
 - **Plan contract** — the task-block format defined in `skills/plan/references/plan-format.md`,
   parsed mechanically by `internal/plan`.
 - **Slot permutation** — the semantics of `arctool order`. The named tasks keep the positions they

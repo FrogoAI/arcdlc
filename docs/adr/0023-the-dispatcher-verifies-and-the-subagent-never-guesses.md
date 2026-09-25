@@ -5,6 +5,8 @@
 - Initiative: none (bundle-wide, changes `/arcdlc:execute` orchestrator mode)
 - Builds on: [ADR-0021](0021-a-planned-task-must-be-mechanical.md) (tasks are mechanical) and
   [ADR-0019](0019-the-executor-tier-is-asked-for-not-guessed.md) (the tier is asked for)
+- Amended by: [ADR-0029](0029-a-finding-is-filed-as-a-blocked-task-at-the-end-of-the-plan.md), which
+  files an executor's findings as `BLOCKED` tasks reviewed at the end of the run.
 
 ## Context
 

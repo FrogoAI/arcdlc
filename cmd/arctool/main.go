@@ -1,7 +1,8 @@
 // Command arctool is the deterministic companion for the ArcDLC plan
 // (docs/aics/<slug>/plan.md). It covers the full plan lifecycle: read commands
 // (validate, next, show, list), status mutation (take, done, block, todo),
-// re-ordering (order), archive, the code comment sweep (scan), and version. Initiative selection is mandatory
+// appending a task block (add), re-ordering (order), archive, the code comment
+// sweep (scan), and version. Initiative selection is mandatory
 // and explicit: pass
 // --aic <slug> or --plan PATH. There is no auto-detect; with neither flag arctool
 // lists the initiatives under docs/aics/ and exits 2.
@@ -25,7 +26,7 @@ import (
 	"github.com/FrogoAI/arcdlc/internal/scan"
 )
 
-const version = "0.21.0"
+const version = "0.22.0"
 
 // aicsDir is the root directory under which each initiative gets its own folder
 // (docs/aics/<slug>/, holding plan.md, gap.md, comments.md, plan-archive.md).
@@ -42,6 +43,8 @@ usage:
   arctool status [--json]   every initiative under docs/aics/ with its phase: designing, in progress, ready to close, closed
   arctool take|done|todo <id> [--force] [--aic SLUG | --plan PATH]   flip status (TODO->TAKEN->DONE / release)
   arctool block  <id> [-m reason] [--force] [--aic SLUG | --plan PATH]   mark BLOCKED
+  arctool add    [--aic SLUG | --plan PATH] < block.md   append one task block to the end of the plan
+                 a BLOCKED block is a finding: reason "found during <ID>: ...", ID <ID>-F<n>
   arctool order  <id> <id> [<id>…] [--dry-run] [--aic SLUG | --plan PATH]   re-order task blocks
                  slot permutation: named tasks swap among the positions they already hold
                  T1 T2 T3 + "order T3 T1 T2" -> T3 T1 T2; a task you do not name never moves
@@ -99,6 +102,8 @@ func main() {
 		os.Exit(cmdStatus(os.Args[2:]))
 	case "take", "done", "block", "todo":
 		os.Exit(cmdMutate(os.Args[1], os.Args[2:]))
+	case "add":
+		os.Exit(cmdAdd(os.Args[2:]))
 	case "order":
 		os.Exit(cmdOrder(os.Args[2:]))
 	case "validate":
@@ -522,6 +527,74 @@ func cmdMutate(cmd string, args []string) int {
 		return 4
 	}
 	fmt.Printf("%s %s\n", target, id)
+	return 0
+}
+
+// cmdAdd parses add's flags and reads the one task block to append from
+// standard input. It takes no positional argument: the block comes from
+// stdin, never from the command line.
+func cmdAdd(args []string) int {
+	fs := flag.NewFlagSet("add", flag.ContinueOnError)
+	planFlag := fs.String("plan", "", "explicit plan path (overrides --aic)")
+	aicFlag := fs.String("aic", "", "initiative slug under docs/aics/")
+	if err := fs.Parse(args); err != nil || fs.NArg() != 0 {
+		fmt.Fprintln(os.Stderr, "usage: arctool add [--aic SLUG | --plan PATH] < block.md")
+		return 2
+	}
+	return cmdAddFrom(os.Stdin, *planFlag, *aicFlag)
+}
+
+// cmdAddFrom implements cmdAdd against r instead of os.Stdin, so a test can
+// pass a strings.Reader. It resolves the plan, reads one task block from r,
+// loads the sibling plan-archive.md's task IDs (a missing archive means
+// none), and appends the block through (*plan.Plan).Append, writing the
+// result atomically only when Append accepts it.
+func cmdAddFrom(r io.Reader, planFlag, aicFlag string) int {
+	planPath, code := resolvePlan(aicsDir, planFlag, aicFlag)
+	if code != 0 {
+		return code
+	}
+	p, code := loadPlan(planPath)
+	if code != 0 {
+		return code
+	}
+
+	input, err := io.ReadAll(r)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "arctool: cannot read standard input: %v\n", err)
+		return 4
+	}
+
+	archivePath := filepath.Join(filepath.Dir(planPath), "plan-archive.md")
+	var archiveIDs []string
+	switch ab, err := os.ReadFile(archivePath); {
+	case err == nil:
+		for _, t := range plan.Parse(ab).Tasks {
+			archiveIDs = append(archiveIDs, t.ID)
+		}
+	case os.IsNotExist(err):
+		// no archive beside the plan: no archived IDs to check against.
+	default:
+		fmt.Fprintf(os.Stderr, "arctool: cannot read %s: %v\n", archivePath, err)
+		return 4
+	}
+
+	out, id, err := p.Append(input, archiveIDs)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "arctool: %v\n", err)
+		var ae *plan.AddError
+		if errors.As(err, &ae) && ae.Kind == plan.AddSelfCheck {
+			fmt.Fprintln(os.Stderr, "arctool: nothing written")
+			return 5
+		}
+		return 1
+	}
+
+	if err := atomicWrite(planPath, out); err != nil {
+		fmt.Fprintf(os.Stderr, "arctool: write %s: %v\n", planPath, err)
+		return 4
+	}
+	fmt.Printf("added %s to %s\n", id, planPath)
 	return 0
 }
 

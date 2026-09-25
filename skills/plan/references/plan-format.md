@@ -1,6 +1,6 @@
 # Plan Task Authoring Guide
 
-**Reviewed**: 2026-09-19
+**Reviewed**: 2026-09-25
 
 This guide defines the `docs/aics/<slug>/plan.md` task format. The plan is an executable queue: `/arcdlc:execute` (or
 any compatible runner) picks tasks off it mechanically, so the format is a contract, not a style preference.
@@ -157,6 +157,29 @@ The executor transitions status as follows:
    `BLOCKED` with a one-line reason naming the failing criterion, instead of leaving `TAKEN` behind.
 6. One task per session/commit; repeats from step 1 for the next task.
 
+### Findings
+
+An executor that sees a problem outside its task, in a file it read that its own task does not cover,
+files it as an ordinary task block appended to the end of the plan, never inside another block. Its
+status line is `- Status: BLOCKED — found during <TASK-ID>: <reason>.` (the `—` is the separator
+`arctool block` writes). Its ID is `<TASK-ID>-F<n>`, counting from 1 (`INIT-4-F1`, `INIT-4-F2`). It
+carries `WHAT`, `WHERE` with `file:line`, `WHY`, one runnable `Acceptance` check, and `References`,
+and no `HOW`: an executor that already knew the fix would be designing, not finding.
+
+It is appended with `arctool add --aic <slug> < block.md`, which refuses a block breaking any of
+these rules with exit 1 and writes nothing. By hand only when `arctool` is absent.
+
+The dispatcher reviews every finding at the end of the run and writes one of three verdicts into its
+own reason with `arctool block <id> -m`:
+
+- `found during <TASK-ID>: sharpen: <answer>`, when `/arcdlc:plan` turns it into a mechanical task.
+- `found during <TASK-ID>: redesign: <answer>`, when it moves the design and goes to `/arcdlc:aic`.
+- `found during <TASK-ID>: dismiss: <answer>`, when `/arcdlc:plan` deletes the block.
+
+A finding the engineer releases unchanged is simply `TODO` again: `arctool todo <id>`.
+
+See [ADR-0029](../../../docs/adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-end-of-the-plan.md).
+
 Because `Acceptance` lives inside the task block, `/arcdlc:archive` carries it verbatim into
 `docs/aics/<slug>/plan-archive.md` — the acceptance criteria become the durable record of what "done" meant.
 
@@ -230,7 +253,8 @@ Use the register as the evidence, and `plan.md` as the executable queue — both
    loudly where a guess passes silently.
 10. Do not place executor instructions inside `plan.md`; update this file instead. The one thing a
     task may tell the executor about itself is its tier, on an `Executor` line, and only because the
-    engineer asked for it.
+    engineer asked for it. The one text write the executor itself makes to `plan.md` is appending a
+    finding through `arctool add`.
 
 ## Minimal Example
 

@@ -86,6 +86,41 @@ sync` runs from the workspace root and writes through the root links.
 - Also read `docs/aics/<slug>/gap.md` if present (evidence register, possibly produced by `/arcdlc:examinate`),
   `CONTEXT.md`, and `docs/adr/` for constraints.
 
+## Step 1.5 — Act on reviewed findings
+
+Runs only when `docs/aics/<slug>/plan.md` already exists: a first run has no plan yet, so there is
+nothing to act on. A finding is a `BLOCKED` task block an `/arcdlc:execute` run filed at the end of the
+plan (`references/plan-format.md` § Findings). The engineer reviews it in that skill's findings-review
+step and writes a verdict into the block's reason. This step is where `/arcdlc:plan` carries out that
+verdict, because it is the only skill that owns plan text.
+
+Find every finding: `arctool list --status BLOCKED --aic <slug>`, then `arctool show <id> --json` for
+each ID to read its `- Status:` reason. Only a reason starting with `found during` is a finding; any
+other `BLOCKED` block is an ordinary blocked task and this step leaves it alone. Act on the verdict word
+that follows the source task ID in the reason:
+
+- **`found during <X>: sharpen: <answer>`.** Write `<answer>` into the block's `HOW` key as the
+  engineer's decision, then rework the rest of the block, `WHAT`, `WHERE`, `Acceptance`, the same way
+  Step 2 requires of any task, until it passes the mechanical check of Step 3. Keep the task's ID and
+  its place at the end of the plan. Set its status to `TODO` with `arctool todo <id>`; the next
+  `/arcdlc:execute` run picks it up like any other queued task.
+- **`found during <X>: dismiss: <answer>`.** Delete the whole block from `plan.md`. The commit that
+  carries the deletion states `Dismissed <id>: <answer>` in its body, so the reason survives in history
+  even though the block does not.
+- **`found during <X>: redesign: <answer>`.** Leave the block exactly as it is. Turning this into a task
+  is not this skill's call: it waits for `/arcdlc:aic <slug>`, which is where a decision that moves the
+  design belongs.
+- **A finding with no verdict yet**, a reason of `found during <X>: <reason>` carrying none of the three
+  words above. Leave it exactly as it is: it is still waiting for the review step in `/arcdlc:execute`,
+  not for this skill.
+
+A `sharpen` answer is not always enough on its own to make its block mechanical. When acting on it still
+leaves a decision open, that is a design-readiness gap like any other, and Step 2.4 handles it the same
+way: never force a half-sharpened block through.
+
+Run `arctool validate --strict --aic <slug>` once, after acting on every finding and before moving to
+Step 2, so a block this step touched is checked the same way a newly written one is.
+
 ## Step 2 — Decompose into tasks
 
 **Every task must be mechanical.** Write for an executor that has no context but the block and the

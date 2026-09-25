@@ -1099,3 +1099,108 @@ func TestCmdNextJSONCarriesTheExecutorPin(t *testing.T) {
 		t.Errorf("a task without a pin must carry executor \"\", got %#v (present=%v)", v, ok)
 	}
 }
+
+// addBlock renders one well-formed task block that Append's strict checks
+// accept, for use as `arctool add`'s stdin.
+func addBlock(id, status string) string {
+	return "### " + id + ": Fix x\n" +
+		"- WHAT: Fix x.\n" +
+		"- WHERE: `internal/plan/add.go:10`.\n" +
+		"- WHY: it breaks y.\n" +
+		"- Acceptance: GIVEN x WHEN y THEN z; checked by `TestFoo`.\n" +
+		"- References: `internal/plan/add.go`.\n" +
+		"- Status: " + status + ".\n"
+}
+
+// runAdd calls cmdAddFrom with both standard streams captured and stdin
+// supplied from a string, so a test never touches the real os.Stdin.
+func runAdd(t *testing.T, stdin, planFlag, aicFlag string) (code int, stdout, stderr string) {
+	t.Helper()
+	stderr = captureStderr(t, func() {
+		stdout = captureStdout(t, func() { code = cmdAddFrom(strings.NewReader(stdin), planFlag, aicFlag) })
+	})
+	return code, stdout, stderr
+}
+
+func TestCmdAddAppends(t *testing.T) {
+	path := orderPlan(t, "A-1")
+	code, stdout, stderr := runAdd(t, addBlock("A-1-F1", "BLOCKED — found during A-1: needs a decision"), path, "")
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
+	}
+	if want := "added A-1-F1 to " + path; !strings.Contains(stdout, want) {
+		t.Errorf("stdout missing %q:\n%s", want, stdout)
+	}
+
+	var listCode int
+	listOut := captureStdout(t, func() { listCode = cmdList([]string{"--plan", path}) })
+	if listCode != 0 {
+		t.Fatalf("list exit=%d", listCode)
+	}
+	if !strings.Contains(listOut, "A-1-F1") || !strings.Contains(listOut, "BLOCKED") {
+		t.Errorf("list output missing A-1-F1 as BLOCKED:\n%s", listOut)
+	}
+}
+
+func TestCmdAddRefusesAndLeavesTheFileAlone(t *testing.T) {
+	path := orderPlan(t, "A-1")
+	before := readFile(t, path)
+	code, _, stderr := runAdd(t, addBlock("A-1", "TODO"), path, "")
+	if code != 1 {
+		t.Fatalf("exit=%d, want 1 (stderr: %s)", code, stderr)
+	}
+	if after := readFile(t, path); after != before {
+		t.Fatalf("a refused add rewrote the file:\n%s", after)
+	}
+	if stderr == "" {
+		t.Error("a refused add said nothing on stderr")
+	}
+}
+
+func TestCmdAddReadsTheArchive(t *testing.T) {
+	dir := t.TempDir()
+	planPath := filepath.Join(dir, "plan.md")
+	if err := os.WriteFile(planPath, []byte("# plan\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	archiveContent := "# Archive\n\n### A-0: Task A-0\n- WHAT: x.\n- WHERE: internal/a.go\n" +
+		"- WHY: y.\n- References: `a`.\n- Status: DONE.\n"
+	if err := os.WriteFile(filepath.Join(dir, "plan-archive.md"), []byte(archiveContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	code, stdout, stderr := runAdd(t, addBlock("A-0-F1", "BLOCKED — found during A-0: needs a decision"), planPath, "")
+	if code != 0 {
+		t.Fatalf("exit=%d, want 0 (stderr: %s)", code, stderr)
+	}
+	if want := "added A-0-F1 to " + planPath; !strings.Contains(stdout, want) {
+		t.Errorf("stdout missing %q:\n%s", want, stdout)
+	}
+
+	code, _, stderr = runAdd(t, addBlock("A-0", "TODO"), planPath, "")
+	if code != 1 {
+		t.Fatalf("adding archived ID A-0 exit=%d, want 1 (stderr: %s)", code, stderr)
+	}
+}
+
+func TestCmdAddUsage(t *testing.T) {
+	var code int
+	stderr := captureStderr(t, func() { code = cmdAdd([]string{"unexpected"}) })
+	if code != 2 {
+		t.Fatalf("exit=%d, want 2 (stderr: %s)", code, stderr)
+	}
+	if !strings.Contains(stderr, "usage: arctool add") {
+		t.Errorf("stderr missing usage line:\n%s", stderr)
+	}
+}
+
+func TestUsageDocumentsAdd(t *testing.T) {
+	if version != "0.22.0" {
+		t.Errorf("version = %q, want %q", version, "0.22.0")
+	}
+	help := fmt.Sprintf(usage, version)
+	want := "arctool add    [--aic SLUG | --plan PATH] < block.md"
+	if !strings.Contains(help, want) {
+		t.Errorf("usage missing %q:\n%s", want, help)
+	}
+}
