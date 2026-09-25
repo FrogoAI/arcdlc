@@ -39,6 +39,7 @@ usage:
   arctool next   [--json] [--aic SLUG | --plan PATH]         first TODO block (exit 3 if none)
   arctool show   <id> [--json] [--aic SLUG | --plan PATH]    one block by task ID
   arctool list   [--status TODO|TAKEN|DONE|BLOCKED] [--json] [--aic SLUG | --plan PATH]
+  arctool status [--json]   every initiative under docs/aics/ with its phase: designing, in progress, ready to close, closed
   arctool take|done|todo <id> [--force] [--aic SLUG | --plan PATH]   flip status (TODO->TAKEN->DONE / release)
   arctool block  <id> [-m reason] [--force] [--aic SLUG | --plan PATH]   mark BLOCKED
   arctool order  <id> <id> [<id>…] [--dry-run] [--aic SLUG | --plan PATH]   re-order task blocks
@@ -93,6 +94,8 @@ func main() {
 		os.Exit(cmdShow(os.Args[2:]))
 	case "list":
 		os.Exit(cmdList(os.Args[2:]))
+	case "status":
+		os.Exit(cmdStatus(os.Args[2:]))
 	case "take", "done", "block", "todo":
 		os.Exit(cmdMutate(os.Args[1], os.Args[2:]))
 	case "order":

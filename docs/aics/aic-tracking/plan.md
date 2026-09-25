@@ -37,7 +37,7 @@ Decision: [ADR-0028](../../adr/0028-a-finished-initiative-is-closed-in-place.md)
   - GIVEN the same fixture WHEN `runStatus` runs with `asJSON` false THEN the first line starts with `SLUG` and the `d` line contains `2026-09-25` and `stopped`; checked by `TestRunStatusText`.
   - GIVEN the change WHEN `go test ./cmd/arctool/...`, `go vet ./...` and `gofmt -l .` run THEN tests pass, vet is clean and gofmt prints nothing.
 - References: `docs/aics/aic-tracking/aic.md`, `cmd/arctool/main.go`, `internal/plan/query.go`.
-- Status: TODO.
+- Status: DONE.
 
 ### TRK-2: Leave closed initiatives out of the registry and count them in one line
 
