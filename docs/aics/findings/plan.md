@@ -123,7 +123,7 @@ Decision: [ADR-0029](../../adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-
   - GIVEN the change WHEN `grep -n 'found during' skills/execute/SKILL.md` runs THEN at least one match lies inside `## Verification phase`.
   - GIVEN the change WHEN `go test ./internal/bundle/...` and the `run` scripts of the CI steps `Check the writing-style block is the same in every skill` and `Check the virtues block is the same in every skill` in `.github/workflows/ci.yml` are run from the repository root THEN all three exit 0.
 - References: `docs/aics/findings/aic.md`, `docs/adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-end-of-the-plan.md`, `docs/adr/0023-the-dispatcher-verifies-and-the-subagent-never-guesses.md`, `skills/execute/SKILL.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### FND-6: Teach `/arcdlc:plan` to act on reviewed findings
 

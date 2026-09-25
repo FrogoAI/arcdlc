@@ -463,9 +463,12 @@ Run it whenever the whole queue was worked (no task-ID argument), in three parts
 **1. The queue really is finished.** Cheap, and it catches a crashed session that a passing test suite
 never would:
 
-- `arctool list --status TAKEN` and `--status BLOCKED` are both empty. A leftover `TAKEN` is a subagent
-  that died mid-task; its work is half-applied and no commit exists. Reset it with `arctool todo <id>` and
-  report, do not quietly finish it yourself.
+- `arctool list --status TAKEN` is empty. A leftover `TAKEN` is a subagent that died mid-task; its work
+  is half-applied and no commit exists. Reset it with `arctool todo <id>` and report, do not quietly
+  finish it yourself.
+- `arctool list --status BLOCKED` is empty except for blocks whose reason starts with `found during`:
+  list them with `arctool list --status BLOCKED` and read each reason with `arctool show <id>`. A
+  `BLOCKED` block with any other reason is still a stopped task and is reported as today.
 - Every `DONE` task has a commit. `git log --oneline` should show one per task, and the count should match.
 - `arctool validate --strict --aic <slug>` exits 0. This also re-checks the source stamp, so a design that
   moved during a long run surfaces here rather than never.
@@ -492,9 +495,34 @@ looks like when neither has a test for the other's assumption.
   back to `/arcdlc:plan <slug>`. Do not paper over it with a fix-up commit: the plan produced two tasks
   that disagree, and the next run of it will do so again.
 
+## Review the findings (last step of the run)
+
+Verification checked whether the tasks agree with each other; this step is where the engineer sees what
+the tasks noticed along the way. It runs at the end of a whole-queue run and at the end of a single-task
+run: a finding can be filed even when only one task ran.
+
+List every `BLOCKED` block whose reason starts with `found during`: `arctool list --status BLOCKED`,
+then `arctool show <id>` to read each one's reason. For each finding, grill the engineer one question
+per turn, per "When a task is unclear, never guess" above, carrying a recommended answer, and offer four:
+
+- **Release**, when the finding is already mechanical: `arctool todo <id>`. The next run executes it, never this one.
+- **Sharpen**, when `/arcdlc:plan` needs to turn it into a mechanical task: `arctool block <id> -m "found during <TASK-ID>: sharpen: <answer>"`.
+- **Redesign**, when it moves the design: `arctool block <id> -m "found during <TASK-ID>: redesign: <answer>"`, and suggest `/arcdlc:aic <slug>`.
+- **Dismiss**, when it is not worth doing: `arctool block <id> -m "found during <TASK-ID>: dismiss: <answer>"`.
+
+`<TASK-ID>` is the one already in the finding's reason, not this run's task. Each `block` or `todo` call
+is a status write: in a workspace it gets its own hub commit, per `## In a workspace` step 2; in a single
+repository, commit `plan.md` once after the whole review, message `chore(<slug>): record the findings
+review`, plus `#AI-assisted`. When any verdict is `sharpen` or `dismiss`, end the report by telling the
+engineer to run `/arcdlc:plan <slug>`.
+
+A non-interactive run asks nothing: it leaves every finding `BLOCKED` and lists each one, ID and reason,
+first in its report.
+
 ## Report
 
-Summarize per task: what changed, validation results, and the commit. List every decision you grilled
+List every finding filed this run: its ID, its reason, and the verdict it got in the findings review,
+before the per-task summary. Summarize per task: what changed, validation results, and the commit. List every decision you grilled
 for, marked as a plan defect or as something reality forced, so the planner can harden the blocks that
 were not mechanical. Name the executor tier the run used and where
 it came from: the `CONTEXT.md` pin, the engineer's answer this run, or in-session because there was no tier to
