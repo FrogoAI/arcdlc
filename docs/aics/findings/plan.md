@@ -41,7 +41,7 @@ Decision: [ADR-0029](../../adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-
   - GIVEN a plan whose last byte is not a newline WHEN `Append` runs THEN `out` starts with the original bytes and the new heading starts on its own line after one blank line; checked by `TestAppendNoTrailingNewline`.
   - GIVEN the change WHEN `go test ./internal/plan/...`, `go vet ./...` and `gofmt -l .` run THEN tests pass, vet is clean and gofmt prints nothing.
 - References: `docs/aics/findings/aic.md`, `docs/adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-end-of-the-plan.md`, `internal/plan/order.go`, `internal/plan/mutate.go`, `internal/plan/validate.go`.
-- Status: TODO.
+- Status: DONE.
 
 ### FND-2: Add the `arctool add` command
 
