@@ -28,9 +28,9 @@ Decided questions and the reasoning behind them live in [docs/backlog.md](docs/b
 before re-opening one:
 
 <!-- arcdlc:initiatives:begin -->
-- [ArcDLC Findings: an executor files what it saw outside its task as a blocked task](docs/aics/findings/aic.md) — Let an `/arcdlc:execute` executor append a problem it noticed outside its task to the end of `plan.md` as a `BLOCKED` ta…
+_none_
 
-2 closed initiatives: run `arctool status`, or see `CLOSED.md` in each folder.
+3 closed initiatives: run `arctool status`, or see `CLOSED.md` in each folder.
 <!-- arcdlc:initiatives:end -->
 
 ## Build, test, verify

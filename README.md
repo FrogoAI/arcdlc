@@ -166,9 +166,9 @@ instead of guessing. Task IDs need only be unique within one initiative's plan, 
 initiative with its phase.
 
 <!-- arcdlc:initiatives:begin -->
-- [ArcDLC Findings: an executor files what it saw outside its task as a blocked task](docs/aics/findings/aic.md) — Let an `/arcdlc:execute` executor append a problem it noticed outside its task to the end of `plan.md` as a `BLOCKED` ta…
+_none_
 
-2 closed initiatives: run `arctool status`, or see `CLOSED.md` in each folder.
+3 closed initiatives: run `arctool status`, or see `CLOSED.md` in each folder.
 <!-- arcdlc:initiatives:end -->
 
 ArcDLC is a universal delivery tool: it builds **applications** and authors **policies**, and both
