@@ -83,7 +83,7 @@ Decision: [ADR-0029](../../adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-
   - GIVEN the change WHEN `grep -n 'arctool add' skills/plan/references/plan-format.md` runs THEN it prints at least two lines.
   - GIVEN the change WHEN `grep -n '^\*\*Reviewed\*\*: 2026-09-25' skills/plan/references/plan-format.md` runs THEN it prints one line, and `go test ./internal/bundle/...` passes.
 - References: `docs/aics/findings/aic.md`, `docs/adr/0029-a-finding-is-filed-as-a-blocked-task-at-the-end-of-the-plan.md`, `skills/plan/references/plan-format.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### FND-4: Teach the executor to file findings in `/arcdlc:execute`
 
