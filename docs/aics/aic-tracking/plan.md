@@ -151,7 +151,7 @@ Decision: [ADR-0028](../../adr/0028-a-finished-initiative-is-closed-in-place.md)
   - GIVEN the file WHEN `grep -n "Superseded in part by" skills/aic/SKILL.md` and `grep -n "/arcdlc:close" skills/aic/SKILL.md` run THEN both print at least one line.
   - GIVEN the change WHEN `go test ./internal/bundle/...` runs THEN it passes.
 - References: `docs/aics/aic-tracking/aic.md`, `skills/aic/SKILL.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### TRK-7: Update `AGENTS.md`, `README.md`, `CONTEXT.md`, the `init` chain line and the bundle version
 
