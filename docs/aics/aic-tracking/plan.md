@@ -90,7 +90,7 @@ Decision: [ADR-0028](../../adr/0028-a-finished-initiative-is-closed-in-place.md)
   - GIVEN the change WHEN `grep -c close install.sh` and `grep -c 'assist close examinate' .github/workflows/ci.yml` run THEN the first is at least 1 and the second is 4; `shellcheck install.sh` is clean.
   - GIVEN `skills/close/SKILL.md` WHEN read THEN it contains the headings `## Step 1` to `## Step 7`, the strings `- Closed:`, `- Outcome:`, `## Not done`, `## Left open`, `## Documents`, `plan-human.md` and `command -v arctool`; checked with `grep -c`.
 - References: `docs/aics/aic-tracking/aic.md`, `skills/aic/SKILL.md`, `skills/remove/SKILL.md`, `skills/plan/references/plan-format.md`, `docs/adr/0028-a-finished-initiative-is-closed-in-place.md`.
-- Status: TODO.
+- Status: DONE.
 
 ### TRK-4: Rewrite `/arcdlc:remove` to delete a design for good with a reference warning
 

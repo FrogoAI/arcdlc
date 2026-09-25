@@ -37,6 +37,9 @@ once.
 | ask me what I am missing | `grilling` |
 | the plan is getting long | `archive` |
 | clean up the finished tasks | `archive` |
+| we are done with the payments initiative, close it | `close` |
+| wrap up the checkout work | `close` |
+| mark init as finished | `close` |
 | we are done with cursor-support, retire it | `remove` |
 | delete the old plan folder | `remove` |
 | set up arcdlc in this repo | `init` |
