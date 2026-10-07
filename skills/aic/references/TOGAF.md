@@ -46,7 +46,7 @@ from? Who decides that the target state has been reached?
 
 **Ask**: which principle would change the design most if it were dropped, and who can drop it?
 
-Reference Engineering Principles (POL-ENG-001) for technology principles. Add initiative-specific principles here.
+Reference the organization's own engineering principles for technology principles (its policies in `docs/policies/`, or the standard `AGENTS.md` links to). Add initiative-specific principles here.
 
 #### 1.4 Vision Summary
 1-2 paragraph narrative of the target state. Include a high-level ArchiMate motivation diagram if helpful.

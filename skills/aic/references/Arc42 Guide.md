@@ -229,7 +229,7 @@ guidelines, documentation or naming conventions).
 
 | Category | Examples |
 |----------|---------|
-| **Technical** | Must use Go, must run on Kubernetes, must use NATS for internal messaging, must follow Engineering Principles (POL-ENG-001) |
+| **Technical** | Must use Go, must run on Kubernetes, must use NATS for internal messaging, must follow the organization's engineering principles (e.g. `docs/policies/engineering-principles.md`) |
 | **Organizational** | Team size, timeline, budget, skill availability |
 | **Conventions** | API versioning `/v1/`, branch naming `epic/{TASK}_{TITLE}`, Twelve-Factor compliance |
 

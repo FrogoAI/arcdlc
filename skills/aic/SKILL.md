@@ -144,6 +144,9 @@ Read what already exists so the interview builds on it instead of repeating it:
   designs related to this one; they are references and are never edited.
 - `CONTEXT.md` / `CONTEXT-MAP.md` (domain glossary)
 - `docs/adr/` (prior decisions)
+- `docs/policies/` and its index (the organization's own engineering principles and standards). These
+  are the technical constraints the design must follow. When there are none, ask the engineer where
+  the organization's principles live before falling back on the bundled example
 - `AGENTS.md`, `CLAUDE.md`, `README.md` of the target project
 - The relevant template(s) from the table above — for `arc42`, both files, starting with `Arc42 Guide.md`
 

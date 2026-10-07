@@ -273,7 +273,7 @@ type OrderPlaced struct {
 - **Past tense** names: `OrderPlaced`, `PaymentCompleted`, `ShiftTraded`. Never `PlaceOrder` (that's a command).
 - Published **after** the state change is persisted. Listeners react to facts that have already happened.
 - Carry just enough data for consumers to act without round-tripping back. Resist the urge to dump entire entities.
-- Events cross **bounded contexts** via NATS subjects. Use the standard subject naming convention (see Engineering Principles POL-ENG-001).
+- Events cross **bounded contexts** via NATS subjects. Use the standard subject naming convention (the one the organization's engineering principles set, e.g. in `docs/policies/`).
 - Versioned at the wire format level. A breaking change is a new event (`OrderPlacedV2`), not a silent reshape.
 
 **Outbox pattern (when delivery guarantees matter):**

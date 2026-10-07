@@ -55,12 +55,17 @@ Ask:
 
 ### 🟢 Technical Constraints
 
-Any technical requirement that restricts the software architects' freedom of decision (at least
-follow `Engineering Principles.md` in the policy skill's references: `../../policy/references/`,
-flat installs `../../arcdlc-policy/references/`).
+Any technical requirement that restricts the software architects' freedom of decision. The
+organization's own engineering principles bind first: its policies in `docs/policies/`, or the
+standard the project's `AGENTS.md` or `README.md` links to. Name the document and its ID here. Only
+when the organization has none, the worked example `Engineering Principles.md` in the policy skill's
+references (`../../policy/references/`, flat installs `../../arcdlc-policy/references/`) is a
+starting point, and only if the engineer adopts it.
 
 Ask:
 
+- Which engineering principles or standards does the organization hold this work to, and where are
+  they written down?
 - Which platform, language, transport and stores already run and cannot be changed here?
 - Which conventions does the work inherit: API versioning, naming, Twelve-Factor?
 - Which of these constraints can be challenged, and by whom?
