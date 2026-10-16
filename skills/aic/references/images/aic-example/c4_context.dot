@@ -1,0 +1,14 @@
+digraph C4_Context {
+    graph [label="System Context: Policy Platform" labelloc=t fontsize=18 fontname="Arial"
+           rankdir=TB pad=0.4 nodesep=0.8 ranksep=0.9]
+    node [shape=box style="filled,rounded" fontname="Arial" fontsize=11 margin="0.25,0.12"]
+    edge [fontname="Arial" fontsize=10 color="#555555"]
+
+    author [label="Policy Author\n[Person]\n\nWrites the fraud rules\nfor a client" fillcolor="#08427B" fontcolor=white]
+    platform [label="Policy Platform\n[Software System]\n\nStores policies and scores\nevents against them" fillcolor="#1168BD" fontcolor=white]
+    client [label="Client Platform\n[External System]\n\nSends events, acts\non the score" fillcolor="#999999" fontcolor=white]
+
+    author -> platform [label="  builds and branches\n  triggers (web UI)"]
+    client -> platform [label="  event to score\n  (HTTPS)"]
+    platform -> client [label="  score and fired\n  triggers"]
+}

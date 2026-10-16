@@ -22,14 +22,16 @@ Plain English: short sentences, common words, one idea each, active voice, a nam
   "leverage", "robust", "seamless". No warm-up opener, no praise, no restating the request back, no
   invented summary. Concrete names, numbers, and paths, never "significantly improves performance".
 - **Be direct, name the thing.** The fewest words that carry the fact. Cut empty intensifiers:
-  `honestly`, `genuinely`, `truly`, `clearly`, `obviously`. Never a metaphor, a narrative line, or a
-  question. Every title that names work is a verb plus its object: "Implement the alerter service".
+  `honestly`, `genuinely`, `truly`, `clearly`, `obviously`. Never a metaphor or a rhetorical
+  question: a worked example with real values beats both. Every title that names work is a verb plus
+  its object: "Implement the alerter service".
 - **No long dashes.** A full stop, a comma, a colon, or brackets instead of `—` and `–`. Hyphens,
   flags, and slugs stay. A format contract that requires `—` wins.
 - **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
   once in plain words, then use it. Simple English is about the sentence, not the term.
 - **Shape.** In chat, bullets rather than paragraphs: what you did, what you found, what comes next.
-  In files, vary sentence length so the prose does not read as a list.
+  In files, vary sentence length and form, and draw what a picture shows better, so a document never
+  reads like a list or a form to fill in.
 
 Nothing is dropped to save space, in a reply as much as in a file. Never leave out a rule, path,
 decision, trade-off, open question, or acceptance criterion because the answer is getting long: if it

@@ -1,6 +1,6 @@
 # Writing Style: documents a person wants to read
 
-**Reviewed**: 2026-09-16
+**Reviewed**: 2026-10-16
 
 ## What this is
 
@@ -29,8 +29,8 @@ Three rules stand above the rest:
 
 1. Write plain English. Short sentences, common words, a named actor.
 2. Never trade content for simplicity. Plain words, full content, always.
-3. Be direct and short. The fewest words that carry the fact. Never a metaphor, a narrative line,
-   or a question.
+3. Be direct and short. The fewest words that carry the fact. Never a metaphor or a rhetorical
+   question.
 
 ## Scope: what this does not touch
 
@@ -115,15 +115,19 @@ These patterns read as generated even when every word is fine:
 
 ## Be direct
 
-Never a metaphor, a narrative line, or a question.
+Never a metaphor or a rhetorical question.
 
 A turn of phrase makes the reader decode instead of read. It passes every ban list on this page and
 still fails, because the words are common and the sentence is short. The test is not vocabulary. The
 test is whether the reader knows the thing after one read.
 
 - No metaphor for a technical fact. A service does not wake up. It starts.
-- No narrative line. Do not walk the reader through a story. Name the subject, state the fact.
-- No question, in a title or in a line. Answer it instead.
+- No story about the work. Do not tell the reader how the team got here. Name the subject, state the
+  fact.
+- A walk-through of one concrete case is not a story, and it is often the clearest way to explain
+  how something works: "An event on which Trigger 1 fires runs Trigger 5 and never touches Trigger 4."
+- No question, in a title or in a line. Answer it instead. A question a reader would ask ("why not
+  Redis?") may be answered, in a statement.
 - No teaser, no headline. Nothing here needs a hook.
 
 **Say what must happen.** A task, a policy, and an acceptance criterion state the required behaviour
@@ -187,6 +191,61 @@ Good: The parser is strict: every task needs an Acceptance section.
 
 Hyphens are untouched. `install-agnostic`, `--strict`, `arcdlc-plan`, `2026-09-04` are all fine.
 So is a long dash inside a line a format contract owns (see "Scope" above).
+
+## Write prose, not a form
+
+Rules against filler, followed alone, produce a different failure: every item cut to the same
+mould, every paragraph a stack of labelled fields (Context, Decision, Justification, Trade-offs),
+every sentence the same clipped length. Nothing in it is wrong, and it still reads like a machine
+filled in a form. Engineers stop reading it.
+
+- **Let the content pick the form.** A choice with one reason is one sentence. A comparison is a
+  table. A rule with four cases is a table. A process is a diagram. A mechanism is a worked example
+  with real values. Labelled fields are for a template that defines them, such as an ADR or a plan
+  task, never for the body of an architecture document.
+- **Draw before you describe.** A paragraph that explains structure, order, branching, or who hands
+  what to whom is a diagram waiting to be drawn. Draw it, and keep only the text the picture cannot
+  carry.
+- **Two items in a row may look different.** One hypothesis may be a sentence and the next a short
+  paragraph with a table. Sameness is not consistency.
+
+```
+Bad:  H2. Linked-list ordering.
+      - Context: triggers are ordered by an integer.
+      - Decision: replace Order with NextTriggerID.
+      - Justification: fewer updates on a move.
+      - Trade-offs: a migration is needed.
+
+Good: H2. Order is a linked list, not a number. Each trigger points to the next one, so dragging a
+      trigger changes three links instead of renumbering every trigger after it. The cost is a
+      one-off migration from Order to NextTriggerID.
+```
+
+## Cut the water
+
+Water is text that is correct and still carries nothing the reader needs. It makes a document long
+and hides the parts that matter. Cut:
+
+- A sentence that restates its heading. Under "Quality Goals", "These are the quality goals" is
+  water.
+- A rule the repository already states elsewhere, copied in. Link it.
+- The reason for a choice nobody would question. "We use the existing database because it already
+  runs" is water when there was no other candidate.
+- The history of the work: who changed their mind, which round settled what, what was tried first.
+  That is what ADRs, commit messages and git history are for.
+- An explanation of a term every reader on the team knows.
+- A list of everything considered, when one rejected option is the only one a reader would ask
+  about.
+
+## Give the reason when it is not plain
+
+A reason is not decoration, and it is not mandatory everywhere either.
+
+- **A choice carries its reason** unless any engineer on the team would know it. "Policies are
+  published one per message, because NATS refuses a message over 8 MB" earns its clause.
+- **A goal or a constraint is stated, not argued.** It is an input: the reason it exists usually lies
+  outside the document. Add one line only when it is not plain and the author wants it there.
+- **Put the reason where the reader decides.** Next to the choice, not in a separate section.
 
 ## Vary the rhythm
 
@@ -265,9 +324,13 @@ Run this on every document, every time. It takes a minute.
 6. Check the terms: is every acronym expanded once, and every domain term defined once?
 7. Read each title alone, with the body covered. Can you say what changes and where? If not, rename
    it.
-8. Try to delete a word from each sentence. If nothing breaks, it was tone, not fact.
-9. Last read: would a new engineer act on this document without asking a question that the
-   document should have answered?
+8. Try to delete a word from each sentence. If nothing breaks, it was tone, not fact. Then try to
+   delete each sentence: if the reader loses nothing, it was water.
+9. Look for a form: the same labelled fields repeated for item after item. Rewrite each item in the
+   shape its content needs.
+10. Find each paragraph that explains structure, order, or branching. Is there a diagram for it?
+11. Last read: would a new engineer act on this document without asking a question that the
+    document should have answered?
 
 A rough grep for the mechanical part, run from the repo root:
 

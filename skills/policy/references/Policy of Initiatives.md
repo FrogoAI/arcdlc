@@ -49,14 +49,14 @@ This policy applies to all full-time employees across all departments and locati
 
 2. **Technical Initiative Initiation**:
    * Any team member may propose a Technical Initiative.
-   * The Initiator must use the AIC Template, but is only required to complete **Business Context** and **Architectural Hypotheses**.
+   * The Initiator must use the AIC Template, but is only required to complete **Business Context** and the **Solution** part (**Architectural Hypotheses** and **Solution Design**).
    * The Business Case section must read: `Not applicable: no direct business impact.` Every other section is completed, deferred, or marked not applicable as described in Stage 2.
 
 ### Stage 2: Architectural Definition
 
 1. Upon initiation, the initiative is assigned to an Architect (CTO, Software Architect, or Cloud Architect).
-2. The Architect is responsible for completing the technical sections of the AIC, with a primary focus on **Architectural Hypotheses** and **Technical Challenges & Risks**.
-3. The Architect must supplement the 'Architectural Hypotheses' section with relevant diagrams. It is strongly recommended to use standard notations, such as the [C4 model](https://c4model.com/diagrams), [BPMN](https://en.wikipedia.org/wiki/Business_Process_Model_and_Notation), [UML](https://en.wikipedia.org/wiki/Unified_Modeling_Language), or [flowcharts](https://en.wikipedia.org/wiki/Flowchart), where applicable.
+2. The Architect is responsible for completing the technical sections of the AIC, with a primary focus on the **Solution** part and **Technical Challenges & Risks**.
+3. The Architect must draw the AIC's diagrams in standard notations. Three are expected in every AIC: a [C4](https://c4model.com/diagrams) system context diagram, a C4 container diagram, and a [flowchart](https://en.wikipedia.org/wiki/Flowchart) or [BPMN](https://en.wikipedia.org/wiki/Business_Process_Model_and_Notation) diagram of the main process. A missing one carries `Not applicable: <reason>`. [UML](https://en.wikipedia.org/wiki/Unified_Modeling_Language) and further diagrams are added where they explain the design better than text.
 4. The Initiator may define the vision and initial proposal, but the final architectural decision rests with the assigned Architect.
 5. Every section of the AIC ends one of three ways, chosen by the Architect: answered; deferred, listed under **Open questions** with who will answer it and by which Initiative Stage; or one line, `Not applicable: <reason>`. No section is deleted. `/arcdlc:aic <slug>` walks the sections as its interview and can be re-run at any stage to answer a deferred question, reopen a section, or add detail.
 

@@ -1,6 +1,12 @@
 # AIC Template
 
-**Reviewed**: 2026-09-23
+**Reviewed**: 2026-10-16
+
+The AIC follows the [Architecture Inception Canvas](https://canvas.arc42.org/architecture-inception-canvas)
+by arc42. It has three parts: **Goals** (what should the software do), **Solution** (how we achieve
+it) and **Assessment** (how we judge where we stand). A finished AIC is the one source of truth for
+the architect, the engineer and the product owner. [AIC Example.md](AIC Example.md) shows a finished
+one.
 
 Each section says what to write, then lists the questions `/arcdlc:aic` asks to fill it. The
 questions are the interview agenda, so an engineer thinking about one side of the design does not
@@ -9,11 +15,32 @@ deferred, with an entry under Open questions naming who answers it and by which 
 `Not applicable: <reason>`. Never delete a section: a reader cannot tell a missing answer from an
 answer of "no". The Ask lines guide the interview and are not copied into the document.
 
+## How a finished AIC reads
+
+- **A picture before text.** Where a diagram can show it, draw it, and let the text add only what
+  the picture cannot: the reason, a number, an edge case. Three diagrams are expected in every AIC: a
+  C4 system context diagram in Business Context, a C4 container diagram in Solution Design, and a
+  flowchart or a BPMN diagram of the main process in Solution Design. BPMN is the right choice when
+  the process passes between people or systems. A missing expected diagram needs a
+  `Not applicable: <reason>` line, like a missing section. How to draw them:
+  [Diagram Conventions.md](Diagram Conventions.md) and [C4.md](C4.md).
+- **It holds the current design only.** A rejected option, a superseded hypothesis and the history of
+  the interview are not in the body. They live in the ADRs and in git history. The body may name a
+  rejected option in one line, when a reader would otherwise ask "why not X?".
+- **Goals are short.** The Goals part states the problem in the words of the business, as the canvas
+  asks. Reasoning, numbers and mechanics belong in Solution.
+- **Solution choices carry their reason.** Every choice in Solution says why, unless the reason is
+  plain to any engineer on the team.
+- **No water.** No sentence that restates its heading, copies a rule the repository already states
+  elsewhere (link it instead), explains a choice nobody would question, or narrates how the interview
+  went.
+
 ## [Goals](https://canvas.arc42.org/architecture-inception-canvas)
 
 ### 🟢 Business Case
 
-Brief description of the business case or economic driver behind the software system.
+The economic driver: why someone pays for this. Every team member should be able to explain it in
+two sentences. A few sentences, with a number when one exists.
 
 Ask:
 
@@ -23,30 +50,50 @@ Ask:
 
 ### 🟢 Functional Overview
 
-The most important functional requirements at a high level: the 5 to 10 that shape the architecture,
-not the backlog.
+What would be printed on the product box: the business value the software delivers and its
+higher-level business functions, in three to ten bullets a product owner would sign. One line,
+`Not on the box:`, may name what is left out on purpose.
+
+It does not hold endpoints, field names, data structures, algorithms, UI widgets, or anything still
+undecided. Mechanics go to Solution; an undecided point goes to Open questions. The test for each
+line: would the person paying for it understand it and care?
 
 Ask:
 
-- What does the system do, in one sentence, without naming a technology?
-- What is in the first stage, what is left out on purpose, and what does leaving it out cost?
-- What condition opens the next stage?
+- What business value does the software deliver?
+- What are the higher-level business functions, the ones you would print on the box?
+- What is left off the box on purpose, for now?
 
 ### 🟢 Quality Goals
 
-The three most essential [quality goals](https://docs.arc42.org/section-1/) for the architecture, which have the highest priority for the most important stakeholders.
-Take each goal from the ISO 25010 list and give it a scenario that can be measured.
+The three most important quality goals of the most important stakeholders, highest first. Name each
+with one attribute from [ISO/IEC 25010](https://iso25000.com/index.php/en/iso-25000-standards/iso-25010)
+or the [arc42 quality model (Q42)](https://quality.arc42.org/), in one to three words. Every team
+member should know them, because they shape the architecture.
+
+No explanation by default. Add one line of reason to a goal only when the choice is not plain and
+the architect asks for it. Numbers, scenarios and measurements belong in Solution Design, where the
+design proves them.
+
+```markdown
+1. Usability
+2. Safety: a wrong branch silently changes production decisions.
+3. Maintainability
+```
+
+A quality goal is an input, and the design may show it was the wrong one. A goal picked as
+"performance" on first look is not a driver once the design finds 17 requests per second and one
+database query each. Replace it in place, then ask about each decision that rested on it.
 
 Ask:
 
-- How many requests or user actions per second today, how many at the design target, and where do
-  both numbers come from?
-- What is the end-to-end latency target, split per step, and which step is the slowest?
-- What measurement proves each goal is met, and what number counts as a pass?
+- Which three qualities, if they failed, would hurt the main stakeholder most? Offer your three.
+- Is any of the three not plain to the team, so that it needs one line of reason?
 
 ### 🟢 Organizational Constraints
 
-Any organizational requirement that limits the software architects' freedom of decision.
+What limits the freedom to decide, from outside the code: time, money, team, partners, and a required
+method or process (for example Scrum or SAFe). Bullets. A reason only when it is not plain.
 
 Ask:
 
@@ -55,12 +102,13 @@ Ask:
 
 ### 🟢 Technical Constraints
 
-Any technical requirement that restricts the software architects' freedom of decision. The
-organization's own engineering principles bind first: its policies in `docs/policies/`, or the
-standard the project's `AGENTS.md` or `README.md` links to. Name the document and its ID here. Only
-when the organization has none, the worked example `Engineering Principles.md` in the policy skill's
-references (`../../policy/references/`, flat installs `../../arcdlc-policy/references/`) is a
-starting point, and only if the engineer adopts it.
+Technical limits the design must accept: mandated platforms, languages and stores, and the
+organization's own engineering principles. The principles bind first: its policies in
+`docs/policies/`, or the standard the project's `AGENTS.md` or `README.md` links to. Name the
+document and its ID and link it; do not copy its rules here. Only when the organization has none,
+the worked example `Engineering Principles.md` in the policy skill's references
+(`../../policy/references/`, flat installs `../../arcdlc-policy/references/`) is a starting point,
+and only if the engineer adopts it.
 
 Ask:
 
@@ -72,7 +120,10 @@ Ask:
 
 ### 🟢 Business Context
 
-Keep your system under construction as a black box, separate from all its communication partners. Communication partners include neighboring external systems and users (including charts, if needed).
+The system as a black box among its users and neighbouring systems, and what flows between them in
+domain words. Draw it as a C4 system context diagram (`images/c4_context.png`). Under the diagram,
+write a line for a partner only where the picture leaves something out: what the partner must
+change on its side, or that it can be slow, absent, or controlled by an attacker.
 
 Ask:
 
@@ -81,12 +132,42 @@ Ask:
 - What must each partner change on its side, and how much work is it?
 - Which partners can an attacker control? Which can be slow, or absent, without warning?
 
-## [Architectural Hypotheses](https://canvas.arc42.org/architecture-inception-canvas)
+## [Solution](https://canvas.arc42.org/architecture-inception-canvas)
+
+How the goals are met. It starts with the few hypotheses the design rests on, then shows the design
+built on them in as much depth as an engineer needs to build it and a product owner needs to trust
+it.
 
 ### 🔵 Architectural Hypotheses
 
-Resulting in architectural hypotheses and essential, expensive, large-scale, or risky architectural decisions, including justifications (include charts if needed).
-Number every hypothesis and include: Context, Decision, Justification, and Trade-offs.
+The large-scale assumptions and choices the design rests on, from what the team knows today:
+expensive to reverse, risky, or shaping everything else. Usually two to five. Number them H1, H2, and
+so on. Each says what is assumed or chosen, why, and what it costs, in the form that reads best for
+that one: a sentence, a short paragraph, or a table. There is no fixed set of labelled fields. Link
+the ADR of a hard one. Only hypotheses that stand are listed: a rejected or superseded one leaves the
+document, and its record is the ADR.
+
+Ask:
+
+- What does the design assume that, if it turned out false, would change it?
+- Which choice is expensive to reverse, and what did it win against?
+
+### 🔵 Solution Design
+
+The design itself: how it works, why, what changes, where, and when. Lead with the C4 container
+diagram and the flowchart or BPMN diagram of the main process. Then add what this initiative needs
+to be understood, for example:
+
+- a worked example with real values,
+- the algorithm, or the maths behind a limit or a size,
+- a state machine, a sequence or a data model diagram,
+- what changes in each service, and the API changes, in a short table,
+- the numbers that prove the quality goals,
+- the order of delivery: stages, migrations, feature switches, how to roll back.
+
+Say what is chosen, then why. A rejected alternative gets one line only when a reader would ask about
+it; the full comparison is in the ADR. The order of delivery is an outline, not a task list:
+`/arcdlc:plan` turns it into tasks.
 
 Ask, one theme at a time:
 
@@ -104,15 +185,17 @@ Ask, one theme at a time:
   it go back? Which metrics and alert values tell the person woken at 03:00 what broke?
 - **Security.** Who may call what, how is the caller authenticated, what is encrypted, and which data
   is personal?
-- **Decisions.** Which options lost, and by what criterion? Where does a rejected option stay
-  reachable later without a rewrite?
+- **Delivery.** In what order does it ship, what has to migrate, and how is a stage rolled back?
 
 ## [Assessment](https://canvas.arc42.org/architecture-inception-canvas)
 
 ### 🔴 Technical Challenges & Risks
 
-Identified current known challenges and technical risks, highest first, each with probability, impact
-and the measure that reduces it.
+Known challenges and technical risks, highest first, each with likelihood, impact and the
+mitigation the engineer chose. A table reads best once there are more than two.
+
+| Risk | Likelihood | Impact | Mitigation |
+| --- | --- | --- | --- |
 
 Ask:
 

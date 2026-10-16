@@ -1,0 +1,31 @@
+digraph Flow {
+    graph [label="Flow: Execute a policy, skipping branches that cannot fire" labelloc=t fontsize=16 fontname="Arial"
+           rankdir=TB pad=0.4 nodesep=0.5 ranksep=0.45]
+    node [shape=box style=filled fillcolor="#B5FFFF" fontname="Arial" fontsize=10]
+    edge [fontname="Arial" fontsize=9]
+
+    start   [label="Event to score" shape=oval fillcolor="#C9E7B7"]
+    layer   [label="Take next layer"]
+    item    [label="Take next trigger\nin the layer"]
+    branch  [label="In a Then or\nElse branch?" shape=diamond fillcolor="#FFFFB5"]
+    skip    [label="Parent fired matches\nthe branch?" shape=diamond fillcolor="#FFFFB5"]
+    exec    [label="Execute trigger;\nrecord if it fired"]
+    skipped [label="Skip it and\nits whole branch" fillcolor="#FFB5B5"]
+    more_i  [label="More triggers\nin layer?" shape=diamond fillcolor="#FFFFB5"]
+    more_l  [label="More layers?" shape=diamond fillcolor="#FFFFB5"]
+    apply   [label="Apply scores of fired\ntriggers, in tree order"]
+    done    [label="Return score" shape=oval fillcolor="#C9E7B7"]
+
+    start -> layer -> item -> branch
+    branch -> exec [label="no (top level)"]
+    branch -> skip [label="yes"]
+    skip -> exec [label="yes"]
+    skip -> skipped [label="no"]
+    exec -> more_i
+    skipped -> more_i
+    more_i -> item [label="yes"]
+    more_i -> more_l [label="no"]
+    more_l -> layer [label="yes"]
+    more_l -> apply [label="no"]
+    apply -> done
+}

@@ -28,14 +28,16 @@ Plain English: short sentences, common words, one idea each, active voice, a nam
   "leverage", "robust", "seamless". No warm-up opener, no praise, no restating the request back, no
   invented summary. Concrete names, numbers, and paths, never "significantly improves performance".
 - **Be direct, name the thing.** The fewest words that carry the fact. Cut empty intensifiers:
-  `honestly`, `genuinely`, `truly`, `clearly`, `obviously`. Never a metaphor, a narrative line, or a
-  question. Every title that names work is a verb plus its object: "Implement the alerter service".
+  `honestly`, `genuinely`, `truly`, `clearly`, `obviously`. Never a metaphor or a rhetorical
+  question: a worked example with real values beats both. Every title that names work is a verb plus
+  its object: "Implement the alerter service".
 - **No long dashes.** A full stop, a comma, a colon, or brackets instead of `—` and `–`. Hyphens,
   flags, and slugs stay. A format contract that requires `—` wins.
 - **Domain terms stay.** Provenance, idempotent, backpressure, this project's own words: define each
   once in plain words, then use it. Simple English is about the sentence, not the term.
 - **Shape.** In chat, bullets rather than paragraphs: what you did, what you found, what comes next.
-  In files, vary sentence length so the prose does not read as a list.
+  In files, vary sentence length and form, and draw what a picture shows better, so a document never
+  reads like a list or a form to fill in.
 
 Nothing is dropped to save space, in a reply as much as in a file. Never leave out a rule, path,
 decision, trade-off, open question, or acceptance criterion because the answer is getting long: if it
@@ -83,7 +85,7 @@ the template from `references/` next to this file:
 
 | Argument | Output file | Template in `references/` |
 | --- | --- | --- |
-| *(none)* or `aic` | `docs/aics/<slug>/aic.md` | `AIC Template.md` |
+| *(none)* or `aic` | `docs/aics/<slug>/aic.md` | `AIC Template.md`, with `AIC Example.md` (a finished AIC to match) and `Diagram Conventions.md` (how to draw its diagrams). |
 | `arc42` | `docs/aics/<slug>/arc42.md` | `Arc42 Guide.md` (start here — the full instruction) and `arc42-template-EN.md` (the upstream Markdown skeleton it tells you to copy). |
 | `arc42:html` | `docs/aics/<slug>/arc42.html` | `Arc42 Guide.md` and `arc42-template.html` (the upstream Asciidoctor skeleton, copied with `cp`, never read into context). Follow the guide's *Procedure — HTML output*. |
 | `tsc` | `docs/aics/<slug>/tsc.md` | `Tech Stack Canvas.md` |
@@ -148,7 +150,8 @@ Read what already exists so the interview builds on it instead of repeating it:
   are the technical constraints the design must follow. When there are none, ask the engineer where
   the organization's principles live before falling back on the bundled example
 - `AGENTS.md`, `CLAUDE.md`, `README.md` of the target project
-- The relevant template(s) from the table above — for `arc42`, both files, starting with `Arc42 Guide.md`
+- The relevant template(s) from the table above — for `arc42`, both files, starting with `Arc42 Guide.md`;
+  for `aic`, the template, the example and `Diagram Conventions.md`
 
 ## Step 2 — MANDATORY: grill the design
 
@@ -200,7 +203,8 @@ one the request came from, and loses the rest: the numbers, the failure cases, t
   the request does not say.
 - **Write each section into the document the moment it closes**, before the next question: the
   answer, the deferral under Open questions, the `Not applicable` line, the risk with its chosen
-  mitigation. Nothing goes in that the engineer did not answer. On a new initiative, create the file
+  mitigation, and the section's diagram, compiled and looked at. Nothing goes in that the engineer
+  did not answer. On a new initiative, create the file
   from the template at the first closed section, with the `# <Title>` and `> ` summary as far as they
   are known; on an existing one, amend it. Either way the rules of Step 3 govern every write. With
   several formats, write the section into each file that holds it.
@@ -239,8 +243,8 @@ holds two kinds of content, and they change differently:
   matching sections of the other formats. They describe the problem as it is known today, and
   gathering data is expected to change them. When the interview changes one, rewrite it in place:
   no reversal note, git history keeps the old text.
-- **Decisions: the hypotheses and everything built on them.** AIC Architectural Hypotheses and Risks,
-  arc42 §4 to §11, the ADRs. These are amended and superseded as the rules below say.
+- **Decisions: the hypotheses and everything built on them.** The AIC Solution part (Architectural
+  Hypotheses and Solution Design) and Risks, arc42 §4 to §11, the ADRs. These are amended and superseded as the rules below say.
 - **A changed input puts the decisions on it in question.** Name each hypothesis or ADR that rests on
   the input you changed and ask about it, one at a time: still holds, amend, or reverse. Never keep
   one silently, never change one silently.
@@ -256,8 +260,10 @@ For both kinds:
   - Recorded as an ADR: write the new ADR, set `- Supersedes:` on it, and set the old one's
     `- Status:` to `Superseded by [ADR-NNNN](...)`. Never leave two ADRs that disagree:
     `/arcdlc:examinate` audits against `docs/adr/` and will file gaps for the decision you reversed.
-  - Recorded only in the document body: replace the text, and note the reversal and its reason in the
-    document, so the next reader does not re-litigate it.
+  - Recorded only in the document body: replace the text. The body shows the current design only,
+    so the old hypothesis leaves it. When the reason for the reversal would stop the next reader
+    re-opening it, write an ADR for it; otherwise the commit message carries it. A rejected option
+    may stay as one line where a reader would otherwise ask "why not X?".
   - Recorded in `CONTEXT.md`: a term whose meaning changed is redefined in place, not duplicated.
   - Recorded in a closed initiative's design: append one line to that initiative's `CLOSED.md` under
     a `## Superseded` heading, creating the heading at the end of the file when missing. The line is
@@ -286,14 +292,27 @@ For a new document:
 ### Check coverage before handover
 
 Walk the template once more against the document, new or amended. Every section must hold content,
-a `Not applicable: <reason>` line, or an Open questions entry with an owner and a phase, and every
-risk must carry a mitigation the engineer chose. A section or a risk with none was skipped: ask about
+a `Not applicable: <reason>` line, or an Open questions entry with an owner and a phase, every
+expected diagram must be there or carry its own `Not applicable` line, and every risk must carry a
+mitigation the engineer chose. A section or a risk with none was skipped: ask about
 it now, one question at a time, before Step 4. The check counts, it never grades an answer. List the deferred items in your closing report.
+
+### Draw before you write
+
+A diagram goes in wherever it can show what a paragraph would describe: structure, order, branching,
+state, who hands what to whom. The AIC expects three: a C4 system context diagram in Business
+Context, a C4 container diagram and a flowchart or BPMN diagram of the main process in Solution
+Design. Each one missing needs a `Not applicable: <reason>` line. Draw in Graphviz DOT by the rules
+in `references/Diagram Conventions.md` and `references/C4.md`, keep the `.dot` source next to the
+PNG in `docs/aics/<slug>/images/`, then open the PNG and look at it: a diagram that compiles can
+still be unreadable, and that file's checklist says what to fix. The text under a diagram adds only
+what the picture cannot show.
 
 ### Write it for a human reader (every format, Markdown and HTML)
 
-The bar is a new engineer understanding it without asking anyone. `## Talk simple, write like a human`
-applies to every section of every format here. Four points matter most in an architecture document:
+The bar is a new engineer understanding it without asking anyone, and a product owner trusting it.
+`## Talk simple, write like a human` applies to every section of every format here. These points
+matter most in an architecture document:
 
 - Say the thing, then the reason, in that order: "We keep sessions in Postgres because we already
   run it and the volume is small."
@@ -303,9 +322,36 @@ applies to every section of every format here. Four points matter most in an arc
   define it once, here or in `CONTEXT.md`. Never swap it for a vaguer everyday word.
 - The `# <Title>` and `> ` summary follow the same rules. The summary is one plain sentence telling a
   stranger what this initiative does, not a compressed spec.
+- **Goals stay short, Solution carries the reasons.** Functional Overview is the product box, in
+  business words. Quality Goals are three attribute names; one gets a line of reason only when it is
+  not plain and the engineer asks for it. Numbers and mechanics belong in Solution Design, and every
+  choice there says why unless any engineer on the team would know.
+- **The body holds the current design only.** No rejected hypothesis, no superseded option, no "this
+  round", "reversed", or "settled on <date>": the ADRs and git history keep that.
+- **No water.** Cut a sentence that restates its heading, copies a rule the repository already states
+  (link it), explains a choice nobody would question, or walks through how the interview went.
+- **Vary the form.** A hypothesis, a decision, or an explanation is written in whatever shape reads
+  best: a sentence, a paragraph, a table, a worked example with real values. Never a fixed stack of
+  labelled fields repeated for every item; that is what makes a document read like a form.
+  `references/AIC Example.md` shows the target.
 
 Run the pre-save check in `../grilling/references/Writing Style.md` (flat installs:
 `../arcdlc-grilling/references/Writing Style.md`) before handing the draft over.
+
+### Test the draft on a fresh reader
+
+You wrote the document, so you cannot see what it leaves out. Before Step 4, give it to a reader with
+no context. When you can spawn a subagent, spawn one with only the document's path and its images,
+and ask it to return a list, quoting each line it means:
+
+- what it could not understand without asking someone,
+- a choice in Solution whose reason is missing and not plain,
+- a sentence that carries no fact (water), or a passage a diagram would show better,
+- a diagram it could not read, or one that disagrees with the text.
+
+Without a subagent, do the same read yourself, section by section, as a new engineer would. Fix what
+the list finds; a point only the engineer can settle is one grilling question, one per turn. Do not
+paste the list into the document.
 
 ## Step 4 — Register and hand off
 

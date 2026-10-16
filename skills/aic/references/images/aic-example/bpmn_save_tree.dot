@@ -1,0 +1,92 @@
+digraph BPMN_SaveTree {
+    graph [label="BPMN: Save a trigger tree" labelloc=t fontsize=16 fontname="Arial"
+           rankdir=LR newrank=true pad=0.4 nodesep=0.35 ranksep=0.45]
+    node [fontname="Arial" fontsize=10]
+    edge [fontname="Arial" fontsize=9]
+
+    // Lane anchors: an invisible node at the first and last rank of every lane makes
+    // each lane span the full width, so lanes read as bands, not as ragged boxes.
+    node [shape=point style=invis width=0 height=0 label=""]
+
+    // ---- Pool: Policy Author (a person, with its own process) ----
+    subgraph cluster_author {
+        label="Policy Author" labeljust=l fontsize=12 style=solid color="#333333" penwidth=1.5
+        a_l0; a_l9
+        node [style=filled fixedsize=false]
+        a_start [label="" xlabel="Rule needs\na branch" shape=circle width=0.35 fixedsize=true fillcolor="#C9E7B7"]
+        a_drag  [label="Drag trigger into\nThen or Else" shape=box style="rounded,filled" fillcolor="#B5FFFF"]
+        a_save  [label="Press Save" shape=box style="rounded,filled" fillcolor="#B5FFFF"]
+        a_wait  [label="" xlabel="Result\nreceived" shape=doublecircle width=0.3 fixedsize=true fillcolor="#FFFFFF"]
+        a_gw    [label="X" shape=diamond width=0.45 height=0.45 fixedsize=true fillcolor="#FFFFB5"]
+        a_fix   [label="Fix the tree" shape=box style="rounded,filled" fillcolor="#B5FFFF"]
+        a_end   [label="" xlabel="Live" shape=circle width=0.35 fixedsize=true penwidth=4 fillcolor="#C9E7B7"]
+        a_start -> a_drag -> a_save -> a_wait -> a_gw
+        a_gw -> a_end [label="saved"]
+        a_gw -> a_fix [label="errors"]
+        a_fix -> a_save [constraint=false]
+    }
+
+    // ---- Pool: Policy Platform, one lane per container ----
+    subgraph cluster_platform {
+        label="Policy Platform" labeljust=l fontsize=12 style=solid color="#333333" penwidth=1.5
+
+        subgraph cluster_ui {
+            label="Back Office UI" labeljust=l fontsize=11 style=dashed color="#777777"
+            u_l0; u_l9
+            node [style=filled]
+            u_start [label="" xlabel="Save\nreceived" shape=circle width=0.35 fixedsize=true fillcolor="#C9E7B7"]
+            u_send  [label="Send whole tree" shape=box style="rounded,filled" fillcolor="#B5FFFF"]
+            u_show  [label="Show result" shape=box style="rounded,filled" fillcolor="#B5FFFF"]
+            u_end   [label="" shape=circle width=0.35 fixedsize=true penwidth=4 fillcolor="#C9E7B7"]
+        }
+        subgraph cluster_api {
+            label="Policy API" labeljust=l fontsize=11 style=dashed color="#777777"
+            p_l0; p_l9
+            node [style=filled]
+            p_val   [label="Validate tree:\nno cycle, depth <= 60" shape=box style="rounded,filled" fillcolor="#B5FFFF"]
+            p_gw    [label="X" shape=diamond width=0.45 height=0.45 fixedsize=true fillcolor="#FFFFB5"]
+            p_save  [label="Save tree" shape=box style="rounded,filled" fillcolor="#B5FFFF"]
+            p_err   [label="Return errors" shape=box style="rounded,filled" fillcolor="#FFB5B5"]
+            p_pub   [label="Publish policy" shape=box style="rounded,filled" fillcolor="#B5FFFF"]
+            p_db    [label="Policy DB" shape=cylinder fillcolor="#FFFFFF" width=0.8]
+        }
+        subgraph cluster_eng {
+            label="Scoring Engine" labeljust=l fontsize=11 style=dashed color="#777777"
+            e_l0; e_l9
+            node [style=filled]
+            e_load  [label="Load policy,\nrebuild layers" shape=box style="rounded,filled" fillcolor="#B5FFFF"]
+            e_end   [label="" xlabel="Scoring\nwith branches" shape=circle width=0.35 fixedsize=true penwidth=4 fillcolor="#C9E7B7"]
+        }
+
+        // Sequence flows (solid) stay inside one pool and may cross its lanes.
+        u_start -> u_send -> p_val -> p_gw
+        p_gw -> p_save [label="valid"]
+        p_gw -> p_err  [label="invalid"]
+        p_save -> p_pub -> e_load -> e_end
+        p_save -> u_show
+        p_err  -> u_show
+        u_show -> u_end
+        // Data association (dotted): the task writes the store, no control passes.
+        p_save -> p_db [style=dotted arrowhead=open]
+    }
+
+    // Message flows (dashed, open circle to open arrow) only ever cross pools.
+    a_save -> u_start [style=dashed arrowtail=odot arrowhead=empty dir=both color="#555555"]
+    u_show -> a_wait  [style=dashed arrowtail=odot arrowhead=empty dir=both color="#555555"]
+
+    // Lane order top to bottom, and full-width bands.
+    { rank=same; e_l0 -> p_l0 -> u_l0 -> a_l0 [style=invis] }
+    { rank=same; e_l9 -> p_l9 -> u_l9 -> a_l9 [style=invis] }
+    a_l0 -> a_start [style=invis]
+    u_l0 -> u_start [style=invis]
+    p_l0 -> p_val   [style=invis]
+    e_l0 -> e_load  [style=invis]
+    a_end -> a_l9   [style=invis]
+    u_end -> u_l9   [style=invis]
+    p_db  -> p_l9   [style=invis]
+    e_end -> e_l9   [style=invis]
+
+    // Keep the author's wait opposite the message that ends it.
+    { rank=same; a_save; u_start }
+    { rank=same; a_wait; u_show }
+}

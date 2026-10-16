@@ -80,6 +80,14 @@ checks. Do not merge with a red pipeline.
   become gaps `/arcdlc:examinate` files against code nobody wants changed. The sections of the
   template are the interview agenda, each closed as answered, deferred, or not applicable. See
   [ADR-0027](docs/adr/0027-the-template-is-the-interview-agenda.md).
+- **An AIC is drawn first and holds the current design only.** It follows the canvas's Goals,
+  Solution and Assessment. Goals are short: the product box, and three quality goals by name.
+  Solution holds the hypotheses and a Solution Design with diagrams, examples and reasons. Three
+  diagrams are expected in every AIC (C4 context, C4 container, a flowchart or BPMN of the main
+  process), in Graphviz DOT, and each PNG is looked at after it compiles. A reversed hypothesis
+  leaves the body; its reason goes to an ADR or the commit. A fresh reader tests the draft before
+  handover. See [ADR-0030](docs/adr/0030-an-aic-is-drawn-first-in-graphviz-dot.md) and
+  [ADR-0031](docs/adr/0031-an-aic-holds-the-current-design-in-the-canvas-own-terms.md).
 - **Skills must stay install-agnostic.** Every `SKILL.md` must work as a Claude Code plugin command
   (`/arcdlc:<name>`) and as a flat skill (`arcdlc-<name>` on Codex, OpenCode, Cursor, Antigravity).
   Where a skill still reaches across to a sibling, keep both paths (`../grilling/...` and
