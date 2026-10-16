@@ -1,0 +1,25 @@
+digraph C4_Container {
+    graph [label="Container: Policy Platform" labelloc=t fontsize=18 fontname="Arial"
+           rankdir=LR pad=0.4 nodesep=0.6 ranksep=1.0]
+    node [shape=box style="filled,rounded" fontname="Arial" fontsize=11 margin="0.2,0.1"]
+    edge [fontname="Arial" fontsize=10 color="#555555"]
+
+    author [label="Policy Author\n[Person]" fillcolor="#08427B" fontcolor=white]
+    client [label="Client Platform\n[External System]" fillcolor="#999999" fontcolor=white]
+
+    subgraph cluster_platform {
+        label="Policy Platform" style=dashed color="#1168BD" fontname="Arial" fontsize=12
+        ui  [label="Back Office UI\n[Container: web app]\n\nNEW: tree view,\ndrag and drop" fillcolor="#2694AB" fontcolor=white]
+        api [label="Policy API\n[Container: Go]\n\nCHANGED: tree endpoints,\nlinked-list order" fillcolor="#2694AB" fontcolor=white]
+        db  [label="Policy DB\n[Container: PostgreSQL]\n\nPolicies, triggers,\nNext/Then/Else links" fillcolor="#438DD5" fontcolor=white shape=cylinder]
+        bus [label="Message Bus\n[Container: NATS]\n\nOne policy per\nmessage, < 8 MB" fillcolor="#438DD5" fontcolor=white shape=hexagon]
+        eng [label="Scoring Engine\n[Container: Go]\n\nCHANGED: skips branches\nthat cannot fire" fillcolor="#2694AB" fontcolor=white]
+    }
+
+    author -> ui  [label="edits tree"]
+    ui  -> api [label="REST: save\nwhole tree"]
+    api -> db  [label="reads/writes"]
+    api -> bus [label="publish\npolicy"]
+    bus -> eng [label="subscribe\npolicy"]
+    client -> eng [label="event to score"]
+}

@@ -33,6 +33,8 @@ Every decision that was hard, surprising, or expensive to reverse. Newest last.
 | 0027 | [The template is the interview agenda](0027-the-template-is-the-interview-agenda.md) | Accepted |
 | 0028 | [A finished initiative is closed in place with a `CLOSED.md` note](0028-a-finished-initiative-is-closed-in-place.md) | Accepted |
 | 0029 | [A finding is filed as a blocked task at the end of the plan](0029-a-finding-is-filed-as-a-blocked-task-at-the-end-of-the-plan.md) | Accepted |
+| 0030 | [An AIC is drawn first, in Graphviz DOT](0030-an-aic-is-drawn-first-in-graphviz-dot.md) | Accepted |
+| 0031 | [An AIC holds the current design, in the canvas's own terms](0031-an-aic-holds-the-current-design-in-the-canvas-own-terms.md) | Accepted |
 
 A decision that changes an earlier one carries `Amends` or `Supersedes` in its header, and the
 earlier record points forward. Nothing here is deleted: a superseded ADR is how you find out why the

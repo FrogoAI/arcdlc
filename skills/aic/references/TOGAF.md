@@ -364,9 +364,9 @@ Embed in documents: `![Title](images/<name>.png)`
 |--------------|-------------------|----------------------|
 | 1. Architecture Vision | Business Case + Quality Goals | 1. Introduction & Goals |
 | 2. Business Architecture | Business Context | 3.1 Business Context |
-| 3. IS Architecture | Architectural Hypotheses | 5. Building Block View |
+| 3. IS Architecture | Architectural Hypotheses + Solution Design | 5. Building Block View |
 | 4. Technology Architecture | (Technical Constraints) | 7. Deployment View |
 | 5. Opportunities & Solutions | Technical Challenges & Risks | 11. Risks & Tech Debt |
-| 6. Migration Planning | Functional Overview (stages) | - |
+| 6. Migration Planning | Solution Design (delivery order) | - |
 | 7. Implementation Governance | - | 9. Architecture Decisions |
 | 8. Change Management | Open questions | 11. Risks & Tech Debt |
