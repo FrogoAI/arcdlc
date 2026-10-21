@@ -1,151 +1,176 @@
 # Policy of Policies (POL-GOV-001)
 
-**Reviewed**: 2026-09-16
+**Reviewed**: 2026-10-22
 
 ## Purpose
 
-This "Policy of Policies" serves as the single governing document for our entire policy ecosystem. Its purpose is to establish a unified and consistent framework for the creation, review, approval, and management of all organizational policies.
-
-By adhering to this foundational policy, we will:
-
-* Ensure all policies are consistent, aligned with organizational goals, and easy to understand.
-* Foster clarity, accountability, and efficiency across all departments.
-* Minimize the risks associated with inconsistent, contradictory, or outdated policies.
-* Ensure compliance with legal, regulatory, and organizational standards while maintaining operational excellence.
-
----
+This policy sets how every policy in the organization is written, approved, published, changed, and retired. Without it, each policy takes its own shape, nobody can tell which version is in force, and two policies can say different things about the same rule.
 
 ## Policy Statement
 
-All company policies, procedures, and related governance documents **must** be created, reviewed, approved, managed, and retired in accordance with the framework established in this document.
-
-This "Policy of Policies" is the single source of truth for policy governance and supersedes all previous, informal, or department-specific policy creation processes. No new policy or revision to an existing policy is considered valid or effective until it fully complies with the requirements outlined herein.
-
----
+Every policy, procedure, and governance document is created, reviewed, approved, published, changed, and retired as this policy says. A policy or a change that skips these steps is not in force. This policy replaces every earlier, informal, or department-specific way of making policies.
 
 ## Scope
 
-This policy applies to all employees and contractors across the company's departments and locations. It governs the entire lifecycle of all internal policy and procedure documents.
+**Personnel covered**
 
-**Personnel Covered**
+Employees and contractors, unless a policy says otherwise. It bears most directly on anyone who writes, reviews, approves, publishes, or owns a policy.
 
-This policy applies to all company personnel, and bears most directly on anyone who drafts, reviews, approves, implements, or manages a governance document.
+**Documents covered**
 
-**Documents Covered**
-
-This framework governs the creation and management of the following types of internal documents:
-
-* **Vision & Values Documents**: High-level documents defining the company's mission and ethical principles (e.g., Code of Conduct).
-* **Corporate Policies**: Broad, organization-wide policies that address strategic areas.
-* **Functional & Operational Policies**: Policies that govern activities within a specific department or function.
-* **Procedures & SOPs**: Detailed, step-by-step instructions that explain how to implement a policy.
-* **Supporting Documents**: Ancillary materials such as forms, guidelines, and checklists that support procedures.
+* **Vision and values documents:** the company's mission and ethical principles, for example a code of conduct.
+* **Corporate policies:** organization-wide rules on strategic areas.
+* **Functional and operational policies:** rules for one department or function.
+* **Procedures and SOPs:** step-by-step instructions that carry out a policy.
+* **Supporting documents:** forms, guidelines, and checklists that support a procedure.
 
 **Precedence over bundled references**
 
-A policy the organization writes and approves under this framework outranks any reference document
-shipped with a tooling bundle (for ArcDLC: the `references/` folders inside each skill). Bundled
-references are defaults for subjects the organization has not decided yet. Where an approved internal
-policy covers the same subject, it is the normative rule for audits, reviews, and tooling, and the
-bundled reference applies only to what the internal policy leaves unspecified.
+A policy the organization writes and approves under this framework outranks any reference document shipped with a tooling bundle (for ArcDLC: the `references/` folders inside each skill). Bundled references are defaults for subjects the organization has not decided yet. Where an approved internal policy covers the same subject, it is the normative rule for audits, reviews, and tooling, and the bundled reference applies only to what the internal policy leaves unspecified.
 
 **Exclusions**
 
-This policy does not supersede external laws, regulations, or industry standards that govern the organization's activities. All internal documents created under this policy must comply with applicable external legal and regulatory frameworks.
-
----
+This policy does not replace laws, regulations, or external standards. Every policy written under it complies with them.
 
 ## Definitions
 
-* **Policy**: A broad guideline for action that defines the "what" and the "why" of a rule. Policies reflect organizational values and goals.
-* **Procedure**: A document that provides detailed, step-by-step instructions on "how" to carry out a specific action in alignment with a policy.
-* **Policy Owner**: A senior leader or manager who is ultimately accountable for a policy's content, relevance, and effectiveness.
-* **Policy Approver**: The executive, committee, or board member who has the final authority to approve and enact a policy.
-* **Policy Reviewer**: Stakeholders who review draft policies to ensure they are practical, clear, and aligned with business needs.
-* **Policy Writer**: The subject matter expert(s) responsible for creating and revising the content of a policy document.
-* **Policy Administrator**: The individual or team responsible for managing the policy portal, facilitating the lifecycle workflows, and maintaining official records.
-* **Accountable (A)**: The person ultimately responsible for the correct and thorough completion of a task.
-* **Responsible (R)**: The individual(s) who actually completes the task.
-* **Consulted (C)**: People whose opinions are vital to the task, often subject matter experts.
-* **Informed (I)**: Individuals who need to be kept up to date on the progress or completion of a task.
+* **Policy:** a rule that says what we do and why.
+* **Procedure:** step-by-step instructions on how to carry out a policy.
+* **Policy Owner:** the senior leader accountable for a policy's content, relevance, and review.
+* **Policy Approver:** the C-level person with the final authority to approve a policy. Every policy names one.
+* **Policy Reviewer:** a stakeholder who reviews a draft for practicality and clarity. Reviewers are listed in the policy's Stakeholders table.
+* **Policy Writer:** the subject matter expert who writes and revises the text.
+* **Policy Administrator:** the role that keeps the index and reminds Policy Owners when a review is due.
+* **Editorial change:** a change that leaves every rule's meaning as it was: wording, typos, dates, links, formatting, role names.
+* **Rule change:** any change that adds, removes, or changes what a rule requires or allows.
+* **Accountable (A):** the one person who answers for the result of a step.
+* **Responsible (R):** the people who do the step.
+* **Consulted (C):** the people whose input is needed before the step is done.
+* **Informed (I):** the people told about the step's progress or result.
 
----
+Other policies refer to these definitions instead of repeating them.
 
 ## Procedures
 
-The following procedures define the end-to-end lifecycle for managing all company governance documents.
+### Stage 1: Need
 
-**Stage 1: Needs Analysis**
+A new or changed policy starts when someone sees a gap, a new risk, a changed regulation, or a rule that no longer fits. The Policy Writer collects the facts and agrees the objective and the scope with the stakeholders.
 
-The lifecycle begins when a need for a new or revised policy is identified. Regulatory changes, new risks, operational gaps, or strategic shifts can trigger this need. This stage involves research and consultation with stakeholders to define the policy's objectives and scope.
+### Stage 2: Drafting
 
-**Stage 2: Drafting and Creation**
+The Policy Writer drafts the policy from the official template (Policy layout and Policy Template below). The text is plain and direct, in active voice, with a named actor for every rule.
 
-During this stage, the designated Policy Writer drafts the new policy in collaboration with subject matter experts.
+### Policy layout
 
-* Every new policy **must** use the official Policy Template below and **must** contain every section it lists.
-* The document's header **must** include a policy name, author, and creation date. It **must** also include a Unique ID, Status, Effective Date, Approval Date, and Next Review Date.
-* All policies **must** be written in simple, direct language using an active voice. Ambiguous terms, jargon, and passive voice **should** be avoided.
+Every policy has these parts, in this order. Sections are not numbered.
 
-**Stage 3: Review and Approval**
+1. **Title line:** `# <Policy Name> (<Unique ID>)`.
+2. **Header table** with these fields: Policy Name, Unique ID, Status, Policy Owner, Policy Approver, Author, Creation Date, Effective Date, Approval Date, Next Review Date, Pending changes (only while a rule change waits for its reviewer window), and Related documents.
+3. **Stakeholders:** a table with Role, Person, Review Status, and Review Date. It lists every Policy Reviewer and the Policy Approver.
+4. **Purpose:** the problem, risk, or gap the policy addresses.
+5. **Policy Statement:** the binding rule in one or two short paragraphs, and a note that it replaces informal earlier practice.
+6. **Scope:** personnel covered, documents and systems covered, and exclusions.
+7. **Definitions:** the terms the policy uses. Policy roles and RACI letters mean what this policy says.
+8. **Procedures:** the steps or stages the policy governs, one sub-heading each.
+9. **Roles & Responsibilities:** the Policy Owner, Policy Approver, Policy Writer, and Policy Reviewers, then a RACI table for the key steps.
+10. **Allowed & Prohibited Conduct:** concrete rules that can be checked, one rule per bullet.
+11. **Consequences of Non-Compliance:** what happens after a breach, and who decides.
+12. **Open questions:** only when there are any, as a table with the question, the owner, and the date it is needed by.
+13. **Revision History:** a table with Version, Date, Author, and Summary of changes.
 
-The draft undergoes a formal review by all designated stakeholders and approvers.
+Rules for every policy:
 
-* Each policy **must** list at least one approver.
-* A policy cannot become "Active" until at least one Policy Approver has formally approved it.
-* A policy can automatically become "Active" if Policy Reviewer stakeholders have not reviewed it for more than two weeks after the policy is finished and approved by at least one Policy Approver.
+* All dates are written as `YYYY-MM-DD`.
+* Rule text, RACI tables, and the header use roles, never people's names. A rule bound to a role survives a hire or a leaver. People's names appear only in Stakeholders and Revision History, because those two record who reviewed, approved, or changed the policy, and when.
+* The version of a policy is the Version in its Revision History (v1.0, v1.1, ...). Every change adds a row.
+* A cross-reference to another policy names its Unique ID and the sub-section title, for example "POL-ENG-005, Procedures: Lifecycle".
+* The scope covers employees and contractors unless the policy says otherwise.
+* Consequences of Non-Compliance point to the organization's conduct and disciplinary policy for people. For a contractor, a breach leads to the measures the contract allows, not employment discipline.
 
-**Stage 4: Implementation and Distribution**
+### Policy Approvers
 
-Once approved, the policy is formally communicated to all affected employees.
+Every policy names its Policy Approver in the header and in Stakeholders, and the index lists it. The Policy Approver is always a C-level person. The organization decides once which policies the CEO approves, typically governance (this policy), HR and pay, and top-level security, and writes that list here. The CTO, or another C-level owner of the area, approves the rest.
 
-* Every new policy **must** be listed in the central policies table of contents to ensure it is discoverable.
+### Stage 3: Review and approval
 
-**Stage 5: Maintenance and Review**
+The Policy Reviewers listed in Stakeholders review the draft, and the Policy Approver approves it.
 
-Policies are not static and require ongoing maintenance.
+* A policy cannot become `Active` until its Policy Approver has approved it.
+* After the Policy Approver approves, the reviewers have two weeks. If the reviewers have not reviewed it after more than two weeks, the policy becomes `Active` anyway.
+* Silence from a reviewer is recorded as `Need Review` in Stakeholders. It is never recorded as an approval.
 
-* All policies **must** undergo a semi-annual (every six months) review to ensure they remain accurate and relevant.
-* Any modification to an approved policy, including adding, updating, or removing content, requires the creation of a new version.
-* The changes and their rationale **must** be summarized in the policy's "Revision History" section, and the new version **must** be resubmitted for a full re-approval by all stakeholders.
+### Stage 4: Publishing
 
-**Stage 6: Retirement**
+The official copy of every policy is in the knowledge base, together with the policy index. The index lists every policy with its Unique ID, title, status, owner, approver, next review date, and pending changes.
 
-When a policy is no longer needed or is superseded, it is formally retired. This includes repealing the policy and archiving it according to company record-keeping standards.
+* The editable source of every policy (for ArcDLC: `docs/policies/<name>.md`, indexed in `docs/policies/README.md`) is published to the knowledge base on the same day it changes.
+* The Policy Owner tells the people in the policy's scope that the policy is published or changed.
+* A policy that is not in the index is not in force.
 
-### Unique ID Classification
+### Stage 5: Maintenance and review
+
+* The Policy Owner reviews every policy every six months. A review that changes nothing still gets a Revision History row and a new Next Review Date.
+* Every change gets a new Version and a Revision History row that says what changed and why.
+* An **editorial change** needs only the Policy Approver's approval. The policy stays `Active`, and the change applies at once.
+* A **rule change** needs the Policy Approver's approval and the reviewers' two-week window from Stage 3. The change takes effect when the window ends. Until then, the previous version applies: the header's Pending changes row says so, and the previous text stays available to every reader.
+* When a new policy's first two-week window has not ended yet, it still runs, also for any change made during it.
+
+### Stage 6: Retirement
+
+When a policy is no longer needed or another policy replaces it, the Policy Owner and the Policy Approver retire it.
+
+* A retired policy keeps its file as a record, with status `Retired` and the policy that replaces it.
+* The index lists it under retired policies.
+* Its Unique ID is never reused.
+
+### Unique ID classification
+
+An ID stays with its policy for life. Take the next free number in the class.
 
 | Identifier | Description |
 | :---- | :---- |
-| POL-GOV | **Governance Policy.** Covers overall corporate or organizational governance. |
-| POL-HR | **Human Resources Policy.** Defines principles, standards, and procedures for managing the workforce. |
-| POL-TECH | **Technology Policy.** Defines standards and rules for using, developing, and managing technology systems. |
-| POL-ENG | **Engineering Policy.** Covers engineering-specific practices, standards, and procedures. |
-| POL-SEC | **Security Policy.** Outlines the approach to protecting information, infrastructure, and systems. |
-| POL-DOC | **Documentation or Records Management Policy.** Establishes standards for creating, maintaining, storing, and disposing of organizational documents. |
-
----
+| POL-GOV | **Governance Policy.** Overall corporate or organizational governance. |
+| POL-HR | **Human Resources Policy.** Principles, standards, and procedures for managing the workforce. |
+| POL-TECH | **Technology Policy.** Using, developing, and managing technology systems. |
+| POL-ENG | **Engineering Policy.** Engineering practices, standards, and procedures. |
+| POL-SEC | **Security Policy.** Protecting information, infrastructure, and systems. |
+| POL-DOC | **Documentation or Records Management Policy.** Creating, keeping, storing, and disposing of documents and records. |
+| POL-INT | **Integration Policy.** Onboarding partners and connecting external systems. |
 
 ## Roles & Responsibilities
 
-Clear accountability is essential for the policy framework to function effectively.
+* **Policy Owner:** accountable for a policy's content and its six-monthly review. Publishes changes and tells the people in scope.
+* **Policy Writer:** writes and revises the text.
+* **Policy Reviewer:** reviews drafts and changes within the two-week window.
+* **Policy Approver:** a C-level person who approves the policy and every change to it.
+* **Policy Administrator:** keeps the index and reminds Policy Owners when a review is due.
 
-* **Policy Owner**: A senior leader ultimately accountable for a policy's content, relevance, and effectiveness. Champions the policy and ensures it is reviewed and updated.
-* **Policy Writer**: Subject matter expert(s) tasked with creating and revising policy content.
-* **Policy Reviewer**: Cross-functional stakeholders who review drafts for practicality, clarity, and alignment with business needs.
-* **Policy Approver**: The executive with final authority to approve and enact a policy. Always one of the C-level members.
-* **Policy Administrator**: The individual or team responsible for managing the policy portal, facilitating lifecycle workflows, and maintaining official records.
+Each policy maps its own key steps to these roles in a RACI table (see the template below).
 
-Each policy names the people holding these roles and maps its own key steps to them in a RACI matrix (see the template below). The meanings of Accountable, Responsible, Consulted, and Informed are given in **Definitions** above.
+## Allowed & Prohibited Conduct
 
----
+### Allowed
+
+* Draft a new policy from the official template.
+* Make an editorial change with the Policy Approver's approval only.
+* Propose a change to any policy to its Policy Owner.
+
+### Prohibited
+
+* Use an outdated or unofficial template for a governance document.
+* Create, enforce, or distribute a policy that has not been approved as this policy says.
+* Treat a reviewer's silence as approval.
+* Apply a rule change before its reviewer window has ended.
+* Keep the official copy of a policy anywhere other than the knowledge base, or leave it out of the index.
+* Put people's names into rule text, RACI tables, or the header.
+
+## Consequences of Non-Compliance
+
+A policy, or a change, that skipped these steps is not in force: the previous approved version applies until the steps are done. Breaches by people are handled under the organization's conduct and disciplinary policy. For a contractor, a breach leads to the measures the contract allows.
 
 ## Policy Template
 
-This is the official Policy Template that Stage 2 mandates. Copy the block below into
-`docs/policies/<name>.md`; it is the entire file — nothing goes above the H1. Every section is
-mandatory: a section that does not apply is still written, stating why it does not apply, rather
-than being dropped.
+This is the official Policy Template that Stage 2 mandates. Copy the block below into `docs/policies/<name>.md`; it is the entire file, and nothing goes above the H1. Every section is mandatory except Open questions: a section that does not apply is still written, stating why it does not apply, rather than being dropped.
 
   ```markdown
   # <Policy Name> (<POL-CLASS>-NNN)
@@ -154,12 +179,24 @@ than being dropped.
   | :---- | :---- |
   | Policy Name | <Policy Name> |
   | Unique ID | <POL-CLASS>-NNN |
-  | Author | <name> |
-  | Creation Date | YYYY-MM-DD |
   | Status | Draft |
-  | Effective Date | <date, or "After <approver> approval"> |
+  | Policy Owner | <role> |
+  | Policy Approver | <C-level role, see POL-GOV-001, Procedures: Policy Approvers> |
+  | Author | <role> |
+  | Creation Date | YYYY-MM-DD |
+  | Effective Date | <YYYY-MM-DD, or "After <approver> approval"> |
   | Approval Date | TBD |
   | Next Review Date | <Creation Date + 6 months> |
+  | Pending changes | <only while a rule change waits for its reviewer window; delete the row otherwise> |
+  | Related documents | <POL-ID Title, ...; external standards by name> |
+
+  ## Stakeholders
+
+  Everyone below reviews this policy. The <approver> approves it.
+
+  | Role | Person | Review Status | Review Date |
+  | :---- | :---- | :---- | :---- |
+  | <role> | <name> | Need Review | |
 
   ## Purpose
 
@@ -167,26 +204,28 @@ than being dropped.
 
   ## Policy Statement
 
-  The binding rule, in one or two sentences, plus a note that it supersedes informal prior practice
-  on this topic.
+  The binding rule, in one or two short paragraphs, plus a note that it replaces informal earlier
+  practice on this topic.
 
   ## Scope
 
-  Personnel covered, documents and systems covered, and explicit exclusions.
+  Personnel covered (employees and contractors, unless the policy says otherwise), documents and
+  systems covered, and explicit exclusions.
 
   ## Definitions
 
-  Key terms used by this policy. Reuse the role definitions from the Policy of Policies where they
-  apply instead of redefining them.
+  Policy roles and RACI letters mean what POL-GOV-001 says. Define here only the other terms this
+  policy uses.
 
   ## Procedures
 
-  The step-by-step lifecycle or process this policy governs, as numbered stages or steps.
+  The steps or stages this policy governs, one sub-heading each. Other policies refer to them as
+  "<POL-ID>, Procedures: <sub-heading>".
 
   ## Roles & Responsibilities
 
-  Name the Policy Owner, Policy Approver, Policy Writer, and Policy Reviewers, then map the policy's
-  key steps to them:
+  Name the Policy Owner, Policy Approver, Policy Writer, and Policy Reviewers by role, then map the
+  policy's key steps to them:
 
   | Rule/Step | A | R | C | I |
   | :---- | :---- | :---- | :---- | :---- |
@@ -204,7 +243,15 @@ than being dropped.
 
   ## Consequences of Non-Compliance
 
-  What happens when the policy is breached, and who decides.
+  What happens when the policy is breached, built into the workflow first. Then: breaches by people
+  are handled under the conduct and disciplinary policy; for a contractor, the contract measures.
+
+  ## Open questions
+
+  Only when there are any; delete the section otherwise.
+
+  | # | Question | Owner | Needed by |
+  | :---- | :---- | :---- | :---- |
 
   ## Revision History
 
@@ -213,5 +260,4 @@ than being dropped.
   | v1.0 | YYYY-MM-DD | <name> | Initial version. |
   ```
 
-Fill `<POL-CLASS>` from the Unique ID Classification table above, and `NNN` with the next free number
-in that class.
+Fill `<POL-CLASS>` from the Unique ID classification table above, and `NNN` with the next free number in that class.
