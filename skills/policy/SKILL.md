@@ -134,6 +134,7 @@ Pick the class from the classification table, then the next sequential number by
 | `POL-ENG` | Engineering-specific practices, standards, and procedures. |
 | `POL-SEC` | Protecting information, infrastructure, and systems. |
 | `POL-DOC` | Documentation / records management. |
+| `POL-INT` | Onboarding partners and connecting external systems. |
 
 ## Step 3 — Write `docs/policies/<name>.md`
 
@@ -143,8 +144,13 @@ terms kept and defined once. Full rules and the pre-save check live in
 `../grilling/references/Writing Style.md` (flat installs: `../arcdlc-grilling/references/Writing Style.md`).
 Include every section:
 
-- **Header block**: Policy Name, Unique ID, Author, Creation Date, `Status: Draft`, Effective Date,
-  `Approval Date: TBD`, and Next Review Date (Creation Date + 6 months).
+- **Title line**: `# <Policy Name> (<Unique ID>)`.
+- **Header table**: Policy Name, Unique ID, `Status: Draft`, Policy Owner, Policy Approver (a C-level
+  role), Author, Creation Date, Effective Date, `Approval Date: TBD`, Next Review Date (Creation Date
+  + 6 months), and Related documents. A Pending changes row appears only while a rule change waits
+  for its reviewer window.
+- **Stakeholders**: a table of Role, Person, Review Status, Review Date, listing every reviewer and
+  the approver.
 - **Purpose** — why the policy exists.
 - **Policy Statement** — the binding rule; note it supersedes informal prior practice.
 - **Scope** — personnel covered, documents/systems covered, exclusions.
@@ -154,7 +160,13 @@ Include every section:
   Informed) for the policy's key steps.
 - **Allowed & Prohibited Conduct** — the concrete rules gathered in the interview.
 - **Consequences of Non-Compliance**.
-- **Revision History** — a table starting with v1.0 (this creation).
+- **Open questions**: only when something is undecided: question, owner, needed by.
+- **Revision History**: a table of Version, Date, Author, Summary of changes, starting with v1.0
+  (this creation).
+
+Sections are not numbered. Dates are `YYYY-MM-DD`. Rule text, RACI tables and the header name roles,
+never people; names appear only in Stakeholders and Revision History. A cross-reference names the
+policy ID and the sub-section title, for example "POL-ENG-005, Procedures: Lifecycle".
 
 Every rule must trace to an interview answer or an existing source; do not invent scope, owners, or
 consequences — if something is undecided, ask, or record it in an explicit "Open questions" note
@@ -168,10 +180,13 @@ A policy is not effective until it is discoverable. Register it in three places:
    policy:
 
    ```md
-   | ID | Policy | Status | Owner | Next Review |
-   | --- | --- | --- | --- | --- |
-   | POL-ENG-003 | [Log Retention](log-retention.md) | Draft | <owner> | 2027-01-03 |
+   | ID | Policy | Status | Owner | Approver | Next Review | Pending changes |
+   | --- | --- | --- | --- | --- | --- | --- |
+   | POL-ENG-003 | [Log Retention](log-retention.md) | Draft | <owner role> | <approver role> | 2027-01-03 | None |
    ```
+
+   When the organization keeps its official copy in a knowledge base (Policy of Policies, Stage 4),
+   publish the policy and its index row there the same day.
 
 2. **The project `README.md`** — add or extend a `## Policies` section linking to the new policy and
    the index (`docs/policies/README.md`). Do not duplicate the policy body; link to it.
