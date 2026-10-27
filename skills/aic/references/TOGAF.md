@@ -2,25 +2,19 @@
 
 **Reviewed**: 2026-09-23
 
-**Source**: TOGAF Standard (The Open Group), ArchiMate 3.2 Specification
-**Purpose**: Offline instruction for generating TOGAF Architecture Development Method documentation with ArchiMate diagrams. No internet connection required.
-**Consumed by**: `/arcdlc:aic <slug> togaf`, which generates `docs/aics/<slug>/togaf.md` from this template. TOGAF is **not** one of the standards `/arcdlc:examinate` audits code against — this is a generator template, not an audit target.
+**Source**: TOGAF Standard (The Open Group), ArchiMate 3.2 Specification **Purpose**: Offline instruction for generating TOGAF Architecture Development Method documentation with ArchiMate diagrams. No internet connection required. **Consumed by**: `/arcdlc:aic <slug> togaf`, which generates `docs/aics/<slug>/togaf.md` from this template. TOGAF is **not** one of the standards `/arcdlc:examinate` audits code against — this is a generator template, not an audit target.
 
 ---
 
 ## When to Use
 
-Generate `togaf.md` only on explicit request, or recommend it when the initiative is enterprise-wide or
-cross-domain (multiple business units affected), spans a phased legacy migration, or is compliance-heavy
-(SOC2, PCI-DSS, GDPR) — i.e. when arc42's scope is too narrow and stakeholders require formal EA artifacts.
+Generate `togaf.md` only on explicit request, or recommend it when the initiative is enterprise-wide or cross-domain (multiple business units affected), spans a phased legacy migration, or is compliance-heavy (SOC2, PCI-DSS, GDPR) — i.e. when arc42's scope is too narrow and stakeholders require formal EA artifacts.
 
 ---
 
 ## Document Structure (8 Sections)
 
-The **Ask** lines under a section are the questions `/arcdlc:aic` puts to the engineer to fill it,
-and are not copied into the document. Every section ends answered, deferred to §8.4 Open questions
-with who answers it and by which phase, or `Not applicable: <reason>`. None is deleted.
+The **Ask** lines under a section are the questions `/arcdlc:aic` puts to the engineer to fill it, and are not copied into the document. Every section ends answered, deferred to §8.4 Open questions with who answers it and by which phase, or `Not applicable: <reason>`. None is deleted.
 
 ### 1. Architecture Vision (Phase A)
 
@@ -29,8 +23,7 @@ Define the problem, stakeholders, principles, and scope.
 #### 1.1 Problem Statement
 Clear description of the business problem or opportunity driving this architecture work.
 
-**Ask**: what does the problem cost today, in money, time or risk, and where does that number come
-from? Who decides that the target state has been reached?
+**Ask**: what does the problem cost today, in money, time or risk, and where does that number come from? Who decides that the target state has been reached?
 
 #### 1.2 Stakeholders and Concerns
 
@@ -60,8 +53,7 @@ Reference the organization's own engineering principles for technology principle
 | Data domains | ... | ... |
 | Technology platforms | ... | ... |
 
-**Ask**: what is left out on purpose, and what does leaving it out cost? Which quality goals, taken
-from the ISO 25010 list, must the target state meet, and what measurement proves each one?
+**Ask**: what is left out on purpose, and what does leaving it out cost? Which quality goals, taken from the ISO 25010 list, must the target state meet, and what measurement proves each one?
 
 ---
 
@@ -77,8 +69,7 @@ For each key process:
 - Trigger, Actors, Outcome
 - Process flow diagram (BPMN or ASCII)
 
-**Ask**: which business units and partners does each process cross, and what must each of them
-change? Which step fails, times out, or runs twice most often, and what happens then?
+**Ask**: which business units and partners does each process cross, and what must each of them change? Which step fails, times out, or runs twice most often, and what happens then?
 
 #### 2.3 ArchiMate Business Layer Diagram
 
@@ -134,10 +125,7 @@ Model the application layer. **Color: `#B5FFFF`** (pale cyan) for all applicatio
 - Service inventory: name, responsibility, APIs, events produced/consumed
 - Integration patterns: NATS subjects (per Engineering Principles), REST endpoints
 
-**Ask**: why do the application boundaries sit there, and why not the obvious other split? Does each
-new component have a reason that an existing one cannot meet? Which partners can an attacker
-control, and which can be slow or absent without warning? When a dependency is slow, and when it is
-gone, does the system fail open or closed?
+**Ask**: why do the application boundaries sit there, and why not the obvious other split? Does each new component have a reason that an existing one cannot meet? Which partners can an attacker control, and which can be slow or absent without warning? When a dependency is slow, and when it is gone, does the system fail open or closed?
 
 #### 3.2 Data Architecture
 
@@ -146,8 +134,7 @@ gone, does the system fail open or closed?
 - Storage technology mapping (which service uses which DB)
 - Data ownership: which service is the source of truth for which entity
 
-**Ask**: how many bytes per record, how many records alive at once, and for how long? Which data is
-personal, and where is it allowed to live? How many reads and writes does one business action make?
+**Ask**: how many bytes per record, how many records alive at once, and for how long? Which data is personal, and where is it allowed to live? How many reads and writes does one business action make?
 
 **ArchiMate Data Elements**:
 
@@ -181,10 +168,7 @@ Model the technology/infrastructure layer. **Color: `#C9E7B7`** (pale green) for
 - Infrastructure as Code references
 - Align with Twelve-Factor App factors VII (Port Binding), IX (Disposability), X (Dev/Prod Parity)
 
-**Ask**: what load does the target state carry today and at the design target, and where do both
-numbers come from? What is the throughput limit of each chosen platform, where was it measured, and
-what happens when it is reached? What does it cost per month? Which metrics and alert values tell
-the person woken at 03:00 what broke?
+**Ask**: what load does the target state carry today and at the design target, and where do both numbers come from? What is the throughput limit of each chosen platform, where was it measured, and what happens when it is reached? What does it cost per month? Which metrics and alert values tell the person woken at 03:00 what broke?
 
 ---
 
@@ -222,8 +206,7 @@ Define implementation phases using the Genesis -> Custom -> Product model from P
 | Custom | *name* | MVP production-grade | *estimate* | *what ships* |
 | Product | *name* | Full feature set | *estimate* | *what ships* |
 
-**Ask**: what condition opens each next phase? How long does the old path run beside the new one,
-how fast can a phase be rolled back, and who decides?
+**Ask**: what condition opens each next phase? How long does the old path run beside the new one, how fast can a phase be rolled back, and who decides?
 
 #### 6.2 Migration Dependency Diagram
 
@@ -253,8 +236,7 @@ Show dependencies between migration work packages. Which must complete before ot
 |---|------|-------------|--------|------------|-------|
 | 1 | *description* | H/M/L | H/M/L | *action* | *role* |
 
-**Ask**: which one number breaks the design if it is wrong by ten times? Which assumptions does the
-design rest on, and what changes if one is false?
+**Ask**: which one number breaks the design if it is wrong by ten times? Which assumptions does the design rest on, and what changes if one is false?
 
 ---
 
@@ -268,8 +250,7 @@ What events would trigger re-architecture:
 - Technology end-of-life
 
 #### 8.2 Change Process
-How architecture changes flow: proposal -> AIC -> review -> approval -> implementation.
-Reference Policy of Initiatives (POL-TECH-001) stages.
+How architecture changes flow: proposal -> AIC -> review -> approval -> implementation. Reference Policy of Initiatives (POL-TECH-001) stages.
 
 #### 8.3 Technical Debt Register
 

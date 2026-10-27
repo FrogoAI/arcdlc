@@ -29,6 +29,11 @@ Plain English: short sentences, common words, one idea each, active voice, a nam
 - **Shape.** In chat, bullets rather than paragraphs: what you did, what you found, what comes next.
   In files, vary sentence length and form, and draw what a picture shows better, so a document never
   reads like a list or a form to fill in.
+- **One paragraph, one line.** In every file and reply you write, a paragraph, a list item, or an
+  acceptance criterion is one physical line, however long. Never break a line inside a sentence to
+  fit a width: viewers wrap on their own, and a hard break shows up as a broken sentence in a ticket,
+  a chat, or a rendered page. This bundle's own instruction files are wrapped at 100 columns; do not
+  copy that into what you write. Code blocks, tables, and contract lines keep their own layout.
 
 Nothing is dropped to save space, in a reply as much as in a file. Never leave out a rule, path,
 decision, trade-off, open question, or acceptance criterion because the answer is getting long: if it

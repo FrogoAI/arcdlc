@@ -301,6 +301,22 @@ The rule is:
   from, roughly". The definition is plain. The term is exact. You need both.
 - Never drop a distinction because explaining it takes a sentence. That sentence is the document.
 
+## One paragraph, one line
+
+Every Markdown file the skills write keeps each paragraph, list item, and acceptance criterion on one physical line, however long it gets. Editors, diff viewers, GitHub, Jira, and chat wrap long lines on their own. A line broken by hand at 80 or 100 columns survives every copy: paste the paragraph into a ticket or render it to HTML and the sentence breaks in the middle, at a place that means nothing.
+
+- **Never break a line inside a sentence.** Start a new line only for a new paragraph, a new list item, a heading, a table row, or a code line.
+- **A sub-point is a nested list item, not a wrapped line.** If a list item needs a second thought, make it a second item or a nested one.
+- **Do not copy the wrapping of the bundle's own files.** The `SKILL.md` files and most references are wrapped at 100 columns because they are source code of this repository. That is their layout, not a pattern for the documents they produce.
+- **Some layouts are not prose.** Code blocks, tables, Graphviz sources, and contract lines keep the layout their own format needs. A commit message follows the git convention: a subject line, a blank line, then a body wrapped at 72 columns.
+
+```
+Bad:  A policy is a list of triggers, and every trigger runs on every scored event. Authors cannot
+      say "check this only if that fired".
+
+Good: A policy is a list of triggers, and every trigger runs on every scored event. Authors cannot say "check this only if that fired".
+```
+
 ## Plain words, full content
 
 This is the rule people break first. Simple English never means less material.
@@ -329,7 +345,9 @@ Run this on every document, every time. It takes a minute.
 9. Look for a form: the same labelled fields repeated for item after item. Rewrite each item in the
    shape its content needs.
 10. Find each paragraph that explains structure, order, or branching. Is there a diagram for it?
-11. Last read: would a new engineer act on this document without asking a question that the
+11. Look for a line that ends in the middle of a sentence. Join it to the next one, so each
+    paragraph and list item is one line.
+12. Last read: would a new engineer act on this document without asking a question that the
     document should have answered?
 
 A rough grep for the mechanical part, run from the repo root:
@@ -337,6 +355,14 @@ A rough grep for the mechanical part, run from the repo root:
 ```bash
 grep -nEi "—|–|\b(delve|leverage|utili[sz]e|robust|seamless|holistic|myriad|plethora|tapestry|beacon|realm|landscape|underscore|testament|pivotal|crucial|honestly|genuinely|truly|clearly|obviously|essentially|basically)\b|\b(furthermore|moreover|in conclusion|it is important to note|it'?s important to note|in today'?s|ever-evolving|at its core|needless to say)\b|not just .* but" docs/aics/<slug>/*.md docs/policies/*.md
 ```
+
+A grep for hard-wrapped prose: a line that is not code, a heading, a table row, or a list item, and that
+starts in lowercase right after a non-empty line, is almost always the second half of a broken
+sentence:
+
+~~~bash
+awk 'FNR==1{prev="";code=0} /^[[:space:]]*(```|~~~)/{code=!code;prev="";next} !code && prev!="" && prev!~/^(#|\|)/ && $0~/^[[:space:]]*[a-z(`"]/{print FILENAME":"FNR": "$0} {prev=$0}' docs/aics/<slug>/*.md docs/policies/*.md
+~~~
 
 A second grep for titles that name nothing:
 

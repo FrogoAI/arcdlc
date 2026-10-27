@@ -35,6 +35,7 @@ Every decision that was hard, surprising, or expensive to reverse. Newest last.
 | 0029 | [A finding is filed as a blocked task at the end of the plan](0029-a-finding-is-filed-as-a-blocked-task-at-the-end-of-the-plan.md) | Accepted |
 | 0030 | [An AIC is drawn first, in Graphviz DOT](0030-an-aic-is-drawn-first-in-graphviz-dot.md) | Accepted |
 | 0031 | [An AIC holds the current design, in the canvas's own terms](0031-an-aic-holds-the-current-design-in-the-canvas-own-terms.md) | Accepted |
+| 0032 | [A paragraph in a generated document is one line](0032-one-paragraph-is-one-line.md) | Accepted |
 
 A decision that changes an earlier one carries `Amends` or `Supersedes` in its header, and the
 earlier record points forward. Nothing here is deleted: a superseded ADR is how you find out why the

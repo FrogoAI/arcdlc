@@ -2,17 +2,7 @@
 
 **Reviewed**: 2026-09-19
 
-The files `/arcdlc:init` writes when they are missing: Step 3 for a single repository, Step 4 for a
-workspace hub. A hub reuses the `docs/adr/README.md` and `docs/aics/README.md` templates below
-unchanged, at the hub root instead of under a repository's `docs/`, and adds its own `docs/AGENTS.md`,
-`docs/README.md`, `docs/CONTEXT.md`, and `docs/Makefile`. One fenced block per file. Placeholders:
-`<Project>` (the repository or workspace name), `<description>` (the interview's one-paragraph
-answer), `<tier>` (the interview's executor-tier answer), `<test-command>` and `<lint-command>` (a
-`Makefile` target or a `package.json` script, or the literal text `none found` when neither exists;
-single repository only, a hub has no build of its own). Every heading, marker, and table row shown
-here is copied exactly; only the placeholders change, and a repository-table row is filled once per
-child repository read at scaffold time. `CLAUDE.md` carries no template in either layout: it is
-always `ln -s AGENTS.md CLAUDE.md` (`ln -s AGENTS.md docs/CLAUDE.md`, tracked, in a hub).
+The files `/arcdlc:init` writes when they are missing: Step 3 for a single repository, Step 4 for a workspace hub. A hub reuses the `docs/adr/README.md` and `docs/aics/README.md` templates below unchanged, at the hub root instead of under a repository's `docs/`, and adds its own `docs/AGENTS.md`, `docs/README.md`, `docs/CONTEXT.md`, and `docs/Makefile`. One fenced block per file. Placeholders: `<Project>` (the repository or workspace name), `<description>` (the interview's one-paragraph answer), `<tier>` (the interview's executor-tier answer), `<test-command>` and `<lint-command>` (a `Makefile` target or a `package.json` script, or the literal text `none found` when neither exists; single repository only, a hub has no build of its own). Every heading, marker, and table row shown here is copied exactly; only the placeholders change, and a repository-table row is filled once per child repository read at scaffold time. `CLAUDE.md` carries no template in either layout: it is always `ln -s AGENTS.md CLAUDE.md` (`ln -s AGENTS.md docs/CLAUDE.md`, tracked, in a hub).
 
 ## AGENTS.md
 
