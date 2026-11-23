@@ -61,9 +61,11 @@ be long. The full standard, with examples and a pre-save check, is
 
 ## Arguments (all required on the first run)
 
-`/arcdlc:derive <slug> <source> <scope>`, for example
-`/arcdlc:derive daf-412-timeseries-backoffice docs/inbox/timeseries-aic.md "Epic DAF-412: the
-Backoffice editor and API for the timeseries-query variable kind (stage 1, hypotheses H2 and H4)"`.
+`/arcdlc:derive <slug> <source> <scope>`, for example:
+
+```text
+/arcdlc:derive daf-412-timeseries-backoffice docs/inbox/timeseries-aic.md "Epic DAF-412: the Backoffice editor and API for the timeseries-query variable kind (stage 1, hypotheses H2 and H4)"
+```
 
 - **`<slug>`**: the initiative folder, `docs/aics/<slug>/`. A single kebab-case path segment (no `/`
   or `..`). Start it with the ticket or epic ID when there is one, so the folder and the tracker
@@ -126,6 +128,11 @@ repository in another team's workspace: the same value a plan task carries in it
 - A URL: fetch it with the tools this agent has (a web fetch, or a connector for the knowledge base
   that holds it). When none can read it, stop and ask the engineer to export the page to a local file
   and run the skill again with that path. Never rebuild a source from memory or from a summary.
+- Hash the source's raw bytes, never the converted text: the model does not convert a page the same
+  way twice, so a hash of its own Markdown changes when the source did not. A local file:
+  `sha256sum <path>`. A URL: `curl -sfL <url> | sha256sum` when the page opens without a login. When
+  the agent reads the page only through a tool or connector that returns converted text, there are no
+  raw bytes: write `- sha256: none (read through <tool>)`, and Step 6 always compares the text.
 - Check that it is an architecture document: an AIC, or a Tech Stack Canvas. If it is something
   else, say what it looks like and ask before going on.
 
@@ -138,7 +145,7 @@ Write `docs/aics/<slug>/source-aic.md`: a header, then the source text unchanged
 
 - Source: <the path or URL as given>
 - Copied: <YYYY-MM-DD>
-- sha256: <sha256 of the source text below the rule>
+- sha256: <sha256 of the source's raw bytes (Step 1), or none (read through <tool>)>
 - Scope: <the scope argument, word for word>
 
 This file is a copy. Change the source, then run /arcdlc:derive again.
@@ -155,8 +162,11 @@ Nobody edits `source-aic.md` by hand. Only a run of this skill writes it.
 Read `source-aic.md` and list, for this scope:
 
 - the stages, epics, and hypotheses that belong to it, and the ones that do not;
-- every item the source marks as the engineer's (**Engineer decides**, **Starting value**), and every
-  **Deferred** item or open question whose owner or stage falls in this scope;
+- every item the source leaves to the engineer, and every **Deferred** item or open question whose
+  owner or stage falls in this scope. An architect's AIC often labels the first kind **Engineer
+  decides** (a choice the architect hands to the team) or **Starting value** (a number the architect
+  proposes and the team tunes later). A source without those labels says it in its own words: read
+  for them, and when a decision has no clear owner, it is a grilling question, never yours to assign;
 - the architect's decisions this scope must follow: contracts, data models, stores, failure
   behaviour, quality targets, security model, metrics and alert values;
 - the repositories and services the scope touches, checked against the code that is checked out.
@@ -180,8 +190,7 @@ The agenda is the AIC Template, `../aic/references/AIC Template.md` (flat instal
 difference: **a decision the source made is an input, not a question.** Fill it in by citing the
 source, show it, and move on. The interview covers what the source left to this scope:
 
-- each **Engineer decides** and **Starting value** item from Step 3, inside the limits the source
-  sets;
+- each item Step 3 found left to the engineer, inside the limits the source sets;
 - where the work lands: repositories, services, packages, and the order of the tickets;
 - what the source does not say at this level: the concrete failure cases, test data, migration steps,
   and the numbers this scope must measure;
@@ -204,8 +213,9 @@ fresh reader. These rules are added:
 - Under the `# <Title>` and the `> ` summary, one line:
   `Derived from [<source title>](source-aic.md), scope: <scope>.`
 - **Technical Constraints** lists the source decisions this scope follows, each as one line citing
-  the hypothesis number or the section name, for example `H2 (source): the window is kept in FDB,
-  key <variable>:<version>:<entity>.` Quote, never reword, a number or a contract.
+  the hypothesis number or the section name, for example
+  `H2 (source): the window is kept in FoundationDB, key <variable>:<version>:<entity>.` Quote, never
+  reword, a number or a contract.
 - **Goals** sections hold the part of the source's goals this scope delivers, in one or two lines
   each, with a pointer to the source section.
 - **Solution** holds this scope's own design: the engineer's decisions, the repositories, and the
@@ -222,10 +232,13 @@ Run the pre-save check in `../grilling/references/Writing Style.md` (flat instal
 
 Run `/arcdlc:derive <slug> <source>` again on the same folder:
 
-1. Read the source (Step 1) and hash it. Same hash as the `- sha256:` line: say the snapshot is
-   current and stop.
-2. Different hash: compare the new text with `source-aic.md`, and list the changed sections and
-   hypotheses that fall in this scope.
+1. Read the source (Step 1) and hash its raw bytes. Same hash as the `- sha256:` line: say the
+   snapshot is current and stop.
+2. Different hash, or `none` on either side: compare the new text with `source-aic.md` section by
+   section, and list the changed sections and hypotheses that fall in this scope. A change in wording
+   or layout only is not a change. When nothing in scope changed, keep the snapshot text, rewrite only
+   its `- sha256:` line, say so, and stop. A web page can carry bytes that change on every load, so a
+   new hash alone never proves a new design.
 3. Ask about each section of `aic.md` that rests on a changed one, one at a time: still holds, amend,
    or reverse. Never keep one silently, never change one silently.
 4. Write the new snapshot (Step 2, new `- Copied:` date and hash) and amend `aic.md`.
