@@ -16,6 +16,9 @@ once.
 | design the architecture for our payments service | `aic` |
 | spec out the system before we build it | `aic` |
 | write an arc42 doc for checkout | `aic` |
+| I got epic 3 of the architect's AIC, start my part | `derive` |
+| derive my ticket from the timeseries AIC | `derive` |
+| build stage 1 of that architecture doc | `derive` |
 | break this down into tasks | `plan` |
 | what are the steps to build this? | `plan` |
 | turn the architecture into work | `plan` |

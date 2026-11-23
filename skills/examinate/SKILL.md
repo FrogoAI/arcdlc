@@ -100,6 +100,21 @@ default exclude list skips `docs` but not the sibling repositories.
 - With no second argument (no standard or policy path): audit against the initiative's own architecture — `docs/aics/<slug>/aic.md` (or other docs in
   that folder), `docs/adr/`, and `CONTEXT.md`. If none of these exist either, stop and ask which policy to audit
   against (or suggest `/arcdlc:aic` first).
+- **A derived initiative is audited against its source too.** When `docs/aics/<slug>/source-aic.md` exists (written
+  by `/arcdlc:derive`), the no-argument audit reads it as a second rule set, limited to the scope in its `- Scope:`
+  line: the contracts, data models, failure behaviour, quality targets, and hypotheses it sets for that scope. Code
+  outside the scope is not audited against it. Cite a finding by the source's own hypothesis number or section name,
+  as `source H2` or `source, Solution Design`. Use the prefix `SRC` for these gaps (`SRC-GAP-01`).
+  - Code that breaks the source while `aic.md` agrees with the source: an ordinary gap and task.
+  - `aic.md` itself disagrees with the source: a contradiction (Step 2.5). The engineer picks one of two answers.
+    Fix the derived AIC to follow the source: the gap's `HOW` says so, and the engineer re-runs `/arcdlc:derive` or
+    `/arcdlc:aic` before `/arcdlc:plan`. Or ask the architect to change the source: the gap is filed, and its
+    mirrored task gets `- Status: BLOCKED — waiting for the architect: <the source line it would change>.`, so
+    `/arcdlc:execute` never builds a design the source does not allow.
+  - A `- sha256:` that no longer matches the raw bytes of the source the engineer names (`sha256sum <path>`, or
+    `curl -sfL <url> | sha256sum`) means the snapshot may be stale. Say so in the register's intro and suggest
+    `/arcdlc:derive <slug> <source>`, which decides whether the design changed, before the audit is trusted. A
+    `- sha256: none` line cannot be checked here: say that too.
 - **Precedence — project policy beats the bundled reference.** Before auditing against any bundled reference, check
   whether the project redefines the same subject in `docs/policies/*.md`, `AGENTS.md` / `CLAUDE.md`, or `docs/adr/`.
   Where it does, the project document is normative: audit against its rule and drop the bundled one for every rule
@@ -213,6 +228,11 @@ gap:
 - Add runner metadata: `References` (must include `docs/aics/<slug>/gap.md`, the policy source, and the architecture
   doc if relevant) and `- Status: TODO.`
 - Append after the existing blocks; never modify existing tasks or reuse an ID already present in the plan.
+- A source gap waiting for the architect (Step 1) is mirrored with `- Status: BLOCKED — waiting for the architect:
+  <reason>.` instead of `TODO`. Write this block by hand even when `arctool` is present: `arctool add` accepts a
+  `BLOCKED` block only as a finding (`found during <TASK-ID>`) and refuses this one. `/arcdlc:execute` skips the
+  task, and its Verification phase reports it as a stopped task. That is intended: the plan is not finished while
+  the architect has not answered. When the architect answers, `/arcdlc:plan <slug>` releases or rewrites the task.
 - Skip a gap carrying `- Accepted:` from Step 2.5. It stays in `gap.md` as evidence and gets no task, and the
   `- Accepted:` line never reaches the plan.
 - If `docs/aics/<slug>/plan.md` does not exist yet, create it per the format guide (a `/arcdlc:plan` run can merge it

@@ -31,9 +31,14 @@ skills, `arctool`, ADRs, and architecture documents.
 - **Phase** — the status of an initiative, read from its files by `arctool status`, never stored:
   `designing` (no `plan.md`, no `CLOSED.md`), `in progress` (a task not `DONE`), `ready to close`
   (every task `DONE`), `closed` (`CLOSED.md`).
-- **Pipeline skills** — `init`, `aic`, `plan`, `execute`, `examinate`, `assist`, `archive`, plus the
-  lifecycle skills `close`, `remove` and `policy`, `plan-human` beside the chain, and `grilling` under
-  them all. Twelve in total.
+- **Pipeline skills** — `init`, `aic` or `derive`, `plan`, `execute`, `examinate`, `assist`, `archive`,
+  plus the lifecycle skills `close`, `remove` and `policy`, `plan-human` beside the chain, and
+  `grilling` under them all. Thirteen in total.
+- **Source AIC** — an architecture document someone else owns (usually an architect's AIC for a whole
+  initiative), of which an engineer builds one part. `docs/aics/<slug>/source-aic.md` is its frozen
+  copy, written only by `/arcdlc:derive`. See [ADR-0033](docs/adr/0033-a-derived-initiative-keeps-a-frozen-copy-of-its-source.md).
+- **Derived AIC** — the `aic.md` of a folder holding `source-aic.md`: one scope of the source (a stage,
+  an epic, a ticket). It cites the source's decisions and decides only what the source leaves open.
 - **Comment register** — `docs/aics/<slug>/comments.md`: one block per code comment marker found in
   the repository. `arctool scan` writes the evidence; it removes the comment from the code only with
   `--strip`, which `/arcdlc:assist` passes after the engineer says yes. Once stripped, the register is
@@ -78,7 +83,7 @@ skills, `arctool`, ADRs, and architecture documents.
   must always follow is not a reference document: it goes inline in the `SKILL.md`, because a skill is
   loaded while a reference is only read if the agent opens it. See [ADR-0020](docs/adr/0020-reference-library-dissolved-into-the-skills.md).
 - **The four virtues** — wisdom, courage, justice, temperance: how a skill decides, not how it writes.
-  `## Judge by the four virtues` is verbatim in all twelve `SKILL.md` files and pinned by CI.
+  `## Judge by the four virtues` is verbatim in all thirteen `SKILL.md` files and pinned by CI.
 - **Workspace** — several git repositories checked out side by side under one directory, the
   **workspace root**, which is not itself a git repository. The agent, every `/arcdlc:*` command and
   every `arctool` call run from the root. See [ADR-0026](docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md).

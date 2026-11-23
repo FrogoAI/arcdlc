@@ -41,12 +41,15 @@ var archDocPrecedence = []string{
 // they are excluded from the alphabetical fallback in findArchDoc. comments.md is
 // the register arctool scan writes; without it here, a folder holding a comment
 // register and no recognised architecture document would take its registry title
-// from that register.
+// from that register. source-aic.md is the frozen copy /arcdlc:derive keeps of
+// another team's design; it would otherwise register before the derived aic.md
+// is written, under the source's title.
 var nonArchDocs = map[string]bool{
 	"plan.md":         true,
 	"gap.md":          true,
 	"comments.md":     true,
 	"plan-archive.md": true,
+	"source-aic.md":   true,
 }
 
 // Initiative is one entry in the registry.
