@@ -36,6 +36,8 @@ func TestFindArchDoc(t *testing.T) {
 		{"togaf over c4", []string{"togaf.md", "c4.md"}, "togaf.md"},
 		{"alphabetical fallback", []string{"notes.md", "zeta.md"}, "notes.md"},
 		{"non-arch files excluded from fallback", []string{"plan.md", "gap.md", "comments.md", "plan-archive.md"}, ""},
+		{"source snapshot is never the arch doc", []string{"source-aic.md", "plan.md"}, ""},
+		{"derived aic wins over its source snapshot", []string{"source-aic.md", "aic.md"}, "aic.md"},
 		{"custom doc alongside plan", []string{"design.md", "plan.md", "gap.md"}, "design.md"},
 		{"empty folder", []string{}, ""},
 	}

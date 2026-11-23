@@ -10,7 +10,8 @@ Produce the architecture document that anchors the ArcDLC delivery pipeline. Thi
 of the application track; `/arcdlc:policy` is the entry point of the governance track.
 
 `/arcdlc:aic` → `/arcdlc:plan` → `/arcdlc:execute` → `/arcdlc:archive` → `/arcdlc:close`, with
-`/arcdlc:remove` named beside it for deleting a design for good.
+`/arcdlc:remove` named beside it for deleting a design for good. `/arcdlc:derive` takes the place of
+`/arcdlc:aic` when an engineer builds one part of a design someone else already wrote.
 
 Feeding the same plan queue at any point: `/arcdlc:examinate` (compliance gaps), `/arcdlc:assist`
 (code comment markers). Beside the chain: `/arcdlc:plan-human` turns the queue into board stories.
@@ -76,6 +77,14 @@ The initiative slug is the **first positional argument** and is **required**:
 
 Write the architecture document — and later `plan.md` — inside that folder. ADRs stay **global** under
 `docs/adr/`; `CONTEXT.md` stays at the repo root (both are cross-cutting, not per-initiative).
+
+**A derived initiative keeps its source.** When the design already exists in someone else's document
+(an architect's AIC covering several stages, teams, or epics), the engineer's part starts with
+`/arcdlc:derive <slug> <source> <scope>`, not here. If `docs/aics/<slug>/source-aic.md` exists, this
+initiative was derived: read the snapshot before Step 2, treat every decision it makes for this scope
+as an input, and never change one. An answer that would change one goes into Open questions with the
+architect as the owner. A changed source reaches this folder only through `/arcdlc:derive <slug>
+<source>`, never through this skill and never by editing `source-aic.md`.
 
 **A closed initiative is final.** If `docs/aics/<slug>/CLOSED.md` exists, stop and change nothing: say
 that `<slug>` was closed on the date in its `- Closed:` line, and that follow-up work is a new

@@ -122,6 +122,7 @@ binary for linux/darwin × amd64/arm64. Then, in your project:
 ```
 /arcdlc:init            # detect one repo or a workspace, scaffold what the skills need
 /arcdlc:aic <slug>       # grilled interview → docs/aics/<slug>/ architecture document
+/arcdlc:derive <slug> <source> <scope> # or: your part of an architect's AIC → scoped aic.md
 /arcdlc:plan <slug>      # decompose it → docs/aics/<slug>/plan.md task queue
 /arcdlc:plan-human <slug> # board stories → docs/aics/<slug>/plan-human.md
 /arcdlc:assist <slug>    # sweep // ARCDLC markers → docs/aics/<slug>/comments.md + plan tasks
@@ -140,6 +141,7 @@ argument (e.g. `/arcdlc:plan checkout`). Details and manual alternatives: [Insta
 | --- | --- | --- |
 | `/arcdlc:init [--migrate]` | Detect the layout, grill, and scaffold. In a workspace, clone or create the `docs` hub, link the root, and migrate on request. | the six files, or the hub plus four root links |
 | `/arcdlc:aic <slug> [aic\|arc42\|tsc\|togaf\|c4\|adr]` | Build the initiative's architecture document (AIC by default). Always runs a grilled interview first. Formats combine: `arc42,tsc` writes both from one interview; `arc42:html` emits HTML. | `docs/aics/<slug>/<format>.md`, ADRs, `CONTEXT.md` |
+| `/arcdlc:derive <slug> <source> <scope>` | Start one part (a stage, an epic, a ticket) of a design someone else owns. Copies the source AIC unchanged, then grills and writes a scoped AIC that cites the source's decisions and decides only what the source leaves open. A re-run refreshes the copy when the source changes. | `docs/aics/<slug>/source-aic.md`, `docs/aics/<slug>/aic.md` |
 | `/arcdlc:policy <name>` | Author a governance policy per the Policy of Policies framework — grilled interview first. | `docs/policies/<name>.md` + index |
 | `/arcdlc:plan <slug>` | Decompose the approved architecture document into the executable task queue. | `docs/aics/<slug>/plan.md` |
 | `/arcdlc:plan-human <slug>` | Turn the task queue into the engineer stories a board shows: one story per service, numbered instructions, technical acceptance criteria, each self-contained so a ticket needs no file from this repository. | `docs/aics/<slug>/plan-human.md` + mapping in `CONTEXT.md` |
@@ -174,7 +176,7 @@ _none_
 ArcDLC is a universal delivery tool: it builds **applications** and authors **policies**, and both
 feed the same executable plan queue (`docs/aics/<slug>/plan.md`).
 
-- **Application track:** `/arcdlc:aic <slug>` → `/arcdlc:plan <slug>` → `/arcdlc:execute <slug>` → `/arcdlc:archive <slug>`
+- **Application track:** `/arcdlc:aic <slug>` (or `/arcdlc:derive <slug> <source> <scope>` for your part of someone else's design) → `/arcdlc:plan <slug>` → `/arcdlc:execute <slug>` → `/arcdlc:archive <slug>`
 - **Governance track:** `/arcdlc:policy <name>` → `/arcdlc:examinate <slug> docs/policies/<name>.md` → `/arcdlc:execute <slug>`
 
 In the governance track the policy itself is just rules — nothing gets "planned". `/arcdlc:examinate`
@@ -247,7 +249,7 @@ arcdlc/
 ├── .claude-plugin/          # plugin.json + marketplace.json (Claude Code plugin metadata)
 ├── .antigravity-plugin/     # the Antigravity plugin manifest
 ├── assets/                  # README banner (arcdlc_bg.svg)
-├── skills/                  # twelve skills, one per directory (SKILL.md each)
+├── skills/                  # thirteen skills, one per directory (SKILL.md each)
 │   ├── grilling/            # the one-question-at-a-time interview every skill runs on
 │   │   └── references/      # Writing Style.md, the shared writing standard
 │   ├── init/references/     # Scaffold Templates.md, the repository and workspace scaffold templates

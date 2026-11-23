@@ -19,7 +19,7 @@ import (
 // Skills is the bundle's sub-skill list. It must match SUBSKILLS in install.sh
 // and the loops in .github/workflows/ci.yml.
 var Skills = []string{
-	"aic", "archive", "assist", "close", "examinate", "execute",
+	"aic", "archive", "assist", "close", "derive", "examinate", "execute",
 	"grilling", "init", "plan", "plan-human", "policy", "remove",
 }
 
