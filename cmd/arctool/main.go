@@ -26,10 +26,10 @@ import (
 	"github.com/FrogoAI/arcdlc/internal/scan"
 )
 
-const version = "0.22.0"
+const version = "0.23.0"
 
 // aicsDir is the root directory under which each initiative gets its own folder
-// (docs/aics/<slug>/, holding plan.md, gap.md, comments.md, plan-archive.md).
+// (docs/aics/<slug>/, holding plan.md, gap.md, comments.md, review.md, plan-archive.md).
 // Selection is
 // explicit; the legacy flat docs/aics/plan.md is reachable only via --plan.
 const aicsDir = "docs/aics"

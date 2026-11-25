@@ -20,7 +20,7 @@ import (
 // and the loops in .github/workflows/ci.yml.
 var Skills = []string{
 	"aic", "archive", "assist", "close", "derive", "examinate", "execute",
-	"grilling", "init", "plan", "plan-human", "policy", "remove",
+	"grilling", "init", "plan", "plan-human", "policy", "remove", "review",
 }
 
 // SharedBlocks are the sections every SKILL.md carries verbatim.

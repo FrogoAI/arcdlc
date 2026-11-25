@@ -98,7 +98,8 @@ default exclude list skips `docs` but not the sibling repositories.
   typically one authored by `/arcdlc:policy`): read that policy in full and extract its Allowed/Prohibited rules as the
   checkable rule set.
 - With no second argument (no standard or policy path): audit against the initiative's own architecture — `docs/aics/<slug>/aic.md` (or other docs in
-  that folder), `docs/adr/`, and `CONTEXT.md`. If none of these exist either, stop and ask which policy to audit
+  that folder), `docs/adr/`, `CONTEXT.md`, `docs/policies/*.md`, and `CONVENTION.md` when it exists. If none of
+  these exist either, stop and ask which policy to audit
   against (or suggest `/arcdlc:aic` first).
 - **A derived initiative is audited against its source too.** When `docs/aics/<slug>/source-aic.md` exists (written
   by `/arcdlc:derive`), the no-argument audit reads it as a second rule set, limited to the scope in its `- Scope:`
@@ -116,7 +117,9 @@ default exclude list skips `docs` but not the sibling repositories.
     `/arcdlc:derive <slug> <source>`, which decides whether the design changed, before the audit is trusted. A
     `- sha256: none` line cannot be checked here: say that too.
 - **Precedence — project policy beats the bundled reference.** Before auditing against any bundled reference, check
-  whether the project redefines the same subject in `docs/policies/*.md`, `AGENTS.md` / `CLAUDE.md`, or `docs/adr/`.
+  whether the project redefines the same subject in `docs/policies/*.md`, `CONVENTION.md` (at the repository root;
+  in a workspace, the hub's `docs/CONVENTION.md` and the audited repository's own), `AGENTS.md` / `CLAUDE.md`, or
+  `docs/adr/`.
   Where it does, the project document is normative: audit against its rule and drop the bundled one for every rule
   they both cover, keeping the bundled reference only for subjects the project leaves unspecified. Code that follows a
   project rule is never a gap, even when the bundled reference says otherwise. Note the override once in the gap
