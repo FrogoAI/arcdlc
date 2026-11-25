@@ -72,6 +72,9 @@ way they were designed.
   `arctool` CLI validates the contract and flips task status atomically. No hand-edited status lines.
 - **Audit what already exists** — `/arcdlc:examinate` measures real code against a named architecture
   or policy (MDCA, DDD, SOLID, Twelve-Factor, …) and files each gap as a tracked task.
+- **Review a branch before the pull request**: `/arcdlc:review` reads only your change set against
+  the standards you name plus your own `docs/policies/` and `CONVENTION.md`, and gives a verdict.
+  It files nothing; `/arcdlc:plan` turns the findings into tasks when you decide to.
 - **Documents that read like a person wrote them** — every skill carries the same
   `Talk simple, write like a human` rule: plain English, no AI filler, no long dashes, concrete facts,
   and the domain's own terms kept and defined once. Plain words never mean less content.
@@ -144,20 +147,20 @@ argument (e.g. `/arcdlc:plan checkout`). Details and manual alternatives: [Insta
 | `/arcdlc:aic <slug> [aic\|arc42\|tsc\|togaf\|c4\|adr]` | Build the initiative's architecture document (AIC by default). Always runs a grilled interview first. Formats combine: `arc42,tsc` writes both from one interview; `arc42:html` emits HTML. | `docs/aics/<slug>/<format>.md`, ADRs, `CONTEXT.md` |
 | `/arcdlc:derive <slug> <source> <scope>` | Start one part (a stage, an epic, a ticket) of a design someone else owns. Copies the source AIC unchanged, then grills and writes a scoped AIC that cites the source's decisions and decides only what the source leaves open. A re-run refreshes the copy when the source changes. | `docs/aics/<slug>/source-aic.md`, `docs/aics/<slug>/aic.md` |
 | `/arcdlc:policy <name>` | Author a governance policy per the Policy of Policies framework — grilled interview first. | `docs/policies/<name>.md` + index |
-| `/arcdlc:plan <slug>` | Decompose the approved architecture document into the executable task queue. | `docs/aics/<slug>/plan.md` |
+| `/arcdlc:plan <slug>` | Decompose the approved architecture document into the executable task queue. Also turns open findings from `review.md` into tasks, and plans from `review.md` alone when the folder has no architecture document. | `docs/aics/<slug>/plan.md` |
 | `/arcdlc:plan-human <slug>` | Turn the task queue into the engineer stories a board shows: one story per service, numbered instructions, technical acceptance criteria, each self-contained so a ticket needs no file from this repository. | `docs/aics/<slug>/plan-human.md` + mapping in `CONTEXT.md` |
-| `/arcdlc:examinate <slug> [policy]` | Examine existing code for compliance with a named policy or design (`MDCA`, `DDD`, `SOLID`, …; default: the project's own AIC) and register gaps as plan tasks. | `docs/aics/<slug>/gap.md`, new TODO blocks in `docs/aics/<slug>/plan.md` |
+| `/arcdlc:examinate <slug> [policy]` | Examine existing code for compliance with a named policy or design (`MDCA`, `DDD`, `SOLID`, …; default: the project's own AIC) and register gaps as plan tasks. Project rules in `docs/policies/*.md` and `CONVENTION.md` win over a bundled standard on the same subject. | `docs/aics/<slug>/gap.md`, new TODO blocks in `docs/aics/<slug>/plan.md` |
 | `/arcdlc:review <slug> [standards] [--base <ref>\|--range <a>..<b>]` | Review only the change set (the branch against its base, plus uncommitted work), as a reviewer, against the named standards or policies (`SOLID,MDCA`, a `docs/policies/` path; default: the project's own AIC). Always applies `docs/policies/*.md`, `CONVENTION.md` and correctness. Shows the findings and a verdict, writes no task: `/arcdlc:plan <slug>` turns open findings into tasks when you run it. | `docs/aics/<slug>/review.md` |
 | `/arcdlc:assist <slug> [MARKER]` | Turn code comment markers into planned work: `arctool scan` sweeps the source for `// ARCDLC ...` (or `TODO`, `FIXME`, `HACK`, `XXX`, `BUG` when asked) and records each one, markers sharing a tag (`// ARCDLC:T1 ...`) become one record, the skill grills the engineer about the unclear ones, and every marker that names real work becomes a plan task. | `docs/aics/<slug>/comments.md`, new TODO blocks in `docs/aics/<slug>/plan.md`, the marker comments removed from the code once the engineer says so |
 | `/arcdlc:execute <slug> [TASK-ID]` | Implement all pending plan tasks (or one by ID): status `TODO→TAKEN→DONE`, tests/lint, one Conventional Commits commit per task. Problems seen outside a task are filed as blocked findings at the end of the plan and reviewed with you at the end of the run. | code, tests, commits |
 | `/arcdlc:remove <slug>` | Delete a design folder for good, after an explicit confirmation that warns references to it may be left pointing at nothing. | removed folder, refreshed `docs/aics/` + registry |
 | `/arcdlc:archive <slug>` | Move `DONE` task blocks into `docs/aics/<slug>/plan-archive.md`, keeping the plan small. | compacted plan + archive |
-| `/arcdlc:close <slug>` | Close a finished initiative in place: a `CLOSED.md` note with the outcome, the plan files deleted, no new work after. | `docs/aics/<slug>/CLOSED.md`, refreshed registry |
+| `/arcdlc:close <slug>` | Close a finished initiative in place: a `CLOSED.md` note with the outcome, the plan files and registers (`gap.md`, `comments.md`, `review.md`) deleted, no new work after. | `docs/aics/<slug>/CLOSED.md`, refreshed registry |
 | `/arcdlc:grilling [topic]` | The interview every other command falls back to when something is unclear, contradictory, risky, or needs a human, usable on its own: relentless questions, **one at a time**, each with a recommended answer, until nothing is silently assumed. | settled decisions, `CONTEXT.md` terms, ADRs |
 
 Each skill carries the templates and rule sets it needs in its own `references/` folder: the
 architecture templates with `/arcdlc:aic`, the audit standards (MDCA, DDD, SOLID, the Go guides) with
-`/arcdlc:examinate`, the policy framework with `/arcdlc:policy`.
+`/arcdlc:examinate` (which `/arcdlc:review` reads too), the policy framework with `/arcdlc:policy`.
 
 ### Initiatives live in folders
 
@@ -261,7 +264,7 @@ arcdlc/
 │   ├── policy/references/   # the Policy of Policies framework
 │   ├── plan/references/     # plan-format.md, the executable-plan contract
 │   ├── plan-human/references/  # story-format.md, the board-story contract
-│   └── policy/  execute/  assist/  remove/  archive/  close/
+│   └── derive/  review/  execute/  assist/  remove/  archive/  close/
 ├── docs/
 │   ├── adr/                 # architecture decision records (README.md indexes them)
 │   ├── aics/<slug>/         # one folder per initiative: arch doc, plan, gap, comments
@@ -410,6 +413,8 @@ task, audit an existing codebase, produce a different format, or retire a finish
 ```
 /arcdlc:execute payments AIC-3       # implement only task AIC-3 in the payments initiative
 /arcdlc:examinate payments MDCA      # audit code against MDCA, gaps become plan tasks
+/arcdlc:review payments SOLID        # review only this branch's changes → docs/aics/payments/review.md
+/arcdlc:plan payments                # turn the open review findings into plan tasks
 /arcdlc:aic payments arc42           # produce an arc42 doc in docs/aics/payments/
 /arcdlc:aic payments arc42,tsc       # arc42 + Tech Stack Canvas, from one interview
 /arcdlc:aic payments arc42:html      # the arc42 doc as HTML instead of Markdown
