@@ -8,7 +8,7 @@
     {
       "name": "arcdlc",
       "source": "./",
-      "description": "ArcDLC — Architecture Development Life Cycle: /arcdlc:* delivery-workflow commands (grilling, aic, derive, policy, plan, plan-human, examinate, assist, execute, remove, archive). Installs for Claude Code, Codex, OpenCode, Cursor and Antigravity; developed and exercised on Claude Code."
+      "description": "ArcDLC — Architecture Development Life Cycle: /arcdlc:* delivery-workflow commands (grilling, aic, derive, policy, plan, plan-human, examinate, review, assist, execute, remove, archive). Installs for Claude Code, Codex, OpenCode, Cursor and Antigravity; developed and exercised on Claude Code."
     }
   ]
 }

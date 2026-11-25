@@ -31,14 +31,19 @@ skills, `arctool`, ADRs, and architecture documents.
 - **Phase** — the status of an initiative, read from its files by `arctool status`, never stored:
   `designing` (no `plan.md`, no `CLOSED.md`), `in progress` (a task not `DONE`), `ready to close`
   (every task `DONE`), `closed` (`CLOSED.md`).
-- **Pipeline skills** — `init`, `aic` or `derive`, `plan`, `execute`, `examinate`, `assist`, `archive`,
+- **Pipeline skills** — `init`, `aic` or `derive`, `plan`, `execute`, `examinate`, `review`, `assist`, `archive`,
   plus the lifecycle skills `close`, `remove` and `policy`, `plan-human` beside the chain, and
-  `grilling` under them all. Thirteen in total.
+  `grilling` under them all. Fourteen in total.
 - **Source AIC** — an architecture document someone else owns (usually an architect's AIC for a whole
   initiative), of which an engineer builds one part. `docs/aics/<slug>/source-aic.md` is its frozen
   copy, written only by `/arcdlc:derive`. See [ADR-0033](docs/adr/0033-a-derived-initiative-keeps-a-frozen-copy-of-its-source.md).
 - **Derived AIC** — the `aic.md` of a folder holding `source-aic.md`: one scope of the source (a stage,
   an epic, a ticket). It cites the source's decisions and decides only what the source leaves open.
+- **Review register** — `docs/aics/<slug>/review.md`: one `## Review` section per `/arcdlc:review`
+  run, each holding the `REV-NN` findings on one change set. `/arcdlc:plan` mirrors the open ones into
+  `plan.md`; the review never does. See [ADR-0034](docs/adr/0034-a-review-records-findings-and-leaves-the-plan-alone.md).
+- **Change set** — what `/arcdlc:review` reads: the diff from the merge base with the default branch
+  to the working tree, plus untracked files, or an explicit `--range`. Code outside it is not reviewed.
 - **Comment register** — `docs/aics/<slug>/comments.md`: one block per code comment marker found in
   the repository. `arctool scan` writes the evidence; it removes the comment from the code only with
   `--strip`, which `/arcdlc:assist` passes after the engineer says yes. Once stripped, the register is
@@ -83,7 +88,7 @@ skills, `arctool`, ADRs, and architecture documents.
   must always follow is not a reference document: it goes inline in the `SKILL.md`, because a skill is
   loaded while a reference is only read if the agent opens it. See [ADR-0020](docs/adr/0020-reference-library-dissolved-into-the-skills.md).
 - **The four virtues** — wisdom, courage, justice, temperance: how a skill decides, not how it writes.
-  `## Judge by the four virtues` is verbatim in all thirteen `SKILL.md` files and pinned by CI.
+  `## Judge by the four virtues` is verbatim in all fourteen `SKILL.md` files and pinned by CI.
 - **Workspace** — several git repositories checked out side by side under one directory, the
   **workspace root**, which is not itself a git repository. The agent, every `/arcdlc:*` command and
   every `arctool` call run from the root. See [ADR-0026](docs/adr/0026-a-workspace-keeps-its-docs-in-a-sibling-repository-named-docs.md).

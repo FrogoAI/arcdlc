@@ -188,19 +188,22 @@ period), is skipped by the executor — check this first when a plan appears to 
 
 ## Register Sync
 
-An initiative folder can hold two evidence registers beside `plan.md`, and both mirror into it the same way:
+An initiative folder can hold three evidence registers beside `plan.md`, and all mirror into it the same way:
 
 - `docs/aics/<slug>/gap.md` — compliance gaps, produced by `/arcdlc:examinate`.
 - `docs/aics/<slug>/comments.md` — code comment markers, swept by `arctool scan` and judged by `/arcdlc:assist`.
+- `docs/aics/<slug>/review.md` — findings on one change set, produced by `/arcdlc:review`. That skill never writes
+  `plan.md`; `/arcdlc:plan` mirrors the findings when the engineer runs it.
 
 When a register is used as an input source, every `### ...` block in it that is meant to be worked on must have a
 matching task block in the same folder's `docs/aics/<slug>/plan.md`. For `gap.md` that is every gap except one carrying
 `- Accepted: <reason>, <date>.`, which records a deviation the engineer accepted and gets no task. For `comments.md` it
 is every block whose `- Verdict:` is `ACTIONABLE`; a finding marked `UNCLEAR`, `STALE`, or `DEFERRED`, or one whose
-verdict is still empty, stays in the register and gets no task.
+verdict is still empty, stays in the register and gets no task. For `review.md` it is every `REV-NN` block that carries neither
+`- Accepted:` nor `- Resolved:`.
 
 A register line that carries a judgement never reaches the plan: `- Accepted:` in `gap.md`, `- Marker:` and
-`- Verdict:` in `comments.md`.
+`- Verdict:` in `comments.md`, `- Severity:`, `- Accepted:` and `- Resolved:` in `review.md`.
 
 A `comments.md` block carries one `- Marker:` line per marker it holds, because markers that share a group tag
 (`// ARCDLC:T1 ...`) are one block and one task. Such a block is named after its tag, so its task ID reads

@@ -7,7 +7,7 @@ argument-hint: "<slug>"
 # ArcDLC Close (/arcdlc:close)
 
 Close keeps the design in `docs/aics/<slug>/` where every link points, marks it with `CLOSED.md`,
-deletes `plan.md`, `plan-archive.md`, `plan-human.md`, `gap.md` and `comments.md`, and leaves the
+deletes `plan.md`, `plan-archive.md`, `plan-human.md`, `gap.md`, `comments.md` and `review.md`, and leaves the
 registry through `arctool sync`. A closed initiative is final: no skill changes it or deletes
 `CLOSED.md`; follow-up work is a new initiative.
 
@@ -93,11 +93,11 @@ terms into `CONTEXT.md` and hard trade-offs into `docs/adr/NNNN-<slug>.md`, neve
 
 ## Step 1 — Read the state
 
-When `CLOSED.md` exists and none of the five files (`plan.md`, `plan-archive.md`, `plan-human.md`,
-`gap.md`, `comments.md`) remain, stop: the initiative was already closed, on the date in its
+When `CLOSED.md` exists and none of the six files (`plan.md`, `plan-archive.md`, `plan-human.md`,
+`gap.md`, `comments.md`, `review.md`) remain, stop: the initiative was already closed, on the date in its
 `- Closed:` line.
 
-When `CLOSED.md` exists and some of the five files remain, an earlier close was interrupted. Skip
+When `CLOSED.md` exists and some of the six files remain, an earlier close was interrupted. Skip
 straight to Step 4, then Step 6: the note is already written, so only the confirmation and the
 deletion are left.
 
@@ -118,7 +118,7 @@ Before asking anything, report the blast radius:
 - Each `TODO` and `BLOCKED` task, by ID, title and status, called out so they are not missed.
 - The files that stay: every architecture document, image and other file in the folder.
 - The files that will be deleted: whichever of `plan.md`, `plan-archive.md`, `plan-human.md`,
-  `gap.md` and `comments.md` exist.
+  `gap.md`, `comments.md` and `review.md` exist.
 
 State plainly that a link pointing at one of the deleted files is not rewritten and may break; git
 history keeps the target.
@@ -143,7 +143,7 @@ Write `docs/aics/<slug>/CLOSED.md` in this exact shape.
 
 Line 1 is `# <title>`, the first `# ` heading of the architecture document: try `aic.md`, then
 `arc42.md`, `togaf.md`, `c4.md`, `tsc.md`, then the first other `.md` file left in the folder,
-alphabetically, that is not one of the five deleted files. With no architecture document at all, the
+alphabetically, that is not one of the six deleted files. With no architecture document at all, the
 title is the slug.
 
 Then a blank line and three list lines:
@@ -176,7 +176,7 @@ design round.
 
 ## Step 6 — Delete and refresh the registry
 
-Delete each of the five files that exists: `git rm <file>` when it is tracked, plain `rm <file>` when
+Delete each of the six files that exists: `git rm <file>` when it is tracked, plain `rm <file>` when
 it is not. Then refresh the registry. Probe once with `command -v arctool`: if present, run `arctool
 sync`. *Fallback (no `arctool`): delete the initiative's bullet from the `<!-- arcdlc:initiatives -->`
 blocks in `AGENTS.md` and `README.md`, and write or update the closed-count line the same way `arctool

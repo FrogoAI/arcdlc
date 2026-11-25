@@ -89,9 +89,17 @@ sync` runs from the workspace root and writes through the root links.
   (e.g. `/arcdlc:plan <slug> arc42` reads `docs/aics/<slug>/arc42.md`; `arc42:html` reads
   `docs/aics/<slug>/arc42.html`).
 - If no architecture document exists, stop and tell the user to run `/arcdlc:aic` first. Do not plan from a verbal
-  description — the pipeline requires the grilled, written document as the source of truth.
+  description — the pipeline requires the grilled, written document as the source of truth. The one exception is a
+  folder holding `docs/aics/<slug>/review.md` (written by `/arcdlc:review`): its open findings are the source of
+  truth, the plan is built from them alone, and Step 2.5 is a no-op.
 - Also read `docs/aics/<slug>/gap.md` if present (evidence register, possibly produced by `/arcdlc:examinate`),
-  `CONTEXT.md`, and `docs/adr/` for constraints.
+  `docs/aics/<slug>/review.md` if present (review findings from `/arcdlc:review`), `CONTEXT.md`, and `docs/adr/`
+  for constraints.
+- **Review findings become tasks here, and only here.** `/arcdlc:review` never writes `plan.md`. Mirror every
+  `### REV-NN` block of `review.md` that carries neither `- Accepted:` nor `- Resolved:` and whose ID is not in
+  `plan.md` yet, per the Register Sync rules in `references/plan-format.md`. Put `BLOCKER` findings first, then
+  `MAJOR`, then `MINOR`, unless a dependency needs another order. A finding that is not mechanical goes through the
+  Step 2.4 gate like any other task, never into the plan half-sharpened.
 
 ## Step 1.5 — Act on reviewed findings
 
@@ -181,7 +189,8 @@ mechanical is telling you one of two things, and neither is "use a stronger mode
   and every `WHERE` path carries that repository's prefix (`fdb-server/internal/migration/...`). A
   task that would change two repositories is two tasks. A task that changes only the hub uses
   `Repo: docs`.
-- If `docs/aics/<slug>/gap.md` or `docs/aics/<slug>/comments.md` exists, keep it in sync per the Register Sync
+- If `docs/aics/<slug>/gap.md`, `docs/aics/<slug>/comments.md` or `docs/aics/<slug>/review.md` exists, keep it in
+  sync per the Register Sync
   rules in the format guide.
 
 ## Step 2.4 — Design readiness gate (mandatory)

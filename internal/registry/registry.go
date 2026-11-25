@@ -43,13 +43,16 @@ var archDocPrecedence = []string{
 // register and no recognised architecture document would take its registry title
 // from that register. source-aic.md is the frozen copy /arcdlc:derive keeps of
 // another team's design; it would otherwise register before the derived aic.md
-// is written, under the source's title.
+// is written, under the source's title. review.md is the register
+// /arcdlc:review writes; a review of work with no design yet would otherwise
+// take its registry title from it.
 var nonArchDocs = map[string]bool{
 	"plan.md":         true,
 	"gap.md":          true,
 	"comments.md":     true,
 	"plan-archive.md": true,
 	"source-aic.md":   true,
+	"review.md":       true,
 }
 
 // Initiative is one entry in the registry.

@@ -29,6 +29,9 @@ once.
 | find our tech debt | `examinate` |
 | where are we off-architecture? | `examinate` |
 | review the codebase for compliance | `examinate` |
+| review my changes against SOLID | `review` |
+| review this branch before I open a PR | `review` |
+| check my diff against our logging policy | `review` |
 | make Jira tickets from the plan | `plan-human` |
 | put this work on the board | `plan-human` |
 | I need something to hand a developer | `plan-human` |
@@ -57,6 +60,9 @@ once.
   neither source, ask rather than guess.
 - **"build it"** is `execute` when a plan exists and `aic` when nothing is designed yet. The skill
   that fires should check for `docs/aics/<slug>/plan.md` before assuming.
+- **"review"** pulls both `examinate` and `review`. "Review the codebase" or "audit" is `examinate`, the
+  whole code with tasks filed. "Review my changes", "this branch", "the diff", or "before the PR" is
+  `review`, one change set with no task filed.
 - **"set up"** pulls both `init` and `policy`. "Set up" with a policy word ("set up our on-call
   process") is `policy`; "set up" naming a repository or a workspace is `init`.
 

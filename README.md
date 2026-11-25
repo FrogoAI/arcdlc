@@ -127,6 +127,7 @@ binary for linux/darwin × amd64/arm64. Then, in your project:
 /arcdlc:plan-human <slug> # board stories → docs/aics/<slug>/plan-human.md
 /arcdlc:assist <slug>    # sweep // ARCDLC markers → docs/aics/<slug>/comments.md + plan tasks
 /arcdlc:execute <slug>   # implement every task, one commit each
+/arcdlc:review <slug> [standards] # review only the branch's changes → docs/aics/<slug>/review.md
 /arcdlc:archive <slug>   # compact the plan, preserving history
 ```
 
@@ -146,6 +147,7 @@ argument (e.g. `/arcdlc:plan checkout`). Details and manual alternatives: [Insta
 | `/arcdlc:plan <slug>` | Decompose the approved architecture document into the executable task queue. | `docs/aics/<slug>/plan.md` |
 | `/arcdlc:plan-human <slug>` | Turn the task queue into the engineer stories a board shows: one story per service, numbered instructions, technical acceptance criteria, each self-contained so a ticket needs no file from this repository. | `docs/aics/<slug>/plan-human.md` + mapping in `CONTEXT.md` |
 | `/arcdlc:examinate <slug> [policy]` | Examine existing code for compliance with a named policy or design (`MDCA`, `DDD`, `SOLID`, …; default: the project's own AIC) and register gaps as plan tasks. | `docs/aics/<slug>/gap.md`, new TODO blocks in `docs/aics/<slug>/plan.md` |
+| `/arcdlc:review <slug> [standards] [--base <ref>\|--range <a>..<b>]` | Review only the change set (the branch against its base, plus uncommitted work), as a reviewer, against the named standards or policies (`SOLID,MDCA`, a `docs/policies/` path; default: the project's own AIC). Always applies `docs/policies/*.md`, `CONVENTION.md` and correctness. Shows the findings and a verdict, writes no task: `/arcdlc:plan <slug>` turns open findings into tasks when you run it. | `docs/aics/<slug>/review.md` |
 | `/arcdlc:assist <slug> [MARKER]` | Turn code comment markers into planned work: `arctool scan` sweeps the source for `// ARCDLC ...` (or `TODO`, `FIXME`, `HACK`, `XXX`, `BUG` when asked) and records each one, markers sharing a tag (`// ARCDLC:T1 ...`) become one record, the skill grills the engineer about the unclear ones, and every marker that names real work becomes a plan task. | `docs/aics/<slug>/comments.md`, new TODO blocks in `docs/aics/<slug>/plan.md`, the marker comments removed from the code once the engineer says so |
 | `/arcdlc:execute <slug> [TASK-ID]` | Implement all pending plan tasks (or one by ID): status `TODO→TAKEN→DONE`, tests/lint, one Conventional Commits commit per task. Problems seen outside a task are filed as blocked findings at the end of the plan and reviewed with you at the end of the run. | code, tests, commits |
 | `/arcdlc:remove <slug>` | Delete a design folder for good, after an explicit confirmation that warns references to it may be left pointing at nothing. | removed folder, refreshed `docs/aics/` + registry |
@@ -160,7 +162,7 @@ architecture templates with `/arcdlc:aic`, the audit standards (MDCA, DDD, SOLID
 ### Initiatives live in folders
 
 Each initiative gets its own folder `docs/aics/<slug>/` (holding the architecture document, `plan.md`,
-`gap.md`, `comments.md`, `plan-human.md`, and `plan-archive.md`). Every pipeline command takes the slug as its **first argument**
+`gap.md`, `comments.md`, `review.md`, `plan-human.md`, and `plan-archive.md`). Every pipeline command takes the slug as its **first argument**
 (e.g. `/arcdlc:execute checkout`); a command run without a slug lists the initiatives and stops,
 instead of guessing. Task IDs need only be unique within one initiative's plan, and each
 `/arcdlc:execute` run works exactly one initiative. `arctool sync` keeps the list below in step with
@@ -177,6 +179,7 @@ ArcDLC is a universal delivery tool: it builds **applications** and authors **po
 feed the same executable plan queue (`docs/aics/<slug>/plan.md`).
 
 - **Application track:** `/arcdlc:aic <slug>` (or `/arcdlc:derive <slug> <source> <scope>` for your part of someone else's design) → `/arcdlc:plan <slug>` → `/arcdlc:execute <slug>` → `/arcdlc:archive <slug>`
+- **Review track:** `/arcdlc:review <slug> [standards]` → `/arcdlc:plan <slug>` → `/arcdlc:execute <slug>`. The review only reports; the plan step is yours to run.
 - **Governance track:** `/arcdlc:policy <name>` → `/arcdlc:examinate <slug> docs/policies/<name>.md` → `/arcdlc:execute <slug>`
 
 In the governance track the policy itself is just rules — nothing gets "planned". `/arcdlc:examinate`
@@ -249,7 +252,7 @@ arcdlc/
 ├── .claude-plugin/          # plugin.json + marketplace.json (Claude Code plugin metadata)
 ├── .antigravity-plugin/     # the Antigravity plugin manifest
 ├── assets/                  # README banner (arcdlc_bg.svg)
-├── skills/                  # thirteen skills, one per directory (SKILL.md each)
+├── skills/                  # fourteen skills, one per directory (SKILL.md each)
 │   ├── grilling/            # the one-question-at-a-time interview every skill runs on
 │   │   └── references/      # Writing Style.md, the shared writing standard
 │   ├── init/references/     # Scaffold Templates.md, the repository and workspace scaffold templates

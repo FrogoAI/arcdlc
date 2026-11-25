@@ -1195,8 +1195,8 @@ func TestCmdAddUsage(t *testing.T) {
 }
 
 func TestUsageDocumentsAdd(t *testing.T) {
-	if version != "0.22.0" {
-		t.Errorf("version = %q, want %q", version, "0.22.0")
+	if version != "0.23.0" {
+		t.Errorf("version = %q, want %q", version, "0.23.0")
 	}
 	help := fmt.Sprintf(usage, version)
 	want := "arctool add    [--aic SLUG | --plan PATH] < block.md"
